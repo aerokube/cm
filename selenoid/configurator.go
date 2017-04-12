@@ -1,0 +1,144 @@
+package selenoid
+
+import (
+	"github.com/heroku/docker-registry-client/registry"
+	"sort"
+	"github.com/aandryashin/selenoid/config"
+	"fmt"
+	"github.com/docker/docker/client"
+	"github.com/docker/distribution/context"
+	"github.com/docker/docker/api/types"
+	"k8s.io/apimachinery/pkg/util/json"
+	"github.com/pkg/errors"
+)
+
+const (
+	registryUrl = "https://registry.hub.docker.com/"
+	firefox = "firefox"
+	opera = "opera"
+	tag_1216 = "12.16"
+)
+
+type Configurator struct {
+	Limit   int
+	Verbose bool
+	Pull    bool
+	docker *client.Client
+	reg *registry.Registry
+}
+
+func (c *Configurator) Init() error {
+	docker, err := client.NewEnvClient()
+	if (err != nil) {
+		return fmt.Errorf("Failed to init Docker client: %v", err)
+	}
+	c.docker = docker
+	reg, err := registry.New(registryUrl, "", "")
+	if err != nil {
+		return errors.New("Docker Registry is not available")
+	}
+	c.reg = reg
+	return nil
+}
+
+func (c *Configurator) Close() {
+	if (c.docker != nil) {
+		c.docker.Close()
+	}
+}
+
+func (c *Configurator) Configure() error {
+	browsers := c.createConfig()
+	data, err := json.Marshal(browsers)
+	if (err != nil) {
+		return fmt.Errorf("Failed to generate configuration: %v", err)
+	}
+	fmt.Println(string(data))
+	return nil
+}
+
+func (c *Configurator) createConfig() map[string] config.Versions {
+	supportedBrowsers := c.getSupportedBrowsers()
+	browsers := make(map[string] config.Versions)
+	for browserName, image := range supportedBrowsers {
+		c.printf("Processing browser \"%s\"...\n", browserName)
+		tags := c.fetchImageTags(image)
+		pulledTags := tags
+		if (c.Limit > 0 && c.Limit <= len(tags)) {
+			pulledTags = tags[:c.Limit - 1]
+		}
+		if (c.Pull) {
+			pulledTags = c.pullImages(c.docker, image, tags)
+		}
+		if (len(pulledTags) > 0) {
+			browsers[browserName] = c.createVersions(browserName, image, pulledTags)
+		}
+	}
+	return browsers
+}
+
+func (c *Configurator) getSupportedBrowsers() map[string] string {
+	supportedBrowsers := make(map[string] string)
+	supportedBrowsers["firefox"] = "selenoid/firefox"
+	supportedBrowsers["chrome"] = "selenoid/chrome"
+	supportedBrowsers["opera"] = "selenoid/opera"
+	supportedBrowsers["phantomjs"] = "selenoid/phantomjs"
+	return supportedBrowsers
+}
+
+func (c *Configurator) printf(format string, v ...interface{}) {
+	if (c.Verbose) {
+		fmt.Printf(format, v)
+	}
+}
+
+func (c *Configurator) fetchImageTags(image string) []string {
+	c.printf("Fetching tags for image \"%s\"...\n", image)
+	tags, err := c.reg.Tags(image)
+	if err != nil {
+		c.printf("Failed to fetch tags for image \"%s\"\n", image)
+		return nil
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(tags)))
+	return tags
+}
+
+func (c *Configurator) createVersions(browserName string, image string, tags []string) config.Versions {
+	versions := config.Versions{}
+	versions.Default = tags[0]
+	for _, tag := range tags {
+		browser := &config.Browser{
+			Image: imageWithTag(image, tag),
+			Port: "4444",
+			Path: "/",
+		}
+		if (browserName == firefox || (browserName == opera && tag == tag_1216) ) {
+			browser.Path = "/wd/hub"
+		}
+		versions.Versions[tag] = browser
+	}
+	return versions
+}
+
+func imageWithTag(image string, tag string) string {
+	return fmt.Sprintf("%s:%s", image, tag)
+}
+
+func (c *Configurator) pullImages(cl *client.Client, image string, tags []string) []string {
+	pulledTags := []string{}
+	ctx := context.Background()
+	loop: for _, tag := range tags {
+		ref := imageWithTag(image, tag)
+		resp, err := cl.ImagePull(ctx, ref, types.ImagePullOptions{})
+		resp.Close()
+		if (err != nil) {
+			c.printf("Failed to pull image \"%s\": %v\n", ref, err)
+			continue
+		}
+		pulledTags = append(pulledTags, tag)
+		if (c.Limit > 0 && len(pulledTags) == c.Limit) {
+			break loop
+		}
+	}
+	return pulledTags
+}

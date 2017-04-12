@@ -1,0 +1,31 @@
+sudo: required
+language: go
+
+go:
+  - 1.8
+
+services:
+  - docker
+
+script:
+  - go test -coverprofile=coverage.txt -covermode=atomic
+  - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build  
+
+before_install:
+  - go get -u github.com/kardianos/govendor
+  - govendor sync
+
+deploy:
+  - provider: script
+    script: travis/docker-push.sh latest
+    skip_cleanup: true
+    on:
+      branch: master
+  - provider: script
+    script: travis/docker-push.sh $TRAVIS_TAG
+    skip_cleanup: true
+    on:
+      tags: true
+
+after_success:
+- bash <(curl -s https://codecov.io/bash)
