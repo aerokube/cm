@@ -16,8 +16,6 @@ var (
 	}
 )
 
-
-
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 	rootCmd.AddCommand(selenoidCmd)

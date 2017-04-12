@@ -1,15 +1,15 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/aerokube/cm/selenoid"
-	"os"
 	"fmt"
+	"github.com/aerokube/cm/selenoid"
+	"github.com/spf13/cobra"
+	"os"
 )
 
 var (
 	limit int
-	pull bool
+	pull  bool
 )
 
 func init() {
@@ -24,12 +24,12 @@ var selenoidCmd = &cobra.Command{
 		cfg := selenoid.Configurator{Limit: limit, Verbose: verbose, Pull: pull}
 		err := cfg.Init()
 		defer cfg.Close()
-		if (err != nil) {
+		if err != nil {
 			fmt.Printf("Failed to initialize: %v\n", err)
 			os.Exit(1)
 		}
 		err = cfg.Configure()
-		if (err != nil) {
+		if err != nil {
 			fmt.Printf("Failed to configure: %v\n", err)
 			os.Exit(1)
 		}

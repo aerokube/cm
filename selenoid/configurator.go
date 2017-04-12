@@ -1,35 +1,35 @@
 package selenoid
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/aandryashin/selenoid/config"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/heroku/docker-registry-client/registry"
 	"sort"
-	"github.com/aandryashin/selenoid/config"
-	"fmt"
-	"github.com/docker/docker/client"
-	"github.com/docker/distribution/context"
-	"github.com/docker/docker/api/types"
-	"k8s.io/apimachinery/pkg/util/json"
-	"github.com/pkg/errors"
 )
 
 const (
 	registryUrl = "https://registry.hub.docker.com/"
-	firefox = "firefox"
-	opera = "opera"
-	tag_1216 = "12.16"
+	firefox     = "firefox"
+	opera       = "opera"
+	tag_1216    = "12.16"
 )
 
 type Configurator struct {
 	Limit   int
 	Verbose bool
 	Pull    bool
-	docker *client.Client
-	reg *registry.Registry
+	docker  *client.Client
+	reg     *registry.Registry
 }
 
 func (c *Configurator) Init() error {
 	docker, err := client.NewEnvClient()
-	if (err != nil) {
+	if err != nil {
 		return fmt.Errorf("Failed to init Docker client: %v", err)
 	}
 	c.docker = docker
@@ -42,7 +42,7 @@ func (c *Configurator) Init() error {
 }
 
 func (c *Configurator) Close() {
-	if (c.docker != nil) {
+	if c.docker != nil {
 		c.docker.Close()
 	}
 }
@@ -50,35 +50,35 @@ func (c *Configurator) Close() {
 func (c *Configurator) Configure() error {
 	browsers := c.createConfig()
 	data, err := json.Marshal(browsers)
-	if (err != nil) {
+	if err != nil {
 		return fmt.Errorf("Failed to generate configuration: %v", err)
 	}
 	fmt.Println(string(data))
 	return nil
 }
 
-func (c *Configurator) createConfig() map[string] config.Versions {
+func (c *Configurator) createConfig() map[string]config.Versions {
 	supportedBrowsers := c.getSupportedBrowsers()
-	browsers := make(map[string] config.Versions)
+	browsers := make(map[string]config.Versions)
 	for browserName, image := range supportedBrowsers {
 		c.printf("Processing browser \"%s\"...\n", browserName)
 		tags := c.fetchImageTags(image)
 		pulledTags := tags
-		if (c.Limit > 0 && c.Limit <= len(tags)) {
-			pulledTags = tags[:c.Limit - 1]
+		if c.Limit > 0 && c.Limit <= len(tags) {
+			pulledTags = tags[:c.Limit-1]
 		}
-		if (c.Pull) {
+		if c.Pull {
 			pulledTags = c.pullImages(c.docker, image, tags)
 		}
-		if (len(pulledTags) > 0) {
+		if len(pulledTags) > 0 {
 			browsers[browserName] = c.createVersions(browserName, image, pulledTags)
 		}
 	}
 	return browsers
 }
 
-func (c *Configurator) getSupportedBrowsers() map[string] string {
-	supportedBrowsers := make(map[string] string)
+func (c *Configurator) getSupportedBrowsers() map[string]string {
+	supportedBrowsers := make(map[string]string)
 	supportedBrowsers["firefox"] = "selenoid/firefox"
 	supportedBrowsers["chrome"] = "selenoid/chrome"
 	supportedBrowsers["opera"] = "selenoid/opera"
@@ -87,7 +87,7 @@ func (c *Configurator) getSupportedBrowsers() map[string] string {
 }
 
 func (c *Configurator) printf(format string, v ...interface{}) {
-	if (c.Verbose) {
+	if c.Verbose {
 		fmt.Printf(format, v)
 	}
 }
@@ -109,10 +109,10 @@ func (c *Configurator) createVersions(browserName string, image string, tags []s
 	for _, tag := range tags {
 		browser := &config.Browser{
 			Image: imageWithTag(image, tag),
-			Port: "4444",
-			Path: "/",
+			Port:  "4444",
+			Path:  "/",
 		}
-		if (browserName == firefox || (browserName == opera && tag == tag_1216) ) {
+		if browserName == firefox || (browserName == opera && tag == tag_1216) {
 			browser.Path = "/wd/hub"
 		}
 		versions.Versions[tag] = browser
@@ -127,16 +127,17 @@ func imageWithTag(image string, tag string) string {
 func (c *Configurator) pullImages(cl *client.Client, image string, tags []string) []string {
 	pulledTags := []string{}
 	ctx := context.Background()
-	loop: for _, tag := range tags {
+loop:
+	for _, tag := range tags {
 		ref := imageWithTag(image, tag)
 		resp, err := cl.ImagePull(ctx, ref, types.ImagePullOptions{})
 		resp.Close()
-		if (err != nil) {
+		if err != nil {
 			c.printf("Failed to pull image \"%s\": %v\n", ref, err)
 			continue
 		}
 		pulledTags = append(pulledTags, tag)
-		if (c.Limit > 0 && len(pulledTags) == c.Limit) {
+		if c.Limit > 0 && len(pulledTags) == c.Limit {
 			break loop
 		}
 	}
