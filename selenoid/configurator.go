@@ -72,7 +72,7 @@ func (c *Configurator) Close() {
 
 func (c *Configurator) Configure() (string, error) {
 	browsers := c.createConfig()
-	data, err := json.Marshal(browsers)
+	data, err := json.MarshalIndent(browsers, "", "    ")
 	if err != nil {
 		return "", fmt.Errorf("Failed to generate configuration: %v", err)
 	}
@@ -89,7 +89,6 @@ func (c *Configurator) createConfig() map[string]config.Versions {
 		if c.Pull {
 			pulledTags = c.pullImages(image, tags)
 		} else if c.Limit > 0 && c.Limit <= len(tags) {
-			fmt.Println(pulledTags)
 			pulledTags = tags[:c.Limit]
 		}
 
