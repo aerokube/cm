@@ -18,7 +18,7 @@ var (
 )
 
 const (
-	registryUrl = "https://registry.hub.docker.com/"
+	registryUrl = "https://registry.hub.docker.com"
 )
 
 func init() {
