@@ -9,8 +9,9 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/heroku/docker-registry-client/registry"
-	"net/http"
 	"sort"
+	"log"
+	"io/ioutil"
 )
 
 const (
@@ -30,6 +31,10 @@ type Configurator struct {
 }
 
 func (c *Configurator) Init() error {
+	if !c.Verbose {
+		log.SetFlags(0)
+		log.SetOutput(ioutil.Discard)
+	}
 	err := c.initDockerClient()
 	if err != nil {
 		return err
@@ -51,16 +56,8 @@ func (c *Configurator) initDockerClient() error {
 }
 
 func (c *Configurator) initRegistryClient() error {
-	logF := registry.Quiet
-	if c.Verbose {
-		logF = registry.Log
-	}
-	reg := &registry.Registry{
-		URL:    c.RegistryUrl,
-		Client: http.DefaultClient,
-		Logf:   logF,
-	}
-	if err := reg.Ping(); err != nil {
+	reg, err := registry.New(c.RegistryUrl, "", "")
+	if err != nil {
 		return errors.New("Docker Registry is not available")
 	}
 	c.reg = reg
