@@ -2,3 +2,4 @@
 *.iml
 cm
 vendor/*/
+coverage.*
