@@ -18,6 +18,7 @@ var (
 func init() {
 	mock = httptest.NewServer(mux())
 	os.Setenv("DOCKER_HOST", "tcp://"+hostPort(mock.URL))
+	os.Setenv("DOCKER_API_VERSION", "1.29")
 }
 
 func mux() http.Handler {
