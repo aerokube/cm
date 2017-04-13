@@ -23,18 +23,6 @@
 			"revisionTime": "2016-07-29T13:19:23Z"
 		},
 		{
-			"checksumSHA1": "urqEK+BXXJpojPPaP8ppYcZg2hI=",
-			"path": "github.com/aandryashin/selenoid/config",
-			"revision": "f1523f1b494f0e911b5144c1fc31e00d38b288b3",
-			"revisionTime": "2017-04-12T08:40:11Z"
-		},
-		{
-			"checksumSHA1": "/GSJxFIo/QIUI1hOGxlJNDv4gOk=",
-			"path": "github.com/aandryashin/selenoid/session",
-			"revision": "f1523f1b494f0e911b5144c1fc31e00d38b288b3",
-			"revisionTime": "2017-04-12T08:40:11Z"
-		},
-		{
 			"checksumSHA1": "Nge8TFcb8UiM2yAHwIoV8qdFKy4=",
 			"origin": "github.com/heroku/docker-registry-client/vendor/github.com/docker/distribution",
 			"path": "github.com/docker/distribution",
@@ -219,10 +207,10 @@
 		},
 		{
 			"checksumSHA1": "JbiWTzH699Sqz25XmDlsARpMN9w=",
-			"origin": "github.com/aandryashin/selenoid/vendor/github.com/docker/go-connections/nat",
+			"origin": "github.com/docker/docker/vendor/github.com/docker/go-connections/nat",
 			"path": "github.com/docker/go-connections/nat",
-			"revision": "f1523f1b494f0e911b5144c1fc31e00d38b288b3",
-			"revisionTime": "2017-04-12T08:40:11Z"
+			"revision": "9a5bf4b5ad10c7f0363a20d9781d4050d9de142e",
+			"revisionTime": "2017-03-21T07:28:54Z"
 		},
 		{
 			"checksumSHA1": "jUfDG3VQsA2UZHvvIXncgiddpYA=",
@@ -239,11 +227,11 @@
 			"revisionTime": "2017-03-21T07:28:54Z"
 		},
 		{
-			"checksumSHA1": "fInaxX723rCKOcfKMY8/x6f1o8E=",
-			"origin": "github.com/aandryashin/selenoid/vendor/github.com/docker/go-units",
+			"checksumSHA1": "Pv1NbtDY4wETwwSD2DsI+s8de/I=",
+			"origin": "github.com/docker/docker/vendor/github.com/docker/go-units",
 			"path": "github.com/docker/go-units",
-			"revision": "f1523f1b494f0e911b5144c1fc31e00d38b288b3",
-			"revisionTime": "2017-04-12T08:40:11Z"
+			"revision": "9a5bf4b5ad10c7f0363a20d9781d4050d9de142e",
+			"revisionTime": "2017-03-21T07:28:54Z"
 		},
 		{
 			"checksumSHA1": "r5hHPg1v9SL/gyatPWdaujG9aoE=",
