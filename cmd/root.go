@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	verbose bool
-	rootCmd = &cobra.Command{
+	verbose  bool
+	registry string
+	rootCmd  = &cobra.Command{
 		Use:   "cm",
 		Short: "cm is a configuration management tool for Aerokube products",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -16,8 +17,13 @@ var (
 	}
 )
 
+const (
+	registryUrl = "https://registry.hub.docker.com/"
+)
+
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+	rootCmd.PersistentFlags().StringVarP(&registry, "registry", "r", registryUrl, "Docker registry to use")
 	rootCmd.AddCommand(selenoidCmd)
 }
 

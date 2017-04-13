@@ -9,32 +9,58 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/heroku/docker-registry-client/registry"
+	"net/http"
 	"sort"
 )
 
 const (
-	registryUrl = "https://registry.hub.docker.com/"
-	firefox     = "firefox"
-	opera       = "opera"
-	tag_1216    = "12.16"
+	latest   = "latest"
+	firefox  = "firefox"
+	opera    = "opera"
+	tag_1216 = "12.16"
 )
 
 type Configurator struct {
-	Limit   int
-	Verbose bool
-	Pull    bool
-	docker  *client.Client
-	reg     *registry.Registry
+	Limit       int
+	Verbose     bool
+	Pull        bool
+	RegistryUrl string
+	docker      *client.Client
+	reg         *registry.Registry
 }
 
 func (c *Configurator) Init() error {
+	err := c.initDockerClient()
+	if err != nil {
+		return err
+	}
+	err = c.initRegistryClient()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Configurator) initDockerClient() error {
 	docker, err := client.NewEnvClient()
 	if err != nil {
 		return fmt.Errorf("Failed to init Docker client: %v", err)
 	}
 	c.docker = docker
-	reg, err := registry.New(registryUrl, "", "")
-	if err != nil {
+	return nil
+}
+
+func (c *Configurator) initRegistryClient() error {
+	logF := registry.Quiet
+	if c.Verbose {
+		logF = registry.Log
+	}
+	reg := &registry.Registry{
+		URL:    c.RegistryUrl,
+		Client: http.DefaultClient,
+		Logf:   logF,
+	}
+	if err := reg.Ping(); err != nil {
 		return errors.New("Docker Registry is not available")
 	}
 	c.reg = reg
@@ -47,14 +73,13 @@ func (c *Configurator) Close() {
 	}
 }
 
-func (c *Configurator) Configure() error {
+func (c *Configurator) Configure() (string, error) {
 	browsers := c.createConfig()
 	data, err := json.Marshal(browsers)
 	if err != nil {
-		return fmt.Errorf("Failed to generate configuration: %v", err)
+		return "", fmt.Errorf("Failed to generate configuration: %v", err)
 	}
-	fmt.Println(string(data))
-	return nil
+	return string(data), nil
 }
 
 func (c *Configurator) createConfig() map[string]config.Versions {
@@ -64,12 +89,13 @@ func (c *Configurator) createConfig() map[string]config.Versions {
 		c.printf("Processing browser \"%s\"...\n", browserName)
 		tags := c.fetchImageTags(image)
 		pulledTags := tags
-		if c.Limit > 0 && c.Limit <= len(tags) {
-			pulledTags = tags[:c.Limit-1]
-		}
 		if c.Pull {
-			pulledTags = c.pullImages(c.docker, image, tags)
+			pulledTags = c.pullImages(image, tags)
+		} else if c.Limit > 0 && c.Limit <= len(tags) {
+			fmt.Println(pulledTags)
+			pulledTags = tags[:c.Limit]
 		}
+
 		if len(pulledTags) > 0 {
 			browsers[browserName] = c.createVersions(browserName, image, pulledTags)
 		}
@@ -88,7 +114,7 @@ func (c *Configurator) getSupportedBrowsers() map[string]string {
 
 func (c *Configurator) printf(format string, v ...interface{}) {
 	if c.Verbose {
-		fmt.Printf(format, v)
+		fmt.Printf(format, v...)
 	}
 }
 
@@ -99,13 +125,27 @@ func (c *Configurator) fetchImageTags(image string) []string {
 		c.printf("Failed to fetch tags for image \"%s\"\n", image)
 		return nil
 	}
-	sort.Sort(sort.Reverse(sort.StringSlice(tags)))
-	return tags
+	tagsWithoutLatest := filterOutLatest(tags)
+	strSlice := sort.StringSlice(tagsWithoutLatest)
+	sort.Sort(sort.Reverse(strSlice))
+	return tagsWithoutLatest
+}
+
+func filterOutLatest(tags []string) []string {
+	ret := []string{}
+	for _, tag := range tags {
+		if tag != latest {
+			ret = append(ret, tag)
+		}
+	}
+	return ret
 }
 
 func (c *Configurator) createVersions(browserName string, image string, tags []string) config.Versions {
-	versions := config.Versions{}
-	versions.Default = tags[0]
+	versions := config.Versions{
+		Default:  tags[0],
+		Versions: make(map[string]*config.Browser),
+	}
 	for _, tag := range tags {
 		browser := &config.Browser{
 			Image: imageWithTag(image, tag),
@@ -124,14 +164,17 @@ func imageWithTag(image string, tag string) string {
 	return fmt.Sprintf("%s:%s", image, tag)
 }
 
-func (c *Configurator) pullImages(cl *client.Client, image string, tags []string) []string {
+func (c *Configurator) pullImages(image string, tags []string) []string {
 	pulledTags := []string{}
 	ctx := context.Background()
 loop:
 	for _, tag := range tags {
 		ref := imageWithTag(image, tag)
-		resp, err := cl.ImagePull(ctx, ref, types.ImagePullOptions{})
-		resp.Close()
+		c.printf("Pulling image \"%s\"...\n", ref)
+		resp, err := c.docker.ImagePull(ctx, ref, types.ImagePullOptions{})
+		if resp != nil {
+			resp.Close()
+		}
 		if err != nil {
 			c.printf("Failed to pull image \"%s\": %v\n", ref, err)
 			continue
