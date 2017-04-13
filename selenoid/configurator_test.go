@@ -33,7 +33,7 @@ func mux() http.Handler {
 	mux.HandleFunc("/v2/selenoid/firefox/tags/list", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
-			fmt.Fprintln(w, `{"name":"firefox", "tags": ["46.0", "45.0", "47.0", "latest"]}`)
+			fmt.Fprintln(w, `{"name":"firefox", "tags": ["46.0", "45.0", "7.0", "latest"]}`)
 		},
 	))
 
@@ -75,9 +75,9 @@ func TestFetchImageTags(t *testing.T) {
 	AssertThat(t, err, Is{nil})
 	tags := c.fetchImageTags("selenoid/firefox")
 	AssertThat(t, len(tags), EqualTo{3})
-	AssertThat(t, tags[0], EqualTo{"47.0"})
-	AssertThat(t, tags[1], EqualTo{"46.0"})
-	AssertThat(t, tags[2], EqualTo{"45.0"})
+	AssertThat(t, tags[0], EqualTo{"46.0"})
+	AssertThat(t, tags[1], EqualTo{"45.0"})
+	AssertThat(t, tags[2], EqualTo{"7.0"})
 }
 
 func TestPullImages(t *testing.T) {
@@ -120,18 +120,18 @@ func testCreateConfig(t *testing.T, pull bool) {
 	AssertThat(t, firefoxVersions, Is{Not{nil}})
 
 	correctFFBrowsers := make(map[string]*config.Browser)
-	correctFFBrowsers["47.0"] = &config.Browser{
-		Image: "selenoid/firefox:47.0",
-		Port:  "4444",
-		Path:  "/wd/hub",
-	}
 	correctFFBrowsers["46.0"] = &config.Browser{
 		Image: "selenoid/firefox:46.0",
 		Port:  "4444",
 		Path:  "/wd/hub",
 	}
+	correctFFBrowsers["45.0"] = &config.Browser{
+		Image: "selenoid/firefox:45.0",
+		Port:  "4444",
+		Path:  "/wd/hub",
+	}
 	AssertThat(t, firefoxVersions, EqualTo{config.Versions{
-		Default:  "47.0",
+		Default:  "46.0",
 		Versions: correctFFBrowsers,
 	}})
 

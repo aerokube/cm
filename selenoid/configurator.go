@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/heroku/docker-registry-client/registry"
+	. "vbom.ml/util/sortorder"
 	"sort"
 	"log"
 	"io/ioutil"
@@ -122,7 +123,7 @@ func (c *Configurator) fetchImageTags(image string) []string {
 		return nil
 	}
 	tagsWithoutLatest := filterOutLatest(tags)
-	strSlice := sort.StringSlice(tagsWithoutLatest)
+	strSlice := Natural(tagsWithoutLatest)
 	sort.Sort(sort.Reverse(strSlice))
 	return tagsWithoutLatest
 }
