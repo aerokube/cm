@@ -2,4 +2,4 @@ FROM scratch
 
 COPY cm /
 
-CMD ["/cm"]
+ENTRYPOINT ["/cm"]
