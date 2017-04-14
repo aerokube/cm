@@ -16,7 +16,7 @@ var (
 func init() {
 	selenoidCmd.Flags().IntVarP(&limit, "limit", "l", 5, "process only last N versions")
 	selenoidCmd.Flags().BoolVarP(&pull, "pull", "p", false, "pull images if not present")
-	selenoidCmd.Flags().IntVarP(&tmpfs, "tmpfs", "t", 512, "add tmpfs volume sized in megabytes")
+	selenoidCmd.Flags().IntVarP(&tmpfs, "tmpfs", "t", 0, "add tmpfs volume sized in megabytes")
 }
 
 var selenoidCmd = &cobra.Command{
