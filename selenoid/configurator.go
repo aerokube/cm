@@ -3,7 +3,6 @@ package selenoid
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/aerokube/selenoid/config"
 	"github.com/docker/docker/api/types"
@@ -60,7 +59,7 @@ func (c *Configurator) initDockerClient() error {
 func (c *Configurator) initRegistryClient() error {
 	reg, err := registry.New(c.RegistryUrl, "", "")
 	if err != nil {
-		return errors.New("Docker Registry is not available")
+		return fmt.Errorf("Docker Registry is not available: %v", err)
 	}
 	c.reg = reg
 	return nil
