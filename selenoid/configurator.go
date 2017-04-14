@@ -1,6 +1,7 @@
 package selenoid
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,10 +9,10 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/heroku/docker-registry-client/registry"
-	. "vbom.ml/util/sortorder"
-	"sort"
-	"log"
 	"io/ioutil"
+	"log"
+	"sort"
+	. "vbom.ml/util/sortorder"
 )
 
 const (
@@ -34,7 +35,7 @@ type Configurator struct {
 func NewConfigurator(registryUrl string, verbose bool) (*Configurator, error) {
 	c := &Configurator{
 		RegistryUrl: registryUrl,
-		Verbose: verbose,
+		Verbose:     verbose,
 	}
 	if !c.Verbose {
 		log.SetFlags(0)
@@ -156,8 +157,8 @@ func (c *Configurator) createVersions(browserName string, image string, tags []s
 		if browserName == firefox || (browserName == opera && tag == tag_1216) {
 			browser.Path = "/wd/hub"
 		}
-		if (c.Tmpfs > 0) {
-			tmpfs := make(map[string] string)
+		if c.Tmpfs > 0 {
+			tmpfs := make(map[string]string)
 			tmpfs["/tmp"] = fmt.Sprintf("size=%dm", c.Tmpfs)
 			browser.Tmpfs = tmpfs
 		}
@@ -177,12 +178,7 @@ loop:
 	for _, tag := range tags {
 		ref := imageWithTag(image, tag)
 		c.printf("Pulling image \"%s\"...\n", ref)
-		resp, err := c.docker.ImagePull(ctx, ref, types.ImagePullOptions{})
-		if resp != nil {
-			resp.Close()
-		}
-		if err != nil {
-			c.printf("Failed to pull image \"%s\": %v\n", ref, err)
+		if !c.pullImage(ctx, ref) {
 			continue
 		}
 		pulledTags = append(pulledTags, tag)
@@ -191,4 +187,42 @@ loop:
 		}
 	}
 	return pulledTags
+}
+
+func (c *Configurator) pullImage(ctx context.Context, ref string) bool {
+	resp, err := c.docker.ImagePull(ctx, ref, types.ImagePullOptions{})
+	if err != nil {
+		c.printf("Failed to pull image \"%s\": %v", ref, err)
+		return false
+	}
+	defer resp.Close()
+	var row struct {
+		Id     string `json:"id"`
+		Status string `json:"status"`
+	}
+	scanner := bufio.NewScanner(resp)
+	for prev := ""; scanner.Scan(); {
+		err := json.Unmarshal(scanner.Bytes(), &row)
+		if err != nil {
+			log.Fatal(err)
+		}
+		select {
+		case <-ctx.Done():
+			{
+				c.printf("Pulling \"%s\" interrupted: %v", ref, ctx.Err())
+				return false
+			}
+		default:
+			{
+				if prev != row.Status {
+					prev = row.Status
+					c.printf("%s: %s\n", row.Status, row.Id)
+				}
+			}
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		c.printf("Failed to pull image \"%s\": %v", ref, err)
+	}
+	return true
 }

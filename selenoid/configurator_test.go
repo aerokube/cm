@@ -110,7 +110,7 @@ func testCreateConfig(t *testing.T, pull bool) {
 
 	tmpfsMap := make(map[string]string)
 	tmpfsMap["/tmp"] = "size=512m"
-	
+
 	correctFFBrowsers := make(map[string]*config.Browser)
 	correctFFBrowsers["46.0"] = &config.Browser{
 		Image: "selenoid/firefox:46.0",
