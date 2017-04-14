@@ -8,13 +8,13 @@ import (
 )
 
 var (
-	limit int
+	lastVersions int
 	pull  bool
 	tmpfs int
 )
 
 func init() {
-	selenoidCmd.Flags().IntVarP(&limit, "limit", "l", 5, "process only last N versions")
+	selenoidCmd.Flags().IntVarP(&lastVersions, "last-versions", "l", 5, "process only last N versions")
 	selenoidCmd.Flags().BoolVarP(&pull, "pull", "p", false, "pull images if not present")
 	selenoidCmd.Flags().IntVarP(&tmpfs, "tmpfs", "t", 0, "add tmpfs volume sized in megabytes")
 }
@@ -24,7 +24,7 @@ var selenoidCmd = &cobra.Command{
 	Short: "Generate JSON configuration for Selenoid",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := selenoid.NewConfigurator(registry, verbose)
-		cfg.Limit = limit
+		cfg.LastVersions = lastVersions
 		cfg.Pull = pull
 		cfg.Tmpfs = tmpfs
 		if err != nil {

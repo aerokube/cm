@@ -23,13 +23,13 @@ const (
 )
 
 type Configurator struct {
-	Limit       int
-	Verbose     bool
-	Pull        bool
-	RegistryUrl string
-	Tmpfs       int
-	docker      *client.Client
-	reg         *registry.Registry
+	LastVersions int
+	Verbose      bool
+	Pull         bool
+	RegistryUrl  string
+	Tmpfs        int
+	docker       *client.Client
+	reg          *registry.Registry
 }
 
 func NewConfigurator(registryUrl string, verbose bool) (*Configurator, error) {
@@ -94,8 +94,8 @@ func (c *Configurator) createConfig() map[string]config.Versions {
 		pulledTags := tags
 		if c.Pull {
 			pulledTags = c.pullImages(image, tags)
-		} else if c.Limit > 0 && c.Limit <= len(tags) {
-			pulledTags = tags[:c.Limit]
+		} else if c.LastVersions > 0 && c.LastVersions <= len(tags) {
+			pulledTags = tags[:c.LastVersions]
 		}
 
 		if len(pulledTags) > 0 {
@@ -182,7 +182,7 @@ loop:
 			continue
 		}
 		pulledTags = append(pulledTags, tag)
-		if c.Limit > 0 && len(pulledTags) == c.Limit {
+		if c.LastVersions > 0 && len(pulledTags) == c.LastVersions {
 			break loop
 		}
 	}

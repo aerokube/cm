@@ -97,7 +97,7 @@ func TestLimitNoPull(t *testing.T) {
 func testCreateConfig(t *testing.T, pull bool) {
 	c, err := NewConfigurator(mock.URL, true)
 	AssertThat(t, err, Is{nil})
-	c.Limit = 2
+	c.LastVersions = 2
 	c.Pull = pull
 	c.Tmpfs = 512
 	defer c.Close()
