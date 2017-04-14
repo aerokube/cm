@@ -3,7 +3,7 @@ package selenoid
 import (
 	"fmt"
 	. "github.com/aandryashin/matchers"
-	"github.com/aandryashin/selenoid/config"
+	"github.com/aerokube/selenoid/config"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -108,6 +108,7 @@ func testCreateConfig(t *testing.T, pull bool) {
 		Limit:       2,
 		Pull:        pull,
 		Verbose:     true,
+		Tmpfs: 512,
 	}
 	err := c.Init()
 	defer c.Close()
@@ -119,16 +120,21 @@ func testCreateConfig(t *testing.T, pull bool) {
 	AssertThat(t, hasFirefoxKey, Is{true})
 	AssertThat(t, firefoxVersions, Is{Not{nil}})
 
+	tmpfsMap := make(map[string]string)
+	tmpfsMap["/tmp"] = "size=512m"
+	
 	correctFFBrowsers := make(map[string]*config.Browser)
 	correctFFBrowsers["46.0"] = &config.Browser{
 		Image: "selenoid/firefox:46.0",
 		Port:  "4444",
 		Path:  "/wd/hub",
+		Tmpfs: tmpfsMap,
 	}
 	correctFFBrowsers["45.0"] = &config.Browser{
 		Image: "selenoid/firefox:45.0",
 		Port:  "4444",
 		Path:  "/wd/hub",
+		Tmpfs: tmpfsMap,
 	}
 	AssertThat(t, firefoxVersions, EqualTo{config.Versions{
 		Default:  "46.0",
@@ -144,5 +150,6 @@ func testCreateConfig(t *testing.T, pull bool) {
 	correctPhantomjsBrowsers["2.1.1"] = &config.Browser{
 		Image: "selenoid/phantomjs:2.1.1",
 		Port:  "4444",
+		Tmpfs: tmpfsMap,
 	}
 }

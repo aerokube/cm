@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/aandryashin/selenoid/config"
+	"github.com/aerokube/selenoid/config"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/heroku/docker-registry-client/registry"
@@ -27,6 +27,7 @@ type Configurator struct {
 	Verbose     bool
 	Pull        bool
 	RegistryUrl string
+	Tmpfs       int
 	docker      *client.Client
 	reg         *registry.Registry
 }
@@ -151,6 +152,11 @@ func (c *Configurator) createVersions(browserName string, image string, tags []s
 		}
 		if browserName == firefox || (browserName == opera && tag == tag_1216) {
 			browser.Path = "/wd/hub"
+		}
+		if (c.Tmpfs > 0) {
+			tmpfs := make(map[string] string)
+			tmpfs["/tmp"] = fmt.Sprintf("size=%dm", c.Tmpfs)
+			browser.Tmpfs = tmpfs
 		}
 		versions.Versions[tag] = browser
 	}
