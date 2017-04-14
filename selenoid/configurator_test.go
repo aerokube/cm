@@ -66,13 +66,9 @@ func TestImageWithTag(t *testing.T) {
 }
 
 func TestFetchImageTags(t *testing.T) {
-	c := Configurator{
-		RegistryUrl: mock.URL,
-		Verbose:     true,
-	}
-	err := c.Init()
-	defer c.Close()
+	c, err := NewConfigurator(mock.URL, true)
 	AssertThat(t, err, Is{nil})
+	defer c.Close()
 	tags := c.fetchImageTags("selenoid/firefox")
 	AssertThat(t, len(tags), EqualTo{3})
 	AssertThat(t, tags[0], EqualTo{"46.0"})
@@ -81,13 +77,9 @@ func TestFetchImageTags(t *testing.T) {
 }
 
 func TestPullImages(t *testing.T) {
-	c := Configurator{
-		RegistryUrl: mock.URL,
-		Verbose:     true,
-	}
-	err := c.Init()
-	defer c.Close()
+	c, err := NewConfigurator(mock.URL, true)
 	AssertThat(t, err, Is{nil})
+	defer c.Close()
 	tags := c.pullImages("selenoid/firefox", []string{"46.0", "45.0"})
 	AssertThat(t, len(tags), EqualTo{2})
 	AssertThat(t, tags[0], EqualTo{"46.0"})
@@ -103,16 +95,12 @@ func TestLimitNoPull(t *testing.T) {
 }
 
 func testCreateConfig(t *testing.T, pull bool) {
-	c := Configurator{
-		RegistryUrl: mock.URL,
-		Limit:       2,
-		Pull:        pull,
-		Verbose:     true,
-		Tmpfs: 512,
-	}
-	err := c.Init()
-	defer c.Close()
+	c, err := NewConfigurator(mock.URL, true)
 	AssertThat(t, err, Is{nil})
+	c.Limit = 2
+	c.Pull = pull
+	c.Tmpfs = 512
+	defer c.Close()
 	cfg := c.createConfig()
 	AssertThat(t, len(cfg), EqualTo{2})
 

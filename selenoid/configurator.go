@@ -31,20 +31,24 @@ type Configurator struct {
 	reg         *registry.Registry
 }
 
-func (c *Configurator) Init() error {
+func NewConfigurator(registryUrl string, verbose bool) (*Configurator, error) {
+	c := &Configurator{
+		RegistryUrl: registryUrl,
+		Verbose: verbose,
+	}
 	if !c.Verbose {
 		log.SetFlags(0)
 		log.SetOutput(ioutil.Discard)
 	}
 	err := c.initDockerClient()
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("New configurator: %v", err)
 	}
 	err = c.initRegistryClient()
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("New configurator: %v", err)
 	}
-	return nil
+	return c, nil
 }
 
 func (c *Configurator) initDockerClient() error {

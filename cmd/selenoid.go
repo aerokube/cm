@@ -23,13 +23,15 @@ var selenoidCmd = &cobra.Command{
 	Use:   "selenoid",
 	Short: "Generate JSON configuration for Selenoid",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := selenoid.Configurator{Limit: limit, Verbose: verbose, Pull: pull, RegistryUrl: registry, Tmpfs: tmpfs}
-		err := cfg.Init()
-		defer cfg.Close()
+		cfg, err := selenoid.NewConfigurator(registry, verbose)
+		cfg.Limit = limit
+		cfg.Pull = pull
+		cfg.Tmpfs = tmpfs
 		if err != nil {
 			fmt.Printf("Failed to initialize: %v\n", err)
 			os.Exit(1)
 		}
+		defer cfg.Close()
 		data, err := cfg.Configure()
 		if err != nil {
 			fmt.Printf("Failed to configure: %v\n", err)
