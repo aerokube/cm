@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"sort"
+
 	"github.com/aerokube/selenoid/config"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/heroku/docker-registry-client/registry"
-	"io/ioutil"
-	"log"
-	"sort"
 	. "vbom.ml/util/sortorder"
 )
 
@@ -106,11 +107,11 @@ func (c *Configurator) createConfig() map[string]config.Versions {
 }
 
 func (c *Configurator) getSupportedBrowsers() map[string]string {
-	supportedBrowsers := make(map[string]string)
-	supportedBrowsers["firefox"] = "selenoid/firefox"
-	supportedBrowsers["chrome"] = "selenoid/chrome"
-	supportedBrowsers["opera"] = "selenoid/opera"
-	return supportedBrowsers
+	return map[string]string{
+		"firefox": "selenoid/firefox",
+		"chrome":  "selenoid/chrome",
+		"opera":   "selenoid/opera",
+	}
 }
 
 func (c *Configurator) printf(format string, v ...interface{}) {
