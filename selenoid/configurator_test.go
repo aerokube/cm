@@ -37,10 +37,10 @@ func mux() http.Handler {
 		},
 	))
 
-	mux.HandleFunc("/v2/selenoid/phantomjs/tags/list", http.HandlerFunc(
+	mux.HandleFunc("/v2/selenoid/opera/tags/list", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
-			fmt.Fprintln(w, `{"name":"phantomjs", "tags": ["2.1.1", "latest"]}`)
+			fmt.Fprintln(w, `{"name":"opera", "tags": ["44.0", "latest"]}`)
 		},
 	))
 
@@ -129,14 +129,14 @@ func testCreateConfig(t *testing.T, pull bool) {
 		Versions: correctFFBrowsers,
 	}})
 
-	phantomjsVersions, hasPhantomjsKey := cfg["phantomjs"]
+	operaVersions, hasPhantomjsKey := cfg["opera"]
 	AssertThat(t, hasPhantomjsKey, Is{true})
-	AssertThat(t, phantomjsVersions, Is{Not{nil}})
-	AssertThat(t, phantomjsVersions.Default, EqualTo{"2.1.1"})
+	AssertThat(t, operaVersions, Is{Not{nil}})
+	AssertThat(t, operaVersions.Default, EqualTo{"44.0"})
 
 	correctPhantomjsBrowsers := make(map[string]*config.Browser)
 	correctPhantomjsBrowsers["2.1.1"] = &config.Browser{
-		Image: "selenoid/phantomjs:2.1.1",
+		Image: "selenoid/opera:44.0",
 		Port:  "4444",
 		Tmpfs: tmpfsMap,
 	}
