@@ -110,7 +110,6 @@ func (c *Configurator) getSupportedBrowsers() map[string]string {
 	supportedBrowsers["firefox"] = "selenoid/firefox"
 	supportedBrowsers["chrome"] = "selenoid/chrome"
 	supportedBrowsers["opera"] = "selenoid/opera"
-	supportedBrowsers["phantomjs"] = "selenoid/phantomjs"
 	return supportedBrowsers
 }
 
