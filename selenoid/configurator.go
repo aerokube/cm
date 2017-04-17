@@ -25,7 +25,7 @@ const (
 
 type Configurator struct {
 	LastVersions int
-	Verbose      bool
+	Quiet        bool
 	Pull         bool
 	RegistryUrl  string
 	Tmpfs        int
@@ -33,12 +33,12 @@ type Configurator struct {
 	reg          *registry.Registry
 }
 
-func NewConfigurator(registryUrl string, verbose bool) (*Configurator, error) {
+func NewConfigurator(registryUrl string, quiet bool) (*Configurator, error) {
 	c := &Configurator{
 		RegistryUrl: registryUrl,
-		Verbose:     verbose,
+		Quiet:     quiet,
 	}
-	if !c.Verbose {
+	if c.Quiet {
 		log.SetFlags(0)
 		log.SetOutput(ioutil.Discard)
 	}
@@ -115,8 +115,8 @@ func (c *Configurator) getSupportedBrowsers() map[string]string {
 }
 
 func (c *Configurator) printf(format string, v ...interface{}) {
-	if c.Verbose {
-		fmt.Printf(format, v...)
+	if !c.Quiet {
+		log.Printf(format, v...)
 	}
 }
 
