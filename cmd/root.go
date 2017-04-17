@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	verbose  bool
+	quiet bool
 	registry string
 	rootCmd  = &cobra.Command{
 		Use:   "cm",
@@ -22,7 +22,7 @@ const (
 )
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "suppress output")
 	rootCmd.PersistentFlags().StringVarP(&registry, "registry", "r", registryUrl, "Docker registry to use")
 	rootCmd.AddCommand(selenoidCmd)
 }

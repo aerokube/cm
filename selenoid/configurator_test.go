@@ -48,6 +48,8 @@ func mux() http.Handler {
 	mux.HandleFunc("/v1.29/images/create", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
+			output := `{"id": "a86cd3433934", "status": "Downloading layer"}`
+			w.Write([]byte(output))
 		},
 	))
 	return mux
@@ -66,7 +68,7 @@ func TestImageWithTag(t *testing.T) {
 }
 
 func TestFetchImageTags(t *testing.T) {
-	c, err := NewConfigurator(mock.URL, true)
+	c, err := NewConfigurator(mock.URL, false)
 	AssertThat(t, err, Is{nil})
 	defer c.Close()
 	tags := c.fetchImageTags("selenoid/firefox")
@@ -77,7 +79,7 @@ func TestFetchImageTags(t *testing.T) {
 }
 
 func TestPullImages(t *testing.T) {
-	c, err := NewConfigurator(mock.URL, true)
+	c, err := NewConfigurator(mock.URL, false)
 	AssertThat(t, err, Is{nil})
 	defer c.Close()
 	tags := c.pullImages("selenoid/firefox", []string{"46.0", "45.0"})
@@ -95,7 +97,7 @@ func TestLimitNoPull(t *testing.T) {
 }
 
 func testCreateConfig(t *testing.T, pull bool) {
-	c, err := NewConfigurator(mock.URL, true)
+	c, err := NewConfigurator(mock.URL, false)
 	AssertThat(t, err, Is{nil})
 	c.LastVersions = 2
 	c.Pull = pull

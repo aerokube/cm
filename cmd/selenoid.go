@@ -23,7 +23,7 @@ var selenoidCmd = &cobra.Command{
 	Use:   "selenoid",
 	Short: "Generate JSON configuration for Selenoid",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := selenoid.NewConfigurator(registry, verbose)
+		cfg, err := selenoid.NewConfigurator(registry, quiet)
 		cfg.LastVersions = lastVersions
 		cfg.Pull = pull
 		cfg.Tmpfs = tmpfs
