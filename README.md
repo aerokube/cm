@@ -14,7 +14,7 @@ To build cm:
 ```
 $ go get -u github.com/kardianos/govendor
 ```
-4) Get Ggr source:
+4) Get cm source:
 ```
 $ go get -d github.com/aerokube/cm
 ```
@@ -30,7 +30,7 @@ $ govendor sync
 ```
 $ go build
 ```
-8) Run Ggr:
+8) Run cm:
 ```
 $ ./cm --help
 ```
