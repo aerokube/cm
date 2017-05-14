@@ -17,14 +17,9 @@ var (
 	}
 )
 
-const (
-	registryUrl = "https://registry.hub.docker.com"
-)
-
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "suppress output")
-	rootCmd.PersistentFlags().StringVarP(&registry, "registry", "r", registryUrl, "Docker registry to use")
 	rootCmd.AddCommand(selenoidCmd)
+	rootCmd.AddCommand(versionCmd)
 }
 
 func Execute() {

@@ -9,13 +9,24 @@ services:
 
 script:
   - go test -race -v github.com/aerokube/cm/selenoid -coverprofile=coverage.txt -covermode=atomic -coverpkg github.com/aerokube/cm/selenoid
-  - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build  
+  - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X github.com/aerokube/cm/cmd.buildStamp=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X github.com/aerokube/cm/cmd.gitRevision=`git rev-parse HEAD`"
+  - gox -os "linux darwin windows" -arch "amd64" -osarch="windows/386" -output "dist/{{.Dir}}_{{.OS}}_{{.Arch}}" -ldflags "-X github.com/aerokube/cm/cmd.buildStamp=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X github.com/aerokube/cm/cmd.gitRevision=`git rev-parse HEAD`"  
 
 before_install:
   - go get -u github.com/kardianos/govendor
+  
+install:
   - govendor sync
+  - go get -u github.com/mitchellh/gox # cross compile
 
 deploy:
+  - provider: releases
+    api-key: $GITHUB_TOKEN
+    file_glob: true
+    file: dist/*
+    skip_cleanup: true
+    on:
+      tags: true
   - provider: script
     script: travis/docker-push.sh latest
     skip_cleanup: true
