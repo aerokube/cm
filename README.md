@@ -5,37 +5,6 @@
 
 Configuration manager is used to generate configuration for Aerokube products.
 
-## Development
-To build cm:
+## Complete Guide & Build Instructions
 
-1) Install [Golang](https://golang.org/doc/install)
-2) Setup `$GOPATH` [properly](https://github.com/golang/go/wiki/GOPATH)
-3) Install [govendor](https://github.com/kardianos/govendor): 
-```
-$ go get -u github.com/kardianos/govendor
-```
-4) Get cm source:
-```
-$ go get -d github.com/aerokube/cm
-```
-5) Go to project directory:
-```
-$ cd $GOPATH/src/github.com/aerokube/cm
-```
-6) Checkout dependencies:
-```
-$ govendor sync
-```
-7) Build source:
-```
-$ go build
-```
-8) Run cm:
-```
-$ ./cm --help
-```
-9) To build [Docker](http://docker.com/) container type:
-```
-$ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build
-$ docker build -t cm:latest .
-```
+Complete reference guide (including building instructions) can be found at: http://aerokube.com/cm/latest/
