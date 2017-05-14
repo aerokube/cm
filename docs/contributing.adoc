@@ -1,0 +1,39 @@
+== Contributing & Development
+To build cm:
+
+. Install https://golang.org/doc/install[Golang]
+. Setup `$GOPATH` https://github.com/golang/go/wiki/GOPATH[properly]
+. Install https://github.com/kardianos/govendor[govendor]: 
+    $ go get -u github.com/kardianos/govendor
+
+. Get cm source:
+
+    $ go get -d github.com/aerokube/cm
+
+. Go to project directory:
+
+    $ cd $GOPATH/src/github.com/aerokube/cm
+
+. Checkout dependencies:
+
+    $ govendor sync
+
+. Build source:
+
+    $ go build
+
+. Run cm:
+
+    $ ./cm --help
+
+
+[TIP]
+====
+To build http://docker.com/[Docker] container type:
+
+[source,bash]
+----
+$ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build
+$ docker build -t cm:latest .
+----
+====
