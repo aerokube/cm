@@ -23,6 +23,18 @@
 			"revisionTime": "2016-07-29T13:19:23Z"
 		},
 		{
+			"checksumSHA1": "RvHpyzTcdkjUkKBn0kmZ9irr724=",
+			"path": "github.com/aerokube/selenoid/config",
+			"revision": "5b39d2bab8e58ae2d813b38f0a4305096b8ca92e",
+			"revisionTime": "2017-05-13T11:25:18Z"
+		},
+		{
+			"checksumSHA1": "Cq8PTDf6LLWGYm2Dwu/D3Nh0JqM=",
+			"path": "github.com/aerokube/selenoid/session",
+			"revision": "5b39d2bab8e58ae2d813b38f0a4305096b8ca92e",
+			"revisionTime": "2017-05-13T11:25:18Z"
+		},
+		{
 			"checksumSHA1": "Nge8TFcb8UiM2yAHwIoV8qdFKy4=",
 			"origin": "github.com/heroku/docker-registry-client/vendor/github.com/docker/distribution",
 			"path": "github.com/docker/distribution",
