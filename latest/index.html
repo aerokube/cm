@@ -517,14 +517,14 @@ table.CodeRay td.code>pre{padding:0}
 <div class="details">
 <span id="author" class="author">Alexander Andryashin, Ivan Krutov, Kirill Merkushev and the Aerokube community</span><br>
 <span id="revnumber">version latest,</span>
-<span id="revdate">2017-05-14</span>
+<span id="revdate">2017-06-03</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
-<ul class="sectlevel1">
-<li><a href="#_selenoid">1. Selenoid</a>
 <ul class="sectlevel2">
-<li><a href="#_selenoid_containers">1.1. Selenoid + Containers</a></li>
+<li><a href="#_configuring_selenoid">1. Configuring Selenoid</a>
+<ul class="sectlevel3">
+<li><a href="#_example_commands">1.1. Example Commands</a></li>
 </ul>
 </li>
 <li><a href="#_contributing_development">2. Contributing &amp; Development</a></li>
@@ -542,55 +542,147 @@ table.CodeRay td.code>pre{padding:0}
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_selenoid"><a class="anchor" href="#_selenoid"></a>1. Selenoid</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_configuring_selenoid"><a class="anchor" href="#_configuring_selenoid"></a>1. Configuring Selenoid</h3>
 <div class="paragraph">
 <p>This section describes supported ways of automatic <a href="https://github.com/aerokube/selenoid">Selenoid</a> configuration.</p>
 </div>
-<div class="sect2">
-<h3 id="_selenoid_containers"><a class="anchor" href="#_selenoid_containers"></a>1.1. Selenoid + Containers</h3>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
 <div class="paragraph">
-<p>Selenoid main functionality is to launch browsers in containers. To configure Selenoid in this mode:</p>
+<p>To quickly configure and run Selenoid type:</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Create Selenoid configuration directory:</p>
 <div class="literalblock">
 <div class="content">
-<pre># mkdir -p /etc/selenoid</pre>
+<pre>$ ./cm selenoid start</pre>
 </div>
 </div>
-</li>
-<li>
-<p>Generate Selenoid configuration file and pull last 2 versions of each browser:</p>
-<div class="literalblock">
-<div class="content">
-<pre># docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-aerokube/cm:1.0.0 selenoid --last-versions 2 --tmpfs 128 --pull \
-&gt; /etc/selenoid/browsers.json</pre>
-</div>
-</div>
-</li>
-</ol>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>By default <code>cm</code> outputs JSON to stdout. This is why we redirect output to file. The most important parameters are:</p>
+<p>Selenoid can be configured in two ways:</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
+<div class="ulist">
+<ul>
 <li>
-<p><code>--pull</code> - whether to pull last browser versions. When not specified - only JSON config will be generated.</p>
+<p>Using <a href="https://docker.com/">Docker</a> containers.</p>
 </li>
 <li>
-<p><code>--last-versions</code> (default is <code>5</code>) - defines how many last browser versions to download. If you wish to download all available versions - specify <code>--last-versions 0</code>.</p>
+<p>Using standalone binaries - when Docker is not installed.</p>
 </li>
-<li>
-<p><code>--tmpfs</code> - an optional parameter allowing to add <a href="https://en.wikipedia.org/wiki/Tmpfs">Tmpfs</a> support to JSON file.</p>
-</li>
-</ol>
+</ul>
 </div>
+<div class="paragraph">
+<p>Which mode to use is detected automatically by trying to access Docker API. To view the list of available commands:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid --help</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To launch command:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid &lt;command&gt; [args...]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Supported commands are:</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 1. Commands to configure and run Selenoid</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Command</th>
+<th class="tableblock halign-left valign-top">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">cleanup</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Removes Selenoid traces</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">configure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Creates Selenoid configuration file (implies download)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">download</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Downloads Selenoid binary or container image</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">start</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Starts Selenoid process or container (implies download and configure)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">stop</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Downloads Selenoid binary or container image</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">update</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Updates Selenoid and configuration to latest version</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>To see supported flags for each command append <code>--help</code>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid start --help</pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_example_commands"><a class="anchor" href="#_example_commands"></a>1.1. Example Commands</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><code>download</code> command downloads latest or specified Selenoid release as standalone binary or container image:</p>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid download [--version 1.2.1] [--force]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Does nothing when already downloaded. Use <code>--force</code> flag to download again.</p>
+</div>
+</li>
+<li>
+<p><code>configure</code> command in addition to downloading Selenoid also downloads container images or webdriver binaries and generates configuration file:</p>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid configure [--browsers firefox,opera] [--last-versions 2] [--tmpfs 128]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use <code>--browsers</code> to limit browsers to be configured, <code>--tmpfs</code> - to add <a href="https://en.wikipedia.org/wiki/Tmpfs">Tmpfs</a> support, <code>--last-versions</code> - to limit how many last browser versions to download. If you wish to download all available versions - specify <code>--last-versions 0</code>.</p>
+</div>
+</li>
+<li>
+<p><code>start</code> command configures Selenoid and starts it:</p>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid start</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By default Selenoid data is stored in <code>~/.aerokube/selenoid</code> but you can specify another directory using <code>--config-dir</code> flag.</p>
 </div>
 </div>
 </div>
@@ -680,7 +772,7 @@ $ docker build -t cm:latest .</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version latest<br>
-Last updated 2017-05-14 18:14:06 UTC
+Last updated 2017-06-03 16:59:35 UTC
 </div>
 </div>
 </body>
