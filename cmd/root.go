@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	quiet bool
+	quiet    bool
 	registry string
 	rootCmd  = &cobra.Command{
 		Use:   "cm",

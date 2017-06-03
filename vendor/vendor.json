@@ -253,6 +253,18 @@
 			"revisionTime": "2017-03-21T07:28:54Z"
 		},
 		{
+			"checksumSHA1": "5WaceCrg7RPCa8zZ8byu/t1IIDc=",
+			"path": "github.com/google/go-github/github",
+			"revision": "ebfec748347a9af6793c723f8859afcd906860fb",
+			"revisionTime": "2017-05-19T03:19:03Z"
+		},
+		{
+			"checksumSHA1": "p3IB18uJRs4dL2K5yx24MrLYE9A=",
+			"path": "github.com/google/go-querystring/query",
+			"revision": "53e6ce116135b80d037921a7fdd5138cf32d7a8a",
+			"revisionTime": "2017-01-11T10:11:55Z"
+		},
+		{
 			"checksumSHA1": "g/V4qrXjUGG9B+e3hB+4NAYJ5Gs=",
 			"origin": "github.com/heroku/docker-registry-client/vendor/github.com/gorilla/context",
 			"path": "github.com/gorilla/context",
@@ -277,6 +289,18 @@
 			"path": "github.com/inconshreveable/mousetrap",
 			"revision": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75",
 			"revisionTime": "2014-10-17T20:07:13Z"
+		},
+		{
+			"checksumSHA1": "yf185lmVPcvXjLZuPT1s4JzxI18=",
+			"path": "github.com/mattn/go-runewidth",
+			"revision": "737072b4e32b7a5018b4a7125da8d12de90e8045",
+			"revisionTime": "2016-10-12T01:35:12Z"
+		},
+		{
+			"checksumSHA1": "DcYIZnMiq/Tj22/ge9os3NwOhs4=",
+			"path": "github.com/mitchellh/go-ps",
+			"revision": "4fdf99ab29366514c69ccccddab5dc58b8d84062",
+			"revisionTime": "2017-03-09T13:30:38Z"
 		},
 		{
 			"checksumSHA1": "OUupkCHnh8e3RHRNcMFqQJqhaQI=",
@@ -337,6 +361,12 @@
 			"path": "golang.org/x/sys/windows",
 			"revision": "9a5bf4b5ad10c7f0363a20d9781d4050d9de142e",
 			"revisionTime": "2017-03-21T07:28:54Z"
+		},
+		{
+			"checksumSHA1": "raBtsDwCvkqXSCQI0GHcVAXoOSc=",
+			"path": "gopkg.in/cheggaaa/pb.v1",
+			"revision": "f6ccf2184de4dd34495277e38dc19b6e7fbe0ea2",
+			"revisionTime": "2017-05-08T13:24:47Z"
 		},
 		{
 			"checksumSHA1": "xRKxbmjgtGOLl2cHeVgr35ONhVg=",
