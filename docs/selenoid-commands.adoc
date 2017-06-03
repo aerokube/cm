@@ -32,7 +32,7 @@ Supported commands are:
 | configure | Creates Selenoid configuration file (implies download)
 | download | Downloads Selenoid binary or container image
 | start | Starts Selenoid process or container (implies download and configure)
-| stop | Downloads Selenoid binary or container image
+| stop | Stops Selenoid process or container
 | update | Updates Selenoid and configuration to latest version
 |===
 
