@@ -92,7 +92,7 @@
     }
   },
   
-  "internet_explorer": {
+  "internet explorer": {
     "command": "%s",
     "files": {
       "windows": {
