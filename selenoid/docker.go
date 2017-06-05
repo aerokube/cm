@@ -349,6 +349,10 @@ func (c *DockerConfigurator) Start() error {
 	portBindings := nat.PortMap{}
 	portBindings[port] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: portString}}
 	volumes := []string{fmt.Sprintf("%s:/etc/selenoid:ro", c.ConfigDir)}
+	const dockerSocket = "/var/run/docker.sock"
+	if fileExists(dockerSocket) {
+		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
+	}
 	ctx := context.Background()
 	ctr, err := c.docker.ContainerCreate(ctx,
 		&container.Config{
