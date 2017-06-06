@@ -18,10 +18,10 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/heroku/docker-registry-client/registry"
+	"strconv"
 	"strings"
 	"time"
 	. "vbom.ml/util/sortorder"
-	"strconv"
 )
 
 const (
@@ -112,8 +112,12 @@ func (c *DockerConfigurator) getSelenoidImage() *types.ImageSummary {
 		return nil
 	}
 	for _, img := range images {
-		if len(img.RepoTags) > 0 && strings.Contains(img.RepoTags[0], selenoidImage) {
-			return &img
+		const colon = ":"
+		if len(img.RepoTags) > 0 {
+			imageName := strings.Split(img.RepoTags[0], colon)[0]
+			if imageName == selenoidImage {
+				return &img
+			}
 		}
 	}
 	return nil
@@ -362,7 +366,7 @@ func (c *DockerConfigurator) Start() error {
 			ExposedPorts: exposedPorts,
 		},
 		&container.HostConfig{
-			Binds: volumes,
+			Binds:        volumes,
 			PortBindings: portBindings,
 		},
 		&network.NetworkingConfig{}, selenoidContainerName)
