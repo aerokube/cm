@@ -13,6 +13,7 @@ import (
 
 var (
 	mockDockerServer *httptest.Server
+	imageName        = selenoidImage
 )
 
 func init() {
@@ -55,12 +56,12 @@ func mux() http.Handler {
 	mux.HandleFunc("/v1.29/images/json", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			output := `
+			output := fmt.Sprintf(`
 			[{
 			
 			    "Id": "sha256:e216a057b1cb1efc11f8a268f37ef62083e70b1b38323ba252e25ac88904a7e8",
 			    "ParentId": "",
-			    "RepoTags": [ "aerokube/selenoid" ],
+			    "RepoTags": [ "%s:latest" ],
 			    "RepoDigests": [],
 			    "Created": 1474925151,
 			    "Size": 103579269,
@@ -70,7 +71,7 @@ func mux() http.Handler {
 			    "Containers": 2
 			
 			}]
-			`
+			`, imageName)
 			w.Write([]byte(output))
 		},
 	))
@@ -189,13 +190,13 @@ func testConfigure(t *testing.T, download bool) {
 	withTmpDir(t, "test-docker-configure", func(t *testing.T, dir string) {
 
 		lcConfig := LifecycleConfig{
-			ConfigDir:   dir,
-			RegistryUrl: mockDockerServer.URL,
-			Download:    download,
-			Quiet:       false,
+			ConfigDir:    dir,
+			RegistryUrl:  mockDockerServer.URL,
+			Download:     download,
+			Quiet:        false,
 			LastVersions: 2,
-			Tmpfs: 512,
-			Browsers: "firefox,opera",
+			Tmpfs:        512,
+			Browsers:     "firefox,opera",
 		}
 		c, err := NewDockerConfigurator(&lcConfig)
 		AssertThat(t, err, Is{nil})
@@ -260,12 +261,27 @@ func TestStartStopContainer(t *testing.T) {
 func TestDownload(t *testing.T) {
 	c, err := NewDockerConfigurator(&LifecycleConfig{
 		RegistryUrl: mockDockerServer.URL,
-		Quiet: true,
-		Version: Latest,
+		Quiet:       true,
+		Version:     Latest,
 	})
 	AssertThat(t, c.IsDownloaded(), Is{true})
 	AssertThat(t, err, Is{nil})
 	ref, err := c.Download()
 	AssertThat(t, ref, Not{nil})
 	AssertThat(t, err, Is{nil})
+}
+
+func TestGetSelenoidImage(t *testing.T) {
+	defer func() {
+		imageName = selenoidImage
+	}()
+	c, err := NewDockerConfigurator(&LifecycleConfig{
+		RegistryUrl: mockDockerServer.URL,
+		Quiet:       true,
+		Version:     Latest,
+	})
+	AssertThat(t, err, Is{nil})
+	AssertThat(t, c.getSelenoidImage() == nil, Is{false})
+	imageName = "aerokube/selenoid-ui"
+	AssertThat(t, c.getSelenoidImage() == nil, Is{true})
 }
