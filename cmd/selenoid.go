@@ -25,6 +25,7 @@ var (
 	browsersJSONUrl string
 	configDir       string
 	skipDownload    bool
+	vnc             bool
 	force           bool
 )
 
@@ -67,6 +68,7 @@ func initFlags() {
 		c.Flags().StringVarP(&registry, "registry", "r", registryUrl, "Docker registry to use")
 		c.Flags().IntVarP(&lastVersions, "last-versions", "l", 2, "process only last N versions (Docker only)")
 		c.Flags().IntVarP(&tmpfs, "tmpfs", "t", 0, "add tmpfs volume sized in megabytes (Docker only)")
+		c.Flags().BoolVarP(&vnc, "vnc", "s", false, "download containers with VNC support (Docker only)")
 	}
 	for _, c := range []*cobra.Command{
 		selenoidDownloadCmd,
@@ -89,6 +91,7 @@ func createLifecycle() (*selenoid.Lifecycle, error) {
 		LastVersions: lastVersions,
 		RegistryUrl:  registry,
 		Tmpfs:        tmpfs,
+		VNC:          vnc,
 
 		BrowsersJsonUrl: browsersJSONUrl,
 		OS:              operatingSystem,

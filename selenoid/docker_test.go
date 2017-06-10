@@ -178,6 +178,20 @@ func TestPullImages(t *testing.T) {
 	AssertThat(t, tags[1], EqualTo{"45.0"})
 }
 
+func TestPreProcessImageTags(t *testing.T) {
+	image := "firefox"
+	tags := []string{"33.0", "34.0"}
+
+	c, err := NewDockerConfigurator(&LifecycleConfig{
+		RegistryUrl: mockDockerServer.URL,
+		VNC:         true,
+	})
+	AssertThat(t, err, Is{nil})
+	imageToProcess, tagsToProcess := c.preProcessImageTags(image, tags)
+	AssertThat(t, imageToProcess, EqualTo{"selenoid/vnc"})
+	AssertThat(t, tagsToProcess, EqualTo{[]string{"firefox_33.0", "firefox_34.0"}})
+}
+
 func TestConfigureDocker(t *testing.T) {
 	testConfigure(t, true)
 }

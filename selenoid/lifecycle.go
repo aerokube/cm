@@ -18,6 +18,7 @@ type LifecycleConfig struct {
 	LastVersions int
 	RegistryUrl  string
 	Tmpfs        int
+	VNC          bool
 
 	// Drivers specific
 	BrowsersJsonUrl string
