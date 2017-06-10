@@ -46,6 +46,7 @@ type DockerConfigurator struct {
 	Pull         bool
 	RegistryUrl  string
 	Tmpfs        int
+	VNC          bool
 	docker       *client.Client
 	reg          *registry.Registry
 }
@@ -60,6 +61,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		RegistryUrl:            config.RegistryUrl,
 		LastVersions:           config.LastVersions,
 		Tmpfs:                  config.Tmpfs,
+		VNC:                    config.VNC,
 	}
 	if c.Quiet {
 		log.SetFlags(0)
@@ -208,6 +210,7 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 	for browserName, image := range browsersToIterate {
 		c.Printf("Processing browser \"%s\"...\n", browserName)
 		tags := c.fetchImageTags(image)
+		image, tags = c.preProcessImageTags(image, tags)
 		pulledTags := tags
 		if c.DownloadNeeded {
 			pulledTags = c.pullImages(image, tags)
@@ -297,6 +300,19 @@ loop:
 		}
 	}
 	return pulledTags
+}
+
+func (c *DockerConfigurator) preProcessImageTags(image string, tags []string) (string, []string) {
+	imageToProcess := image
+	tagsToProcess := tags
+	if c.VNC {
+		imageToProcess = "selenoid/vnc"
+		tagsToProcess = []string{}
+		for _, tag := range tags {
+			tagsToProcess = append(tagsToProcess, fmt.Sprintf("%s_%s", image, tag))
+		}
+	}
+	return imageToProcess, tagsToProcess
 }
 
 func (c *DockerConfigurator) pullImage(ctx context.Context, ref string) bool {
