@@ -11,11 +11,11 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"reflect"
 	"runtime"
 	"testing"
-	"os/exec"
 )
 
 const (
@@ -362,8 +362,8 @@ func TestWrongBaseUrl(t *testing.T) {
 //Based on https://npf.io/2015/06/testing-exec-command/
 func TestStartStopProcess(t *testing.T) {
 	execCommand = fakeExecCommand
-	killFunc = func(_ os.Process) error {return nil}
-	defer func(){ 
+	killFunc = func(_ os.Process) error { return nil }
+	defer func() {
 		execCommand = exec.Command
 	}()
 	withTmpDir(t, "something", func(t *testing.T, dir string) {
@@ -377,12 +377,13 @@ func TestStartStopProcess(t *testing.T) {
 		configurator := NewDriversConfigurator(&lcConfig)
 		AssertThat(t, configurator.IsRunning(), Is{true})
 		AssertThat(t, configurator.Start(), Is{nil})
+		configurator.Status()
 		AssertThat(t, configurator.Stop(), Is{nil})
 	})
 
 }
 
-func fakeExecCommand(command string, args...string) *exec.Cmd {
+func fakeExecCommand(command string, args ...string) *exec.Cmd {
 	cs := []string{"-test.run=TestHelperProcess", "--", command}
 	cs = append(cs, args...)
 	cmd := exec.Command(os.Args[0], cs...)

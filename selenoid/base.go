@@ -5,8 +5,8 @@ import (
 	"os"
 )
 
-type Configurator interface {
-	Configure() *SelenoidConfig
+type StatusAware interface {
+	Status()
 }
 
 type Downloadable interface {

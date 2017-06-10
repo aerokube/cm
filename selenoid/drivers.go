@@ -85,6 +85,28 @@ func NewDriversConfigurator(config *LifecycleConfig) *DriversConfigurator {
 	}
 }
 
+func (d *DriversConfigurator) Status() {
+	binaryPath := d.getSelenoidBinaryPath()
+	if fileExists(binaryPath) {
+		d.Printf("Selenoid binary is %s", binaryPath)
+	} else {
+		d.Printf("Selenoid binary is not downloaded")
+	}
+	configPath := getSelenoidConfigPath(d.ConfigDir)
+	d.Printf("Selenoid configuration directory is %s", d.ConfigDir)
+	if fileExists(configPath) {
+		d.Printf("Selenoid configuration file is %s", configPath)
+	} else {
+		d.Printf("Selenoid is not configured")
+	}
+	selenoidProcesses := findSelenoidProcesses()
+	if len(selenoidProcesses) > 0 {
+		d.Printf("Selenoid is running as process %d", selenoidProcesses[0].Pid)
+	} else {
+		d.Printf("Selenoid process is not running")
+	}
+}
+
 func (d *DriversConfigurator) IsDownloaded() bool {
 	return fileExists(d.getSelenoidBinaryPath())
 }
@@ -437,13 +459,7 @@ loop:
 
 func (d *DriversConfigurator) IsRunning() bool {
 	selenoidProcesses := findSelenoidProcesses()
-	if len(selenoidProcesses) > 0 {
-		d.Printf("Selenoid is running as process %d\n", selenoidProcesses[0].Pid)
-		return true
-	}
-
-	d.Printf("Selenoid is not running\n")
-	return false
+	return len(selenoidProcesses) > 0
 }
 
 func (d *DriversConfigurator) Start() error {
@@ -492,6 +508,7 @@ func findProcesses(regex string) []os.Process {
 }
 
 var execCommand = exec.Command
+
 func runCommand(command string, args []string) error {
 	cmd := execCommand(command, args...)
 	cmd.Stdin = os.Stdin

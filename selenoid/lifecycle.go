@@ -31,6 +31,7 @@ type Lifecycle struct {
 	Logger
 	Forceable
 	Config       *LifecycleConfig
+	statusAware  StatusAware
 	downloadable Downloadable
 	configurable Configurable
 	runnable     Runnable
@@ -49,6 +50,7 @@ func NewLifecycle(config *LifecycleConfig) (*Lifecycle, error) {
 		if err != nil {
 			return nil, err
 		}
+		lc.statusAware = dockerCfg
 		lc.downloadable = dockerCfg
 		lc.configurable = dockerCfg
 		lc.runnable = dockerCfg
@@ -56,6 +58,7 @@ func NewLifecycle(config *LifecycleConfig) (*Lifecycle, error) {
 	} else {
 		lc.Printf("Docker is not supported - using binaries...\n")
 		driversCfg := NewDriversConfigurator(config)
+		lc.statusAware = driversCfg
 		lc.downloadable = driversCfg
 		lc.configurable = driversCfg
 		lc.runnable = driversCfg
@@ -68,6 +71,10 @@ func (l *Lifecycle) Close() {
 	if l.closer != nil {
 		l.closer.Close()
 	}
+}
+
+func (l *Lifecycle) Status() {
+	l.statusAware.Status()
 }
 
 func (l *Lifecycle) Download() error {
@@ -135,7 +142,7 @@ func (l *Lifecycle) Stop() error {
 		return nil
 	}
 	l.Printf("Stopping Selenoid...\n")
-	err :=  l.runnable.Stop()
+	err := l.runnable.Stop()
 	if err == nil {
 		l.Printf("Successfully stopped Selenoid\n")
 	}
