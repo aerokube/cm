@@ -1,16 +1,20 @@
 package selenoid
 
 import (
-	"testing"
+	. "github.com/aandryashin/matchers"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	. "github.com/aandryashin/matchers"
+	"testing"
 )
 
 type MockStrategy struct {
 	isDownloaded bool
-	isRunning bool
+	isRunning    bool
+}
+
+func (ms *MockStrategy) Status() {
+	//Does nothing
 }
 
 func (ms *MockStrategy) IsDownloaded() bool {
@@ -20,7 +24,6 @@ func (ms *MockStrategy) IsDownloaded() bool {
 func (ms *MockStrategy) Download() (string, error) {
 	return "test", nil
 }
-
 
 func (ms *MockStrategy) IsConfigured() bool {
 	return false
@@ -60,9 +63,9 @@ func TestDockerAvailable(t *testing.T) {
 	mockDockerServer := httptest.NewServer(mux)
 	os.Setenv("DOCKER_HOST", "tcp://"+hostPort(mockDockerServer.URL))
 	os.Setenv("DOCKER_API_VERSION", "1.29")
-	
+
 	AssertThat(t, isDockerAvailable(), Is{true})
-	
+
 	os.Unsetenv("DOCKER_HOST")
 	os.Unsetenv("DOCKER_API_VERSION")
 }
@@ -70,15 +73,17 @@ func TestDockerAvailable(t *testing.T) {
 func TestLifecycle(t *testing.T) {
 	strategy := MockStrategy{}
 	lc := Lifecycle{
-		Logger:    Logger{Quiet: false},
-		Forceable: Forceable{Force: true},
-		Config: &LifecycleConfig{},
+		Logger:       Logger{Quiet: false},
+		Forceable:    Forceable{Force: true},
+		Config:       &LifecycleConfig{},
+		statusAware:  &strategy,
 		downloadable: &strategy,
 		configurable: &strategy,
-		runnable: &strategy,
-		closer: &strategy,
+		runnable:     &strategy,
+		closer:       &strategy,
 	}
 	defer lc.Close()
+	lc.Status()
 	AssertThat(t, lc.Download(), Is{nil})
 	AssertThat(t, lc.Configure(), Is{nil})
 	AssertThat(t, lc.Start(), Is{nil})

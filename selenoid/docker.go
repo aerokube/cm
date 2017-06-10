@@ -101,6 +101,28 @@ func (c *DockerConfigurator) Close() error {
 	return nil
 }
 
+func (c *DockerConfigurator) Status() {
+	selenoidImage := c.getSelenoidImage()
+	if selenoidImage != nil {
+		c.Printf("Using Selenoid image: %s (%s)", selenoidImage.RepoTags[0], selenoidImage.ID)
+	} else {
+		c.Printf("Selenoid image is not present")
+	}
+	configPath := getSelenoidConfigPath(c.ConfigDir)
+	c.Printf("Selenoid configuration directory is %s", c.ConfigDir)
+	if fileExists(configPath) {
+		c.Printf("Selenoid configuration file is %s", configPath)
+	} else {
+		c.Printf("Selenoid is not configured")
+	}
+	selenoidContainer := c.getSelenoidContainer()
+	if selenoidContainer != nil {
+		c.Printf("Selenoid container is running: %s (%s)", selenoidContainerName, selenoidContainer.ID)
+	} else {
+		c.Printf("Selenoid container is not running")
+	}
+}
+
 func (c *DockerConfigurator) IsDownloaded() bool {
 	return c.getSelenoidImage() != nil
 }

@@ -36,6 +36,7 @@ func init() {
 	selenoidCmd.AddCommand(selenoidStopCmd)
 	selenoidCmd.AddCommand(selenoidUpdateCmd)
 	selenoidCmd.AddCommand(selenoidCleanupCmd)
+	selenoidCmd.AddCommand(selenoidStatusCmd)
 }
 
 func initFlags() {
@@ -46,6 +47,7 @@ func initFlags() {
 		selenoidStopCmd,
 		selenoidUpdateCmd,
 		selenoidCleanupCmd,
+		selenoidStatusCmd,
 	} {
 		c.Flags().BoolVarP(&quiet, "quiet", "q", false, "suppress output")
 		c.Flags().StringVarP(&configDir, "config-dir", "c", getSelenoidConfigDir(), "directory to save files")

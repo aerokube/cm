@@ -255,6 +255,7 @@ func TestStartStopContainer(t *testing.T) {
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, c.IsRunning(), Is{true})
 	AssertThat(t, c.Start(), Is{nil})
+	c.Status()
 	AssertThat(t, c.Stop(), Is{nil})
 }
 
