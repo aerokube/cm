@@ -13,6 +13,7 @@ type LifecycleConfig struct {
 	ConfigDir string
 	Browsers  string
 	Download  bool
+	Limit     int
 
 	// Docker specific
 	LastVersions int

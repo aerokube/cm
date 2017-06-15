@@ -62,3 +62,7 @@ type DownloadAware struct {
 type RequestedBrowsersAware struct {
 	Browsers string
 }
+
+type LimitAware struct {
+	Limit int
+}

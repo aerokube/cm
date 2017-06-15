@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/heroku/docker-registry-client/registry"
@@ -42,6 +43,7 @@ type DockerConfigurator struct {
 	VersionAware
 	DownloadAware
 	RequestedBrowsersAware
+	LimitAware
 	LastVersions int
 	Pull         bool
 	RegistryUrl  string
@@ -58,6 +60,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		VersionAware:           VersionAware{Version: config.Version},
 		DownloadAware:          DownloadAware{DownloadNeeded: config.Download},
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
+		LimitAware:             LimitAware{Limit: config.Limit},
 		RegistryUrl:            config.RegistryUrl,
 		LastVersions:           config.LastVersions,
 		Tmpfs:                  config.Tmpfs,
@@ -396,13 +399,21 @@ func (c *DockerConfigurator) Start() error {
 		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
 	}
 	ctx := context.Background()
+	containerConfig := container.Config{
+		Hostname:     "localhost",
+		Image:        image.RepoTags[0],
+		Env:          env,
+		ExposedPorts: exposedPorts,
+	}
+	cmd := []string{}
+	if c.Limit > 0 {
+		cmd = append(cmd, "-limit", string(c.Limit))
+	}
+	if len(cmd) > 0 {
+		containerConfig.Cmd = strslice.StrSlice(cmd)
+	}
 	ctr, err := c.docker.ContainerCreate(ctx,
-		&container.Config{
-			Hostname:     "localhost",
-			Image:        image.RepoTags[0],
-			Env:          env,
-			ExposedPorts: exposedPorts,
-		},
+		&containerConfig,
 		&container.HostConfig{
 			Binds:        volumes,
 			PortBindings: portBindings,
