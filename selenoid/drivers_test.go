@@ -373,6 +373,7 @@ func TestStartStopProcess(t *testing.T) {
 			OS:            runtime.GOOS,
 			Arch:          runtime.GOARCH,
 			Version:       Latest,
+			Limit:         42,
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
 		AssertThat(t, configurator.IsRunning(), Is{true})

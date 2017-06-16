@@ -61,6 +61,7 @@ type DriversConfigurator struct {
 	ConfigDirAware
 	VersionAware
 	DownloadAware
+	LimitAware
 	RequestedBrowsersAware
 	Browsers        string
 	BrowsersJsonUrl string
@@ -75,6 +76,7 @@ func NewDriversConfigurator(config *LifecycleConfig) *DriversConfigurator {
 		Logger:                 Logger{Quiet: config.Quiet},
 		ConfigDirAware:         ConfigDirAware{ConfigDir: config.ConfigDir},
 		VersionAware:           VersionAware{Version: config.Version},
+		LimitAware:             LimitAware{Limit: config.Limit},
 		DownloadAware:          DownloadAware{DownloadNeeded: config.Download},
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
 		BrowsersJsonUrl:        config.BrowsersJsonUrl,
@@ -463,10 +465,14 @@ func (d *DriversConfigurator) IsRunning() bool {
 }
 
 func (d *DriversConfigurator) Start() error {
-	return runCommand(d.getSelenoidBinaryPath(), []string{
+	args := []string{
 		"-conf", getSelenoidConfigPath(d.ConfigDir),
 		"-disable-docker",
-	})
+	}
+	if d.Limit > 0 {
+		args = append(args, "-limit", string(d.Limit))
+	}
+	return runCommand(d.getSelenoidBinaryPath(), args)
 }
 
 var killFunc func(os.Process) error = func(p os.Process) error {

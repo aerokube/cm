@@ -211,6 +211,7 @@ func testConfigure(t *testing.T, download bool) {
 			LastVersions: 2,
 			Tmpfs:        512,
 			Browsers:     "firefox,opera",
+			Limit:        42,
 		}
 		c, err := NewDockerConfigurator(&lcConfig)
 		AssertThat(t, err, Is{nil})

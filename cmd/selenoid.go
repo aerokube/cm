@@ -27,6 +27,7 @@ var (
 	skipDownload    bool
 	vnc             bool
 	force           bool
+	limit           int
 )
 
 func init() {
@@ -77,7 +78,12 @@ func initFlags() {
 	} {
 		c.Flags().BoolVarP(&force, "force", "f", false, "force action")
 	}
-
+	for _, c := range []*cobra.Command{
+		selenoidStartCmd,
+		selenoidUpdateCmd,
+	} {
+		c.Flags().IntVarP(&limit, "limit", "m", 0, "max parallel sessions limit (-limit parameter in Selenoid)")
+	}
 }
 
 func createLifecycle() (*selenoid.Lifecycle, error) {
@@ -87,6 +93,7 @@ func createLifecycle() (*selenoid.Lifecycle, error) {
 		ConfigDir: configDir,
 		Browsers:  browsers,
 		Download:  !skipDownload,
+		Limit:     limit,
 
 		LastVersions: lastVersions,
 		RegistryUrl:  registry,
