@@ -407,7 +407,7 @@ func (c *DockerConfigurator) Start() error {
 	}
 	cmd := []string{}
 	if c.Limit > 0 {
-		cmd = append(cmd, "-limit", string(c.Limit))
+		cmd = append(cmd, "-limit", strconv.Itoa(c.Limit))
 	}
 	if len(cmd) > 0 {
 		containerConfig.Cmd = strslice.StrSlice(cmd)

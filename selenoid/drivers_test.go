@@ -31,6 +31,7 @@ var (
 
 func init() {
 	mockDriverServer = httptest.NewServer(driversMux())
+	killFunc = func(_ os.Process) error { return nil }
 }
 
 func driversMux() http.Handler {
@@ -362,7 +363,6 @@ func TestWrongBaseUrl(t *testing.T) {
 //Based on https://npf.io/2015/06/testing-exec-command/
 func TestStartStopProcess(t *testing.T) {
 	execCommand = fakeExecCommand
-	killFunc = func(_ os.Process) error { return nil }
 	defer func() {
 		execCommand = exec.Command
 	}()
