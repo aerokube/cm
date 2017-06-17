@@ -4,27 +4,27 @@
     "files": {
       "linux": {
         "386": {
-          "url": "http://chromedriver.storage.googleapis.com/2.29/chromedriver_linux32.zip",
+          "url": "http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux32.zip",
           "filename": "chromedriver"
         },
         "amd64": {
-          "url": "http://chromedriver.storage.googleapis.com/2.29/chromedriver_linux64.zip",
+          "url": "http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip",
           "filename": "chromedriver"
         }
       },
       "darwin": {
         "amd64": {
-          "url": "http://chromedriver.storage.googleapis.com/2.29/chromedriver_mac64.zip",
+          "url": "http://chromedriver.storage.googleapis.com/2.30/chromedriver_mac64.zip",
           "filename": "chromedriver"
         }
       },
       "windows": {
         "386": {
-          "url": "http://chromedriver.storage.googleapis.com/2.29/chromedriver_win32.zip",
+          "url": "http://chromedriver.storage.googleapis.com/2.30/chromedriver_win32.zip",
           "filename": "chromedriver.exe"
         },
         "amd64": {
-          "url": "http://chromedriver.storage.googleapis.com/2.29/chromedriver_win32.zip",
+          "url": "http://chromedriver.storage.googleapis.com/2.30/chromedriver_win32.zip",
           "filename": "chromedriver.exe"
         }
       }
@@ -36,23 +36,23 @@
     "files": {
       "linux": {
         "amd64": {
-          "url": "https://github.com/mozilla/geckodriver/releases/download/v0.16.1/geckodriver-v0.16.1-linux64.tar.gz",
+          "url": "https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-linux64.tar.gz",
           "filename": "geckodriver"
         }
       },
       "darwin": {
         "amd64": {
-          "url": "https://github.com/mozilla/geckodriver/releases/download/v0.16.1/geckodriver-v0.16.1-macos.tar.gz",
+          "url": "https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-macos.tar.gz",
           "filename": "geckodriver"
         }
       },
       "windows": {
         "386": {
-          "url": "https://github.com/mozilla/geckodriver/releases/download/v0.16.1/geckodriver-v0.16.1-win32.zip",
+          "url": "https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-win32.zip",
           "filename": "geckodriver.exe"
         },
         "amd64": {
-          "url": "https://github.com/mozilla/geckodriver/releases/download/v0.16.1/geckodriver-v0.16.1-win64.zip",
+          "url": "https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-win64.zip",
           "filename": "geckodriver.exe"
         }
       }
