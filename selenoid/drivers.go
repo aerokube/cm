@@ -25,6 +25,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"strconv"
 )
 
 const (
@@ -129,6 +130,13 @@ func (d *DriversConfigurator) Download() (string, error) {
 	err = d.createConfigDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to create config directory: %v\n", err)
+	}
+	if d.IsRunning() {
+		d.Printf("Stopping Selenoid to overwrite its binary...")
+		err := d.Stop()
+		if err != nil {
+			return "", fmt.Errorf("failed to stop Selenoid: %v\n", err)
+		}
 	}
 	outputFile, err := d.downloadFile(u)
 	if err != nil {
@@ -470,7 +478,7 @@ func (d *DriversConfigurator) Start() error {
 		"-disable-docker",
 	}
 	if d.Limit > 0 {
-		args = append(args, "-limit", string(d.Limit))
+		args = append(args, "-limit", strconv.Itoa(d.Limit))
 	}
 	return runCommand(d.getSelenoidBinaryPath(), args)
 }
