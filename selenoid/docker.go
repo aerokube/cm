@@ -213,7 +213,7 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 	for browserName, image := range browsersToIterate {
 		c.Printf("Processing browser \"%s\"...\n", browserName)
 		tags := c.fetchImageTags(image)
-		image, tags = c.preProcessImageTags(image, tags)
+		image, tags = c.preProcessImageTags(image, browserName, tags)
 		pulledTags := tags
 		if c.DownloadNeeded {
 			pulledTags = c.pullImages(image, tags)
@@ -261,16 +261,17 @@ func filterOutLatest(tags []string) []string {
 
 func (c *DockerConfigurator) createVersions(browserName string, image string, tags []string) config.Versions {
 	versions := config.Versions{
-		Default:  tags[0],
+		Default:  c.getVersionFromTag(browserName, tags[0]),
 		Versions: make(map[string]*config.Browser),
 	}
 	for _, tag := range tags {
+		version := c.getVersionFromTag(browserName, tag)
 		browser := &config.Browser{
 			Image: imageWithTag(image, tag),
 			Port:  "4444",
 			Path:  "/",
 		}
-		if browserName == firefox || (browserName == opera && tag == tag_1216) {
+		if browserName == firefox || (browserName == opera && version == tag_1216) {
 			browser.Path = "/wd/hub"
 		}
 		if c.Tmpfs > 0 {
@@ -278,7 +279,7 @@ func (c *DockerConfigurator) createVersions(browserName string, image string, ta
 			tmpfs["/tmp"] = fmt.Sprintf("size=%dm", c.Tmpfs)
 			browser.Tmpfs = tmpfs
 		}
-		versions.Versions[tag] = browser
+		versions.Versions[version] = browser
 	}
 	return versions
 }
@@ -305,17 +306,29 @@ loop:
 	return pulledTags
 }
 
-func (c *DockerConfigurator) preProcessImageTags(image string, tags []string) (string, []string) {
+func (c *DockerConfigurator) preProcessImageTags(image string, browserName string, tags []string) (string, []string) {
 	imageToProcess := image
 	tagsToProcess := tags
 	if c.VNC {
+		c.Printf("Requested to download VNC images...\n")
 		imageToProcess = "selenoid/vnc"
 		tagsToProcess = []string{}
 		for _, tag := range tags {
-			tagsToProcess = append(tagsToProcess, fmt.Sprintf("%s_%s", image, tag))
+			tagsToProcess = append(tagsToProcess, createVNCTag(browserName, tag))
 		}
 	}
 	return imageToProcess, tagsToProcess
+}
+
+func createVNCTag(browserName string, version string) string {
+	return fmt.Sprintf("%s_%s", browserName, version)
+}
+
+func (c *DockerConfigurator) getVersionFromTag(browserName string, tag string) string {
+	if c.VNC {
+		return strings.TrimPrefix(tag, browserName + "_")
+	}
+	return tag
 }
 
 func (c *DockerConfigurator) pullImage(ctx context.Context, ref string) bool {
