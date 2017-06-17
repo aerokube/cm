@@ -628,6 +628,10 @@ table.CodeRay td.code>pre{padding:0}
 <td class="tableblock halign-left valign-top"><p class="tableblock">Starts Selenoid process or container (implies download and configure)</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">status</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows actual configuration status (whether Selenoid is downloaded, configured or running)</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">stop</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Stops Selenoid process or container</p></td>
 </tr>
@@ -678,11 +682,24 @@ table.CodeRay td.code>pre{padding:0}
 <pre>$ ./cm selenoid start</pre>
 </div>
 </div>
-</li>
-</ul>
+<div class="paragraph">
+<p>By default Selenoid data is stored in <code>~/.aerokube/selenoid</code> but you can specify another directory using <code>--config-dir</code> flag. To download images with VNC server (to see live browser screen) use <code>--vnc</code> flag:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid start --vnc</pre>
+</div>
 </div>
 <div class="paragraph">
-<p>By default Selenoid data is stored in <code>~/.aerokube/selenoid</code> but you can specify another directory using <code>--config-dir</code> flag.</p>
+<p>To change Selenoid maximum parallel sessions add <code>--limit</code> flag:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid start --limit 10</pre>
+</div>
+</div>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -772,7 +789,7 @@ $ docker build -t cm:latest .</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version latest<br>
-Last updated 2017-06-17 16:24:57 UTC
+Last updated 2017-06-17 16:56:23 UTC
 </div>
 </div>
 </body>
