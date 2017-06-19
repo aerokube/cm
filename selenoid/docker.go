@@ -430,6 +430,9 @@ func (c *DockerConfigurator) Start() error {
 		&container.HostConfig{
 			Binds:        volumes,
 			PortBindings: portBindings,
+			RestartPolicy: container.RestartPolicy{
+				Name: "always",
+			},
 		},
 		&network.NetworkingConfig{}, selenoidContainerName)
 	if err != nil {
