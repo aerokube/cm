@@ -22,6 +22,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"os"
+
 	. "vbom.ml/util/sortorder"
 )
 
@@ -395,9 +397,8 @@ func (c *DockerConfigurator) Start() error {
 	if image == nil {
 		return errors.New("Selenoid image is not downloaded: this is probably a bug")
 	}
-	env := []string{
-		fmt.Sprintf("TZ=%s", time.Local),
-	}
+	env := os.Environ()
+	env = append(env, fmt.Sprintf("TZ=%s", time.Local))
 	portString := strconv.Itoa(selenoidContainerPort)
 	port, err := nat.NewPort("tcp", portString)
 	if err != nil {
@@ -430,6 +431,9 @@ func (c *DockerConfigurator) Start() error {
 		&container.HostConfig{
 			Binds:        volumes,
 			PortBindings: portBindings,
+			RestartPolicy: container.RestartPolicy{
+				Name: "always",
+			},
 		},
 		&network.NetworkingConfig{}, selenoidContainerName)
 	if err != nil {
