@@ -118,10 +118,13 @@ var selenoidCmd = &cobra.Command{
 
 func getConfigDir(elem ...string) string {
 	usr, err := user.Current()
+	var p string
 	if err != nil {
-		return filepath.Join(elem...)
+		p = filepath.Join(elem...)
 	}
-	return filepath.Join(append([]string{usr.HomeDir}, elem...)...)
+	p = filepath.Join(append([]string{usr.HomeDir}, elem...)...)
+	ap, _ := filepath.Abs(p)
+	return ap
 }
 
 func getSelenoidConfigDir() string {
