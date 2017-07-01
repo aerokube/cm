@@ -19,22 +19,25 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/heroku/docker-registry-client/registry"
+	"os"
 	"strconv"
 	"strings"
 	"time"
-	"os"
 
 	. "vbom.ml/util/sortorder"
 )
 
 const (
-	Latest                = "latest"
-	firefox               = "firefox"
-	opera                 = "opera"
-	tag_1216              = "12.16"
-	selenoidImage         = "aerokube/selenoid"
-	selenoidContainerName = "selenoid"
-	selenoidContainerPort = 4444
+	Latest                  = "latest"
+	firefox                 = "firefox"
+	opera                   = "opera"
+	tag_1216                = "12.16"
+	selenoidImage           = "aerokube/selenoid"
+	selenoidUIImage         = "aerokube/selenoid-ui"
+	selenoidContainerName   = "selenoid"
+	selenoidContainerPort   = 4444
+	selenoidUIContainerName = "selenoid-ui"
+	selenoidUIContainerPort = 8080
 )
 
 type SelenoidConfig map[string]config.Versions
@@ -130,11 +133,38 @@ func (c *DockerConfigurator) Status() {
 	}
 }
 
+func (c *DockerConfigurator) UIStatus() {
+	selenoidUIImage := c.getSelenoidUIImage()
+	if selenoidUIImage != nil {
+		c.Printf("Using Selenoid UI image: %s (%s)", selenoidUIImage.RepoTags[0], selenoidUIImage.ID)
+	} else {
+		c.Printf("Selenoid UI image is not present")
+	}
+	selenoidUIContainer := c.getSelenoidUIContainer()
+	if selenoidUIContainer != nil {
+		c.Printf("Selenoid UI container is running: %s (%s)", selenoidUIContainerName, selenoidUIContainer.ID)
+	} else {
+		c.Printf("Selenoid UI container is not running")
+	}
+}
+
 func (c *DockerConfigurator) IsDownloaded() bool {
 	return c.getSelenoidImage() != nil
 }
 
 func (c *DockerConfigurator) getSelenoidImage() *types.ImageSummary {
+	return c.getImage(selenoidImage)
+}
+
+func (c *DockerConfigurator) IsUIDownloaded() bool {
+	return c.getSelenoidUIImage() != nil
+}
+
+func (c *DockerConfigurator) getSelenoidUIImage() *types.ImageSummary {
+	return c.getImage(selenoidUIImage)
+}
+
+func (c *DockerConfigurator) getImage(name string) *types.ImageSummary {
 	images, err := c.docker.ImageList(context.Background(), types.ImageListOptions{})
 	if err != nil {
 		c.Printf("Failed to list images: %v\n", err)
@@ -144,7 +174,7 @@ func (c *DockerConfigurator) getSelenoidImage() *types.ImageSummary {
 		const colon = ":"
 		if len(img.RepoTags) > 0 {
 			imageName := strings.Split(img.RepoTags[0], colon)[0]
-			if imageName == selenoidImage {
+			if imageName == name {
 				return &img
 			}
 		}
@@ -153,25 +183,32 @@ func (c *DockerConfigurator) getSelenoidImage() *types.ImageSummary {
 }
 
 func (c *DockerConfigurator) Download() (string, error) {
-	version := c.Version
+	return c.downloadImpl(selenoidImage, c.Version, "failed to pull Selenoid image")
+}
+
+func (c *DockerConfigurator) DownloadUI() (string, error) {
+	return c.downloadImpl(selenoidUIImage, c.Version, "failed to pull Selenoid UI image")
+}
+
+func (c *DockerConfigurator) downloadImpl(imageName string, version string, errorMessage string) (string, error) {
 	if version == Latest {
-		latestVersion := c.getLatestSelenoidVersion()
+		latestVersion := c.getLatestImageVersion(imageName)
 		if latestVersion != nil {
 			version = *latestVersion
 		}
 	}
-	ref := selenoidImage
+	ref := imageName
 	if version != Latest {
 		ref = fmt.Sprintf("%s:%s", ref, version)
 	}
 	if !c.pullImage(context.Background(), ref) {
-		return "", errors.New("failed to pull Selenoid image")
+		return "", errors.New(errorMessage)
 	}
 	return ref, nil
 }
 
-func (c *DockerConfigurator) getLatestSelenoidVersion() *string {
-	tags := c.fetchImageTags(selenoidImage)
+func (c *DockerConfigurator) getLatestImageVersion(imageName string) *string {
+	tags := c.fetchImageTags(imageName)
 	if len(tags) > 0 {
 		return &tags[0]
 	}
@@ -328,7 +365,7 @@ func createVNCTag(browserName string, version string) string {
 
 func (c *DockerConfigurator) getVersionFromTag(browserName string, tag string) string {
 	if c.VNC {
-		return strings.TrimPrefix(tag, browserName + "_")
+		return strings.TrimPrefix(tag, browserName+"_")
 	}
 	return tag
 }
@@ -376,15 +413,27 @@ func (c *DockerConfigurator) IsRunning() bool {
 }
 
 func (c *DockerConfigurator) getSelenoidContainer() *types.Container {
+	return c.getContainer(selenoidContainerName, selenoidContainerPort)
+}
+
+func (c *DockerConfigurator) IsUIRunning() bool {
+	return c.getSelenoidUIContainer() != nil
+}
+
+func (c *DockerConfigurator) getSelenoidUIContainer() *types.Container {
+	return c.getContainer(selenoidUIContainerName, selenoidUIContainerPort)
+}
+
+func (c *DockerConfigurator) getContainer(name string, port uint16) *types.Container {
 	f := filters.NewArgs()
-	f.Add("name", selenoidContainerName)
+	f.Add("name", name)
 	containers, err := c.docker.ContainerList(context.Background(), types.ContainerListOptions{Filters: f})
 	if err != nil {
 		return nil
 	}
 	for _, c := range containers {
 		for _, p := range c.Ports {
-			if p.PublicPort == selenoidContainerPort {
+			if p.PublicPort == port {
 				return &c
 			}
 		}
@@ -397,31 +446,51 @@ func (c *DockerConfigurator) Start() error {
 	if image == nil {
 		return errors.New("Selenoid image is not downloaded: this is probably a bug")
 	}
-	env := os.Environ()
-	env = append(env, fmt.Sprintf("TZ=%s", time.Local))
-	portString := strconv.Itoa(selenoidContainerPort)
-	port, err := nat.NewPort("tcp", portString)
-	if err != nil {
-		return fmt.Errorf("failed to init Selenoid port: %v", err)
-	}
-	exposedPorts := map[nat.Port]struct{}{port: {}}
-	portBindings := nat.PortMap{}
-	portBindings[port] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: portString}}
+
 	volumes := []string{fmt.Sprintf("%s:/etc/selenoid:ro", c.ConfigDir)}
 	const dockerSocket = "/var/run/docker.sock"
 	if fileExists(dockerSocket) {
 		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
 	}
+
+	cmd := []string{}
+	if c.Limit > 0 {
+		cmd = append(cmd, "-limit", strconv.Itoa(c.Limit))
+	}
+
+	return c.startContainer(selenoidContainerName, image, selenoidContainerPort, volumes, []string{}, cmd)
+}
+
+func (c *DockerConfigurator) StartUI() error {
+	image := c.getSelenoidUIImage()
+	if image == nil {
+		return errors.New("Selenoid UI image is not downloaded: this is probably a bug")
+	}
+
+	links := []string{selenoidContainerName}
+
+	cmd := []string{fmt.Sprintf("--selenoid-uri=http://%s:%d", selenoidContainerName, selenoidContainerPort)}
+
+	return c.startContainer(selenoidUIContainerName, image, selenoidUIContainerPort, []string{}, links, cmd)
+}
+
+func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, forwardedPort int, volumes []string, links []string, cmd []string) error {
+	env := os.Environ()
+	env = append(env, fmt.Sprintf("TZ=%s", time.Local))
+	portString := strconv.Itoa(forwardedPort)
+	port, err := nat.NewPort("tcp", portString)
+	if err != nil {
+		return fmt.Errorf("failed to init port: %v", err)
+	}
+	exposedPorts := map[nat.Port]struct{}{port: {}}
+	portBindings := nat.PortMap{}
+	portBindings[port] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: portString}}
 	ctx := context.Background()
 	containerConfig := container.Config{
 		Hostname:     "localhost",
 		Image:        image.RepoTags[0],
 		Env:          env,
 		ExposedPorts: exposedPorts,
-	}
-	cmd := []string{}
-	if c.Limit > 0 {
-		cmd = append(cmd, "-limit", strconv.Itoa(c.Limit))
 	}
 	if len(cmd) > 0 {
 		containerConfig.Cmd = strslice.StrSlice(cmd)
@@ -430,12 +499,13 @@ func (c *DockerConfigurator) Start() error {
 		&containerConfig,
 		&container.HostConfig{
 			Binds:        volumes,
+			Links:        links,
 			PortBindings: portBindings,
 			RestartPolicy: container.RestartPolicy{
 				Name: "always",
 			},
 		},
-		&network.NetworkingConfig{}, selenoidContainerName)
+		&network.NetworkingConfig{}, name)
 	if err != nil {
 		return fmt.Errorf("failed to create container: %v", err)
 	}
@@ -456,7 +526,18 @@ func (c *DockerConfigurator) Stop() error {
 	if sc != nil {
 		err := c.removeContainer(sc.ID)
 		if err != nil {
-			return fmt.Errorf("failed to stop container: %v", err)
+			return fmt.Errorf("failed to stop Selenoid container: %v", err)
+		}
+	}
+	return nil
+}
+
+func (c *DockerConfigurator) StopUI() error {
+	uc := c.getSelenoidUIContainer()
+	if uc != nil {
+		err := c.removeContainer(uc.ID)
+		if err != nil {
+			return fmt.Errorf("failed to stop Selenoid UI container: %v", err)
 		}
 	}
 	return nil

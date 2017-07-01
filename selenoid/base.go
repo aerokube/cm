@@ -7,11 +7,14 @@ import (
 
 type StatusAware interface {
 	Status()
+	UIStatus()
 }
 
 type Downloadable interface {
 	IsDownloaded() bool
 	Download() (string, error)
+	IsUIDownloaded() bool
+	DownloadUI() (string, error)
 }
 
 type Configurable interface {
@@ -23,6 +26,9 @@ type Runnable interface {
 	IsRunning() bool
 	Start() error
 	Stop() error
+	IsUIRunning() bool
+	StartUI() error
+	StopUI() error
 }
 
 type Logger struct {

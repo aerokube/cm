@@ -14,6 +14,7 @@ type LifecycleConfig struct {
 	Browsers  string
 	Download  bool
 	Limit     int
+	Version   string
 
 	// Docker specific
 	LastVersions int
@@ -26,7 +27,6 @@ type LifecycleConfig struct {
 	GithubBaseUrl   string
 	OS              string
 	Arch            string
-	Version         string
 }
 
 type Lifecycle struct {
@@ -79,6 +79,10 @@ func (l *Lifecycle) Status() {
 	l.statusAware.Status()
 }
 
+func (l *Lifecycle) UIStatus() {
+	l.statusAware.Status()
+}
+
 func (l *Lifecycle) Download() error {
 	if l.downloadable.IsDownloaded() && !l.Force {
 		l.Printf("Selenoid is already downloaded")
@@ -86,6 +90,17 @@ func (l *Lifecycle) Download() error {
 	} else {
 		l.Printf("Downloading Selenoid...")
 		_, err := l.downloadable.Download()
+		return err
+	}
+}
+
+func (l *Lifecycle) DownloadUI() error {
+	if l.downloadable.IsUIDownloaded() && !l.Force {
+		l.Printf("Selenoid UI is already downloaded")
+		return nil
+	} else {
+		l.Printf("Downloading Selenoid UI...")
+		_, err := l.downloadable.DownloadUI()
 		return err
 	}
 }
@@ -138,6 +153,34 @@ func (l *Lifecycle) Start() error {
 	})
 }
 
+func (l *Lifecycle) StartUI() error {
+	return chain([]func() error{
+		func() error {
+			return l.DownloadUI()
+		},
+		func() error {
+			if l.runnable.IsUIRunning() {
+				if l.Force {
+					l.Printf("Stopping previous Selenoid UI instance...\n")
+					err := l.StopUI()
+					if err != nil {
+						return fmt.Errorf("failed to stop previous Selenoid UI instance: %v\n", err)
+					}
+				} else {
+					l.Printf("Selenoid UI is already running\n")
+					return nil
+				}
+			}
+			l.Printf("Starting Selenoid UI...\n")
+			err := l.runnable.StartUI()
+			if err == nil {
+				l.Printf("Successfully started Selenoid UI\n")
+			}
+			return err
+		},
+	})
+}
+
 func (l *Lifecycle) Stop() error {
 	if !l.runnable.IsRunning() {
 		l.Printf("Selenoid is not running\n")
@@ -147,6 +190,19 @@ func (l *Lifecycle) Stop() error {
 	err := l.runnable.Stop()
 	if err == nil {
 		l.Printf("Successfully stopped Selenoid\n")
+	}
+	return err
+}
+
+func (l *Lifecycle) StopUI() error {
+	if !l.runnable.IsUIRunning() {
+		l.Printf("Selenoid UI is not running\n")
+		return nil
+	}
+	l.Printf("Stopping Selenoid UI...\n")
+	err := l.runnable.StopUI()
+	if err == nil {
+		l.Printf("Successfully stopped Selenoid UI\n")
 	}
 	return err
 }
