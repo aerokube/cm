@@ -15,11 +15,11 @@ var selenoidStartCmd = &cobra.Command{
 
 func startImpl(force bool) {
 	lifecycle, err := createLifecycle()
-	lifecycle.Force = force
 	if err != nil {
 		stderr("Failed to initialize: %v\n", err)
 		os.Exit(1)
 	}
+	lifecycle.Force = force
 	err = lifecycle.Start()
 	if err != nil {
 		lifecycle.Printf("Failed to start Selenoid: %v\n", err)
