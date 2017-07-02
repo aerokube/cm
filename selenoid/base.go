@@ -69,6 +69,6 @@ type RequestedBrowsersAware struct {
 	Browsers string
 }
 
-type LimitAware struct {
-	Limit int
+type ArgsAware struct {
+	Args string
 }

@@ -61,9 +61,9 @@ By default Selenoid data is stored in `~/.aerokube/selenoid` but you can specify
 
     $ ./cm selenoid start --vnc
 +
-To change Selenoid maximum parallel sessions add `--limit` flag:
+To override Selenoid startup arguments sessions add `--args` flag:
 
-    $ ./cm selenoid start --limit 10
+    $ ./cm selenoid start --args "-limit 10"
 +
 An alternative to downloading `cm` manually is using Docker container:
 

@@ -13,7 +13,7 @@ type LifecycleConfig struct {
 	ConfigDir string
 	Browsers  string
 	Download  bool
-	Limit     int
+	Args      string
 	Version   string
 
 	// Docker specific

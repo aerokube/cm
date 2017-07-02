@@ -24,7 +24,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strconv"
 	"strings"
 )
 
@@ -63,7 +62,7 @@ type DriversConfigurator struct {
 	ConfigDirAware
 	VersionAware
 	DownloadAware
-	LimitAware
+	ArgsAware
 	RequestedBrowsersAware
 	Browsers        string
 	BrowsersJsonUrl string
@@ -78,7 +77,7 @@ func NewDriversConfigurator(config *LifecycleConfig) *DriversConfigurator {
 		Logger:                 Logger{Quiet: config.Quiet},
 		ConfigDirAware:         ConfigDirAware{ConfigDir: config.ConfigDir},
 		VersionAware:           VersionAware{Version: config.Version},
-		LimitAware:             LimitAware{Limit: config.Limit},
+		ArgsAware:              ArgsAware{Args: config.Args},
 		DownloadAware:          DownloadAware{DownloadNeeded: config.Download},
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
 		BrowsersJsonUrl:        config.BrowsersJsonUrl,
@@ -542,14 +541,15 @@ func (d *DriversConfigurator) Start() error {
 		"-conf", getSelenoidConfigPath(d.ConfigDir),
 		"-disable-docker",
 	}
-	if d.Limit > 0 {
-		args = append(args, "-limit", strconv.Itoa(d.Limit))
+	overrideArgs := strings.Fields(d.Args)
+	if len(overrideArgs) > 0 {
+		args = overrideArgs
 	}
 	return runCommand(d.getSelenoidBinaryPath(), args)
 }
 
 func (d *DriversConfigurator) StartUI() error {
-	args := []string{}
+	args := strings.Fields(d.Args)
 	return runCommand(d.getSelenoidUIBinaryPath(), args)
 }
 

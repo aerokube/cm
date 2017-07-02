@@ -241,7 +241,7 @@ func testConfigure(t *testing.T, download bool) {
 			LastVersions: 2,
 			Tmpfs:        512,
 			Browsers:     "firefox,opera",
-			Limit:        42,
+			Args:         "-limit 42",
 			VNC:          true,
 		}
 		c, err := NewDockerConfigurator(&lcConfig)
