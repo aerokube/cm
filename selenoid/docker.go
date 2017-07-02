@@ -48,7 +48,7 @@ type DockerConfigurator struct {
 	VersionAware
 	DownloadAware
 	RequestedBrowsersAware
-	LimitAware
+	ArgsAware
 	LastVersions int
 	Pull         bool
 	RegistryUrl  string
@@ -65,7 +65,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		VersionAware:           VersionAware{Version: config.Version},
 		DownloadAware:          DownloadAware{DownloadNeeded: config.Download},
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
-		LimitAware:             LimitAware{Limit: config.Limit},
+		ArgsAware:              ArgsAware{Args: config.Args},
 		RegistryUrl:            config.RegistryUrl,
 		LastVersions:           config.LastVersions,
 		Tmpfs:                  config.Tmpfs,
@@ -453,12 +453,7 @@ func (c *DockerConfigurator) Start() error {
 		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
 	}
 
-	cmd := []string{}
-	if c.Limit > 0 {
-		cmd = append(cmd, "-limit", strconv.Itoa(c.Limit))
-	}
-
-	return c.startContainer(selenoidContainerName, image, selenoidContainerPort, volumes, []string{}, cmd)
+	return c.startContainer(selenoidContainerName, image, selenoidContainerPort, volumes, []string{}, strings.Fields(c.Args))
 }
 
 func (c *DockerConfigurator) StartUI() error {
@@ -470,6 +465,10 @@ func (c *DockerConfigurator) StartUI() error {
 	links := []string{selenoidContainerName}
 
 	cmd := []string{fmt.Sprintf("--selenoid-uri=http://%s:%d", selenoidContainerName, selenoidContainerPort)}
+	overrideCmd := strings.Fields(c.Args)
+	if len(overrideCmd) > 0 {
+		cmd = overrideCmd
+	}
 
 	return c.startContainer(selenoidUIContainerName, image, selenoidUIContainerPort, []string{}, links, cmd)
 }

@@ -306,12 +306,12 @@ func testDownloadRelease(t *testing.T, desiredVersion string, expectedFileConten
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
 		AssertThat(t, configurator.IsDownloaded(), Is{false})
-		
+
 		outputPath, err := configurator.Download()
 		AssertThat(t, err, Is{nil})
 		AssertThat(t, outputPath, Is{Not{nil}})
 		checkContentsEqual(t, outputPath, expectedFileContents)
-		
+
 		uiOutputPath, err := configurator.DownloadUI()
 		AssertThat(t, err, Is{nil})
 		AssertThat(t, uiOutputPath, Is{Not{nil}})
@@ -327,7 +327,7 @@ func checkContentsEqual(t *testing.T, outputPath string, expectedFileContents st
 	data, err := ioutil.ReadFile(outputPath)
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, string(data), EqualTo{expectedFileContents})
-	
+
 }
 
 func TestUnknownRelease(t *testing.T) {
@@ -390,14 +390,14 @@ func TestStartStopProcess(t *testing.T) {
 			OS:            runtime.GOOS,
 			Arch:          runtime.GOARCH,
 			Version:       Latest,
-			Limit:         42,
+			Args:          "-limit 42",
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
 		AssertThat(t, configurator.IsRunning(), Is{true}) //This is probably true because test binary has name selenoid.test; no fake process is launched
 		AssertThat(t, configurator.Start(), Is{nil})
 		configurator.Status()
 		AssertThat(t, configurator.Stop(), Is{nil})
-		
+
 		AssertThat(t, configurator.IsUIRunning(), Is{false})
 		AssertThat(t, configurator.StartUI(), Is{nil})
 		configurator.UIStatus()
