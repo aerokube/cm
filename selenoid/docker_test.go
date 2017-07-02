@@ -13,13 +13,42 @@ import (
 
 var (
 	mockDockerServer *httptest.Server
-	imageName        = selenoidImage
+	imageName        string
+	containerName    string
+	port             int
 )
 
 func init() {
+	resetImageName()
+	resetContainerName()
+	resetPort()
 	mockDockerServer = httptest.NewServer(mux())
 	os.Setenv("DOCKER_HOST", "tcp://"+hostPort(mockDockerServer.URL))
 	os.Setenv("DOCKER_API_VERSION", "1.29")
+}
+
+func setImageName(name string) {
+	imageName = name
+}
+
+func resetImageName() {
+	setImageName(selenoidImage)
+}
+
+func setContainerName(name string) {
+	containerName = name
+}
+
+func resetContainerName() {
+	setContainerName(selenoidContainerName)
+}
+
+func setPort(p int) {
+	port = p
+}
+
+func resetPort() {
+	setPort(selenoidContainerPort)
 }
 
 func mux() http.Handler {
@@ -105,20 +134,20 @@ func mux() http.Handler {
 	mux.HandleFunc("/v1.29/containers/json", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			output := `
+			output := fmt.Sprintf(`
 			[{
 				"Id": "e90e34656806",
-				"Names": [ "selenoid" ],
-				"Image": "aerokube/selenoid:latest",
+				"Names": [ "%s" ],
+				"Image": "%s:latest",
 				"ImageID": "e216a057b1cb1efc11f8a268f37ef62083e70b1b38323ba252e25ac88904a7e8",
-				"Command": "/usr/bin/selenoid",
+				"Command": "/usr/bin/some-cmd",
 				"Created": 1367854154,
 				"State": "Exited",
 				"Status": "Exit 0",
 				"Ports": [
 					{
-						"PrivatePort": 4444,
-						"PublicPort": 4444,
+						"PrivatePort": %d,
+						"PublicPort": %d,
 						"Type": "tcp"
 					}
 				],
@@ -130,7 +159,7 @@ func mux() http.Handler {
 			    	"Mounts": [ ]
 				
 			}]
-			`
+			`, containerName, imageName, port, port)
 			w.Write([]byte(output))
 		},
 	))
@@ -276,6 +305,25 @@ func TestStartStopContainer(t *testing.T) {
 	AssertThat(t, c.Stop(), Is{nil})
 }
 
+func TestStartStopUIContainer(t *testing.T) {
+	defer func() {
+		resetImageName()
+		resetContainerName()
+		resetPort()
+	}()
+	c, err := NewDockerConfigurator(&LifecycleConfig{
+		RegistryUrl: mockDockerServer.URL,
+	})
+	AssertThat(t, err, Is{nil})
+	setContainerName(selenoidUIContainerName)
+	setImageName(selenoidUIImage)
+	setPort(selenoidUIContainerPort)
+	AssertThat(t, c.IsUIRunning(), Is{true})
+	AssertThat(t, c.StartUI(), Is{nil})
+	c.UIStatus()
+	AssertThat(t, c.StopUI(), Is{nil})
+}
+
 func TestDownload(t *testing.T) {
 	c, err := NewDockerConfigurator(&LifecycleConfig{
 		RegistryUrl: mockDockerServer.URL,
@@ -289,9 +337,26 @@ func TestDownload(t *testing.T) {
 	AssertThat(t, err, Is{nil})
 }
 
+func TestDownloadUI(t *testing.T) {
+	defer func() {
+		resetImageName()
+	}()
+	c, err := NewDockerConfigurator(&LifecycleConfig{
+		RegistryUrl: mockDockerServer.URL,
+		Quiet:       true,
+		Version:     Latest,
+	})
+	setImageName(selenoidUIImage)
+	AssertThat(t, c.IsUIDownloaded(), Is{true})
+	AssertThat(t, err, Is{nil})
+	ref, err := c.DownloadUI()
+	AssertThat(t, ref, Not{nil})
+	AssertThat(t, err, Is{nil})
+}
+
 func TestGetSelenoidImage(t *testing.T) {
 	defer func() {
-		imageName = selenoidImage
+		resetImageName()
 	}()
 	c, err := NewDockerConfigurator(&LifecycleConfig{
 		RegistryUrl: mockDockerServer.URL,
@@ -300,6 +365,6 @@ func TestGetSelenoidImage(t *testing.T) {
 	})
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, c.getSelenoidImage() == nil, Is{false})
-	imageName = "aerokube/selenoid-ui"
+	setImageName(selenoidUIImage)
 	AssertThat(t, c.getSelenoidImage() == nil, Is{true})
 }

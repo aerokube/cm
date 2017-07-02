@@ -24,8 +24,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -33,7 +33,8 @@ const (
 	gzipMagicHeader = "1f8b"
 	comma           = ","
 	owner           = "aerokube"
-	repo            = "selenoid"
+	selenoidRepo    = "selenoid"
+	selenoidUIRepo  = "selenoid-ui"
 )
 
 type Browsers map[string]Browser
@@ -106,7 +107,22 @@ func (d *DriversConfigurator) Status() {
 	if len(selenoidProcesses) > 0 {
 		d.Printf("Selenoid is running as process %d", selenoidProcesses[0].Pid)
 	} else {
-		d.Printf("Selenoid process is not running")
+		d.Printf("Selenoid is not running")
+	}
+}
+
+func (d *DriversConfigurator) UIStatus() {
+	binaryPath := d.getSelenoidUIBinaryPath()
+	if fileExists(binaryPath) {
+		d.Printf("Selenoid UI binary is %s", binaryPath)
+	} else {
+		d.Printf("Selenoid UI binary is not downloaded")
+	}
+	selenoidUIProcesses := findSelenoidUIProcesses()
+	if len(selenoidUIProcesses) > 0 {
+		d.Printf("Selenoid UI is running as process %d", selenoidUIProcesses[0].Pid)
+	} else {
+		d.Printf("Selenoid UI is not running")
 	}
 }
 
@@ -115,7 +131,19 @@ func (d *DriversConfigurator) IsDownloaded() bool {
 }
 
 func (d *DriversConfigurator) getSelenoidBinaryPath() string {
-	return filepath.Join(d.ConfigDir, getReleaseFileName())
+	return d.getBinaryPath(getSelenoidReleaseFileName())
+}
+
+func (d *DriversConfigurator) IsUIDownloaded() bool {
+	return fileExists(d.getSelenoidUIBinaryPath())
+}
+
+func (d *DriversConfigurator) getSelenoidUIBinaryPath() string {
+	return d.getBinaryPath(getSelenoidUIReleaseFileName())
+}
+
+func (d *DriversConfigurator) getBinaryPath(fileName string) string {
+	return filepath.Join(d.ConfigDir, fileName)
 }
 
 func getSelenoidConfigPath(outputDir string) string {
@@ -123,13 +151,13 @@ func getSelenoidConfigPath(outputDir string) string {
 }
 
 func (d *DriversConfigurator) Download() (string, error) {
-	u, err := d.getUrl()
+	u, err := d.getSelenoidUrl()
 	if err != nil {
-		return "", fmt.Errorf("failed to get download URL for arch = %s and version = %s: %v\n", d.Arch, d.Version, err)
+		return "", fmt.Errorf("failed to get Selenoid download URL for arch = %s and version = %s: %v\n", d.Arch, d.Version, err)
 	}
 	err = d.createConfigDir()
 	if err != nil {
-		return "", fmt.Errorf("failed to create config directory: %v\n", err)
+		return "", fmt.Errorf("failed to create Selenoid config directory: %v\n", err)
 	}
 	if d.IsRunning() {
 		d.Printf("Stopping Selenoid to overwrite its binary...")
@@ -145,9 +173,41 @@ func (d *DriversConfigurator) Download() (string, error) {
 	d.Printf("Successfully downloaded Selenoid to %s\n", outputFile)
 	return outputFile, nil
 }
-
-func (d *DriversConfigurator) getUrl() (string, error) {
+func (d *DriversConfigurator) getSelenoidUrl() (string, error) {
 	d.Printf("Getting Selenoid release information for version: %s\n", d.Version)
+	return d.getUrl(selenoidRepo, fmt.Errorf("Selenoid binary for %s %s is not available for specified release: %s\n", strings.Title(d.OS), d.Arch, d.Version))
+}
+
+func (d *DriversConfigurator) DownloadUI() (string, error) {
+	u, err := d.getSelenoidUIUrl()
+	if err != nil {
+		return "", fmt.Errorf("failed to get download URL for arch = %s and version = %s: %v\n", d.Arch, d.Version, err)
+	}
+	err = d.createConfigDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to create Selenoid UI config directory: %v\n", err)
+	}
+	if d.IsUIRunning() {
+		d.Printf("Stopping Selenoid UI to overwrite its binary...")
+		err := d.StopUI()
+		if err != nil {
+			return "", fmt.Errorf("failed to stop Selenoid UI: %v\n", err)
+		}
+	}
+	outputFile, err := d.downloadFile(u)
+	if err != nil {
+		return "", fmt.Errorf("failed to download Selenoid UI for arch = %s and version = %s: %v\n", d.Arch, d.Version, err)
+	}
+	d.Printf("Successfully downloaded Selenoid UI to %s\n", outputFile)
+	return outputFile, nil
+}
+
+func (d *DriversConfigurator) getSelenoidUIUrl() (string, error) {
+	d.Printf("Getting Selenoid UI release information for version: %s\n", d.Version)
+	return d.getUrl(selenoidUIRepo, fmt.Errorf("Selenoid UI binary for %s %s is not available for specified release: %s\n", strings.Title(d.OS), d.Arch, d.Version))
+}
+
+func (d *DriversConfigurator) getUrl(repo string, missingBinaryError error) (string, error) {
 	ctx := context.Background()
 	client := github.NewClient(nil)
 	if d.GithubBaseUrl != "" {
@@ -179,7 +239,7 @@ func (d *DriversConfigurator) getUrl() (string, error) {
 			return *(asset.BrowserDownloadURL), nil
 		}
 	}
-	return "", fmt.Errorf("Selenoid binary for %s %s is not available for specified release: %s\n", strings.Title(d.OS), d.Arch, d.Version)
+	return "", missingBinaryError
 }
 
 func (d *DriversConfigurator) downloadFile(url string) (string, error) {
@@ -472,6 +532,11 @@ func (d *DriversConfigurator) IsRunning() bool {
 	return len(selenoidProcesses) > 0
 }
 
+func (d *DriversConfigurator) IsUIRunning() bool {
+	selenoidUIProcesses := findSelenoidUIProcesses()
+	return len(selenoidUIProcesses) > 0
+}
+
 func (d *DriversConfigurator) Start() error {
 	args := []string{
 		"-conf", getSelenoidConfigPath(d.ConfigDir),
@@ -483,12 +548,25 @@ func (d *DriversConfigurator) Start() error {
 	return runCommand(d.getSelenoidBinaryPath(), args)
 }
 
+func (d *DriversConfigurator) StartUI() error {
+	args := []string{}
+	return runCommand(d.getSelenoidUIBinaryPath(), args)
+}
+
 var killFunc func(os.Process) error = func(p os.Process) error {
 	return p.Kill()
 }
 
 func (d *DriversConfigurator) Stop() error {
-	for _, p := range findSelenoidProcesses() {
+	return killAllProcesses(findSelenoidProcesses())
+}
+
+func (d *DriversConfigurator) StopUI() error {
+	return killAllProcesses(findSelenoidUIProcesses())
+}
+
+func killAllProcesses(processes []os.Process) error {
+	for _, p := range processes {
 		err := killFunc(p)
 		if err != nil {
 			return err
@@ -504,6 +582,10 @@ func (d *DriversConfigurator) Close() error {
 
 func findSelenoidProcesses() []os.Process {
 	return findProcesses("selenoid")
+}
+
+func findSelenoidUIProcesses() []os.Process {
+	return findProcesses("selenoid-ui")
 }
 
 func findProcesses(regex string) []os.Process {
@@ -531,8 +613,16 @@ func runCommand(command string, args []string) error {
 	return cmd.Start()
 }
 
-func getReleaseFileName() string {
-	rel := fmt.Sprintf("selenoid_%s_%s", runtime.GOOS, runtime.GOARCH)
+func getSelenoidReleaseFileName() string {
+	return getReleaseFileName(selenoidRepo)
+}
+
+func getSelenoidUIReleaseFileName() string {
+	return getReleaseFileName(selenoidUIRepo)
+}
+
+func getReleaseFileName(name string) string {
+	rel := fmt.Sprintf("%s_%s_%s", name, runtime.GOOS, runtime.GOARCH)
 	if runtime.GOOS == "windows" {
 		return rel + ".exe"
 	}

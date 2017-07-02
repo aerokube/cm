@@ -5,12 +5,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var selenoidUpdateCmd = &cobra.Command{
-	Use:   "update",
-	Short: "Update Selenoid (download latest Selenoid, configure and start)",
+var selenoidStartUICmd = &cobra.Command{
+	Use:   "start",
+	Short: "Start Selenoid UI",
 	Run: func(cmd *cobra.Command, args []string) {
 		startImpl(func(lc *selenoid.Lifecycle) error {
-			return lc.Start()
-		}, true)
+			return lc.StartUI()
+		}, force)
 	},
 }

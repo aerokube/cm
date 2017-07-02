@@ -9,11 +9,17 @@ import (
 )
 
 type MockStrategy struct {
-	isDownloaded bool
-	isRunning    bool
+	isDownloaded   bool
+	isRunning      bool
+	isUIDownloaded bool
+	isUIRunning    bool
 }
 
 func (ms *MockStrategy) Status() {
+	//Does nothing
+}
+
+func (ms *MockStrategy) UIStatus() {
 	//Does nothing
 }
 
@@ -21,7 +27,15 @@ func (ms *MockStrategy) IsDownloaded() bool {
 	return ms.isDownloaded
 }
 
+func (ms *MockStrategy) IsUIDownloaded() bool {
+	return ms.isDownloaded
+}
+
 func (ms *MockStrategy) Download() (string, error) {
+	return "test", nil
+}
+
+func (ms *MockStrategy) DownloadUI() (string, error) {
 	return "test", nil
 }
 
@@ -37,11 +51,23 @@ func (ms *MockStrategy) IsRunning() bool {
 	return ms.isRunning
 }
 
+func (ms *MockStrategy) IsUIRunning() bool {
+	return ms.isRunning
+}
+
 func (ms *MockStrategy) Start() error {
 	return nil
 }
 
+func (ms *MockStrategy) StartUI() error {
+	return nil
+}
+
 func (ms *MockStrategy) Stop() error {
+	return nil
+}
+
+func (ms *MockStrategy) StopUI() error {
 	return nil
 }
 
@@ -72,16 +98,7 @@ func TestDockerAvailable(t *testing.T) {
 
 func TestLifecycle(t *testing.T) {
 	strategy := MockStrategy{}
-	lc := Lifecycle{
-		Logger:       Logger{Quiet: false},
-		Forceable:    Forceable{Force: true},
-		Config:       &LifecycleConfig{},
-		statusAware:  &strategy,
-		downloadable: &strategy,
-		configurable: &strategy,
-		runnable:     &strategy,
-		closer:       &strategy,
-	}
+	lc := createTestLifecycle(strategy)
 	defer lc.Close()
 	lc.Status()
 	AssertThat(t, lc.Download(), Is{nil})
@@ -91,4 +108,30 @@ func TestLifecycle(t *testing.T) {
 	AssertThat(t, lc.Start(), Is{nil})
 	strategy.isRunning = false
 	AssertThat(t, lc.Stop(), Is{nil})
+}
+
+func createTestLifecycle(strategy MockStrategy) Lifecycle {
+	return Lifecycle{
+		Logger:       Logger{Quiet: false},
+		Forceable:    Forceable{Force: true},
+		Config:       &LifecycleConfig{},
+		statusAware:  &strategy,
+		downloadable: &strategy,
+		configurable: &strategy,
+		runnable:     &strategy,
+		closer:       &strategy,
+	}
+}
+
+func TestUILifecycle(t *testing.T) {
+	strategy := MockStrategy{}
+	lc := createTestLifecycle(strategy)
+	defer lc.Close()
+	lc.UIStatus()
+	AssertThat(t, lc.DownloadUI(), Is{nil})
+	AssertThat(t, lc.StartUI(), Is{nil})
+	strategy.isRunning = true
+	AssertThat(t, lc.StartUI(), Is{nil})
+	strategy.isRunning = false
+	AssertThat(t, lc.StopUI(), Is{nil})
 }

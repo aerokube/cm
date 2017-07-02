@@ -19,6 +19,7 @@ var (
 
 func init() {
 	rootCmd.AddCommand(selenoidCmd)
+	rootCmd.AddCommand(selenoidUICmd)
 	rootCmd.AddCommand(versionCmd)
 }
 

@@ -26,7 +26,7 @@ const (
 
 var (
 	mockDriverServer *httptest.Server
-	releaseFileName  = getReleaseFileName()
+	releaseFileName  = getSelenoidReleaseFileName()
 )
 
 func init() {
@@ -71,11 +71,19 @@ func driversMux() http.Handler {
 	))
 
 	mux.HandleFunc(
-		fmt.Sprintf("/repos/%s/%s/releases/tags/%s", owner, repo, previousReleaseTag),
+		fmt.Sprintf("/repos/%s/%s/releases/tags/%s", owner, selenoidRepo, previousReleaseTag),
 		http.HandlerFunc(getReleaseHandler(previousReleaseTag)),
 	)
 	mux.HandleFunc(
-		fmt.Sprintf("/repos/%s/%s/releases/latest", owner, repo),
+		fmt.Sprintf("/repos/%s/%s/releases/latest", owner, selenoidRepo),
+		http.HandlerFunc(getReleaseHandler(latestReleaseTag)),
+	)
+	mux.HandleFunc(
+		fmt.Sprintf("/repos/%s/%s/releases/tags/%s", owner, selenoidUIRepo, previousReleaseTag),
+		http.HandlerFunc(getReleaseHandler(previousReleaseTag)),
+	)
+	mux.HandleFunc(
+		fmt.Sprintf("/repos/%s/%s/releases/latest", owner, selenoidUIRepo),
 		http.HandlerFunc(getReleaseHandler(latestReleaseTag)),
 	)
 	mux.HandleFunc("/"+releaseFileName, http.HandlerFunc(
@@ -298,19 +306,28 @@ func testDownloadRelease(t *testing.T, desiredVersion string, expectedFileConten
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
 		AssertThat(t, configurator.IsDownloaded(), Is{false})
+		
 		outputPath, err := configurator.Download()
 		AssertThat(t, err, Is{nil})
 		AssertThat(t, outputPath, Is{Not{nil}})
-
-		if !fileExists(outputPath) {
-			t.Fatalf("release was not downloaded to %s: file does not exist\n", outputPath)
-		}
-
-		data, err := ioutil.ReadFile(outputPath)
+		checkContentsEqual(t, outputPath, expectedFileContents)
+		
+		uiOutputPath, err := configurator.DownloadUI()
 		AssertThat(t, err, Is{nil})
-		AssertThat(t, string(data), EqualTo{expectedFileContents})
+		AssertThat(t, uiOutputPath, Is{Not{nil}})
+		checkContentsEqual(t, uiOutputPath, expectedFileContents)
 	})
 
+}
+
+func checkContentsEqual(t *testing.T, outputPath string, expectedFileContents string) {
+	if !fileExists(outputPath) {
+		t.Fatalf("release was not downloaded to %s: file does not exist\n", outputPath)
+	}
+	data, err := ioutil.ReadFile(outputPath)
+	AssertThat(t, err, Is{nil})
+	AssertThat(t, string(data), EqualTo{expectedFileContents})
+	
 }
 
 func TestUnknownRelease(t *testing.T) {
@@ -376,10 +393,15 @@ func TestStartStopProcess(t *testing.T) {
 			Limit:         42,
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
-		AssertThat(t, configurator.IsRunning(), Is{true})
+		AssertThat(t, configurator.IsRunning(), Is{true}) //This is probably true because test binary has name selenoid.test; no fake process is launched
 		AssertThat(t, configurator.Start(), Is{nil})
 		configurator.Status()
 		AssertThat(t, configurator.Stop(), Is{nil})
+		
+		AssertThat(t, configurator.IsUIRunning(), Is{false})
+		AssertThat(t, configurator.StartUI(), Is{nil})
+		configurator.UIStatus()
+		AssertThat(t, configurator.StopUI(), Is{nil})
 	})
 
 }

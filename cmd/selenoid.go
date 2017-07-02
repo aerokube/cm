@@ -32,6 +32,7 @@ var (
 
 func init() {
 	initFlags()
+
 	selenoidCmd.AddCommand(selenoidDownloadCmd)
 	selenoidCmd.AddCommand(selenoidConfigureCmd)
 	selenoidCmd.AddCommand(selenoidStartCmd)
@@ -39,6 +40,13 @@ func init() {
 	selenoidCmd.AddCommand(selenoidUpdateCmd)
 	selenoidCmd.AddCommand(selenoidCleanupCmd)
 	selenoidCmd.AddCommand(selenoidStatusCmd)
+
+	selenoidUICmd.AddCommand(selenoidDownloadUICmd)
+	selenoidUICmd.AddCommand(selenoidStartUICmd)
+	selenoidUICmd.AddCommand(selenoidStopUICmd)
+	selenoidUICmd.AddCommand(selenoidUpdateUICmd)
+	selenoidUICmd.AddCommand(selenoidCleanupUICmd)
+	selenoidUICmd.AddCommand(selenoidUIStatusCmd)
 }
 
 func initFlags() {
@@ -52,7 +60,40 @@ func initFlags() {
 		selenoidStatusCmd,
 	} {
 		c.Flags().BoolVarP(&quiet, "quiet", "q", false, "suppress output")
+	}
+	for _, c := range []*cobra.Command{
+		selenoidDownloadCmd,
+		selenoidConfigureCmd,
+		selenoidStartCmd,
+		selenoidStopCmd,
+		selenoidUpdateCmd,
+		selenoidCleanupCmd,
+		selenoidStatusCmd,
+	} {
 		c.Flags().StringVarP(&configDir, "config-dir", "c", getSelenoidConfigDir(), "directory to save files")
+	}
+	for _, c := range []*cobra.Command{
+		selenoidDownloadUICmd,
+		selenoidStartUICmd,
+		selenoidStopUICmd,
+		selenoidUpdateUICmd,
+		selenoidCleanupUICmd,
+		selenoidUIStatusCmd,
+	} {
+		c.Flags().StringVarP(&configDir, "config-dir", "c", getSelenoidUIConfigDir(), "directory to save files")
+	}
+
+	for _, c := range []*cobra.Command{
+		selenoidDownloadCmd,
+		selenoidConfigureCmd,
+		selenoidStartCmd,
+		selenoidUpdateCmd,
+		selenoidDownloadUICmd,
+		selenoidStartUICmd,
+		selenoidUpdateUICmd,
+	} {
+		c.Flags().StringVarP(&operatingSystem, "operating-system", "o", runtime.GOOS, "target operating system (drivers only)")
+		c.Flags().StringVarP(&arch, "architecture", "a", runtime.GOARCH, "target architecture (drivers only)")
 	}
 	for _, c := range []*cobra.Command{
 		selenoidDownloadCmd,
@@ -60,8 +101,6 @@ func initFlags() {
 		selenoidStartCmd,
 		selenoidUpdateCmd,
 	} {
-		c.Flags().StringVarP(&operatingSystem, "operating-system", "o", runtime.GOOS, "target operating system (drivers only)")
-		c.Flags().StringVarP(&arch, "architecture", "a", runtime.GOARCH, "target architecture (drivers only)")
 		c.Flags().StringVarP(&version, "version", "v", selenoid.Latest, "desired version; default is latest release")
 		c.Flags().StringVarP(&browsers, "browsers", "b", "", "comma separated list of browser names to process")
 		c.Flags().StringVarP(&browsersJSONUrl, "browsers-json", "j", defaultBrowsersJsonURL, "browsers JSON data URL (in most cases never need to be set manually)")
@@ -75,6 +114,8 @@ func initFlags() {
 		selenoidDownloadCmd,
 		selenoidConfigureCmd,
 		selenoidStartCmd,
+		selenoidDownloadUICmd,
+		selenoidStartUICmd,
 	} {
 		c.Flags().BoolVarP(&force, "force", "f", false, "force action")
 	}
@@ -129,6 +170,10 @@ func getConfigDir(elem ...string) string {
 
 func getSelenoidConfigDir() string {
 	return getConfigDir(".aerokube", "selenoid")
+}
+
+func getSelenoidUIConfigDir() string {
+	return getConfigDir(".aerokube", "selenoid-ui")
 }
 
 func stderr(format string, a ...interface{}) {
