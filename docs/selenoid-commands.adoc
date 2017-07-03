@@ -67,4 +67,4 @@ To override Selenoid startup arguments sessions add `--args` flag:
 +
 An alternative to downloading `cm` manually is using Docker container:
 
-    # docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /root:${HOME} aerokube/cm:latest-release selenoid start
+    # docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root aerokube/cm:latest-release selenoid start

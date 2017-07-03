@@ -33,5 +33,5 @@ These commands just repeat similar commands for Selenoid so we give no comments 
     $ ./cm selenoid-ui download [--version 1.2.1] [--force]
     $ ./cm selenoid-ui start
     $ ./cm selenoid-ui start --args "--period 100ms"
-    # docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /root:${HOME} aerokube/cm:latest-release selenoid-ui start
+    # docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root aerokube/cm:latest-release selenoid-ui start
     
