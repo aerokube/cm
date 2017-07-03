@@ -517,7 +517,7 @@ table.CodeRay td.code>pre{padding:0}
 <div class="details">
 <span id="author" class="author">Alexander Andryashin, Ivan Krutov, Kirill Merkushev and the Aerokube community</span><br>
 <span id="revnumber">version latest,</span>
-<span id="revdate">2017-07-02</span>
+<span id="revdate">2017-07-03</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -527,7 +527,12 @@ table.CodeRay td.code>pre{padding:0}
 <li><a href="#_example_commands">1.1. Example Commands</a></li>
 </ul>
 </li>
-<li><a href="#_contributing_development">2. Contributing &amp; Development</a></li>
+<li><a href="#_starting_selenoid_ui">2. Starting Selenoid UI</a>
+<ul class="sectlevel3">
+<li><a href="#_example_commands_2">2.1. Example Commands</a></li>
+</ul>
+</li>
+<li><a href="#_contributing_development">3. Contributing &amp; Development</a></li>
 </ul>
 </div>
 </div>
@@ -711,8 +716,97 @@ table.CodeRay td.code>pre{padding:0}
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_starting_selenoid_ui"><a class="anchor" href="#_starting_selenoid_ui"></a>2. Starting Selenoid UI</h3>
+<div class="paragraph">
+<p>This section describes supported ways of automatic <a href="https://github.com/aerokube/selenoid-ui">Selenoid UI</a> startup.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To quickly run Selenoid UI type:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid-ui start</pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Selenoid UI configuration algorithm is similar to Selenoid one - it is started either in Docker container if you have Docker installed or as a standalone binary otherwise. Supported commands are:</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 2. Commands to run Selenoid UI</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Command</th>
+<th class="tableblock halign-left valign-top">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">cleanup</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Removes Selenoid UI traces</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">download</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Downloads Selenoid UI binary or container image</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">start</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Starts Selenoid UI process or container (implies download)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">status</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows actual service status (whether Selenoid is downloaded or running)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">stop</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Stops Selenoid UI process or container</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">update</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Updates Selenoid to latest version</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>To see supported flags for each command append <code>--help</code>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid start --help</pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_example_commands_2"><a class="anchor" href="#_example_commands_2"></a>2.1. Example Commands</h4>
+<div class="paragraph">
+<p>These commands just repeat similar commands for Selenoid so we give no comments here:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid-ui download [--version 1.2.1] [--force]
+$ ./cm selenoid-ui start
+$ ./cm selenoid-ui start --args "--period 100ms"
+# docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /root:${HOME} aerokube/cm:latest-release selenoid-ui start</pre>
+</div>
+</div>
+</div>
+</div>
 <div class="sect1">
-<h2 id="_contributing_development"><a class="anchor" href="#_contributing_development"></a>2. Contributing &amp; Development</h2>
+<h2 id="_contributing_development"><a class="anchor" href="#_contributing_development"></a>3. Contributing &amp; Development</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>To build cm:</p>
@@ -797,7 +891,7 @@ $ docker build -t cm:latest .</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version latest<br>
-Last updated 2017-07-02 09:24:15 UTC
+Last updated 2017-07-03 05:25:53 UTC
 </div>
 </div>
 </body>
