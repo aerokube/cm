@@ -708,7 +708,7 @@ table.CodeRay td.code>pre{padding:0}
 </div>
 <div class="literalblock">
 <div class="content">
-<pre># docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /root:${HOME} aerokube/cm:latest-release selenoid start</pre>
+<pre># docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root aerokube/cm:latest-release selenoid start</pre>
 </div>
 </div>
 </li>
@@ -800,7 +800,7 @@ table.CodeRay td.code>pre{padding:0}
 <pre>$ ./cm selenoid-ui download [--version 1.2.1] [--force]
 $ ./cm selenoid-ui start
 $ ./cm selenoid-ui start --args "--period 100ms"
-# docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /root:${HOME} aerokube/cm:latest-release selenoid-ui start</pre>
+# docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root aerokube/cm:latest-release selenoid-ui start</pre>
 </div>
 </div>
 </div>
@@ -891,7 +891,7 @@ $ docker build -t cm:latest .</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version latest<br>
-Last updated 2017-07-03 05:25:53 UTC
+Last updated 2017-07-03 11:05:43 UTC
 </div>
 </div>
 </body>
