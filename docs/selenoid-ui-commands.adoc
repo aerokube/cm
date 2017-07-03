@@ -1,0 +1,37 @@
+== Starting Selenoid UI
+This section describes supported ways of automatic https://github.com/aerokube/selenoid-ui[Selenoid UI] startup.
+
+[TIP]
+====
+To quickly run Selenoid UI type:
+
+    $ ./cm selenoid-ui start
+    
+====
+
+Selenoid UI configuration algorithm is similar to Selenoid one - it is started either in Docker container if you have Docker installed or as a standalone binary otherwise. Supported commands are:
+
+.Commands to run Selenoid UI 
+|===
+| Command | Meaning
+
+| cleanup | Removes Selenoid UI traces
+| download | Downloads Selenoid UI binary or container image
+| start | Starts Selenoid UI process or container (implies download)
+| status | Shows actual service status (whether Selenoid is downloaded or running)
+| stop | Stops Selenoid UI process or container
+| update | Updates Selenoid to latest version
+|===
+
+To see supported flags for each command append `--help`:
+
+    $ ./cm selenoid start --help
+
+=== Example Commands
+These commands just repeat similar commands for Selenoid so we give no comments here:
+
+    $ ./cm selenoid-ui download [--version 1.2.1] [--force]
+    $ ./cm selenoid-ui start
+    $ ./cm selenoid-ui start --args "--period 100ms"
+    # docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /root:${HOME} aerokube/cm:latest-release selenoid-ui start
+    
