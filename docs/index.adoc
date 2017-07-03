@@ -14,5 +14,6 @@ This reference covers version: _{revnumber}_.
 Configuration manager is a small application used to automatically configure http://aerokube.com[Aerokube] products.
  
 include::selenoid-commands.adoc[leveloffset=+1]
+include::selenoid-ui-commands.adoc[leveloffset=+1]
 
 include::contributing.adoc[]
