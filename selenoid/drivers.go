@@ -63,6 +63,8 @@ type DriversConfigurator struct {
 	VersionAware
 	DownloadAware
 	ArgsAware
+	EnvAware
+	BrowserEnvAware
 	RequestedBrowsersAware
 	Browsers        string
 	BrowsersJsonUrl string
@@ -78,6 +80,8 @@ func NewDriversConfigurator(config *LifecycleConfig) *DriversConfigurator {
 		ConfigDirAware:         ConfigDirAware{ConfigDir: config.ConfigDir},
 		VersionAware:           VersionAware{Version: config.Version},
 		ArgsAware:              ArgsAware{Args: config.Args},
+		EnvAware:               EnvAware{Env: config.Env},
+		BrowserEnvAware:        BrowserEnvAware{BrowserEnv: config.BrowserEnv},
 		DownloadAware:          DownloadAware{DownloadNeeded: config.Download},
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
 		BrowsersJsonUrl:        config.BrowsersJsonUrl,
@@ -272,7 +276,7 @@ func (d *DriversConfigurator) Configure() (*SelenoidConfig, error) {
 		return nil, fmt.Errorf("failed to create output directory: %v\n", err)
 	}
 	downloadedDrivers := d.downloadDrivers(browsers, d.ConfigDir)
-	cfg := generateConfig(downloadedDrivers)
+	cfg := d.generateConfig(downloadedDrivers)
 	data, err := json.MarshalIndent(cfg, "", "    ")
 	if err != nil {
 		return &cfg, fmt.Errorf("failed to marshal json: %v\n", err)
@@ -280,17 +284,22 @@ func (d *DriversConfigurator) Configure() (*SelenoidConfig, error) {
 	return &cfg, ioutil.WriteFile(getSelenoidConfigPath(d.ConfigDir), data, 0644)
 }
 
-func generateConfig(downloadedDrivers []downloadedDriver) SelenoidConfig {
+func (d *DriversConfigurator) generateConfig(downloadedDrivers []downloadedDriver) SelenoidConfig {
 	browsers := make(SelenoidConfig)
 	for _, dd := range downloadedDrivers {
 		cmd := strings.Fields(dd.Command)
+		browser := &config.Browser{
+			Image: cmd,
+			Path:  "/",
+		}
+		browserEnv := strings.Fields(d.BrowserEnv)
+		if len(browserEnv) > 0 {
+			browser.Env = browserEnv
+		}
 		versions := config.Versions{
 			Default: Latest,
 			Versions: map[string]*config.Browser{
-				Latest: {
-					Image: cmd,
-					Path:  "/",
-				},
+				Latest: browser,
 			},
 		}
 		browsers[dd.BrowserName] = versions
@@ -545,12 +554,14 @@ func (d *DriversConfigurator) Start() error {
 	if len(overrideArgs) > 0 {
 		args = overrideArgs
 	}
-	return runCommand(d.getSelenoidBinaryPath(), args)
+	env := strings.Fields(d.Env)
+	return runCommand(d.getSelenoidBinaryPath(), args, env)
 }
 
 func (d *DriversConfigurator) StartUI() error {
 	args := strings.Fields(d.Args)
-	return runCommand(d.getSelenoidUIBinaryPath(), args)
+	env := strings.Fields(d.Env)
+	return runCommand(d.getSelenoidUIBinaryPath(), args, env)
 }
 
 var killFunc func(os.Process) error = func(p os.Process) error {
@@ -605,11 +616,12 @@ func findProcesses(regex string) []os.Process {
 
 var execCommand = exec.Command
 
-func runCommand(command string, args []string) error {
+func runCommand(command string, args []string, env []string) error {
 	cmd := execCommand(command, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = env
 	return cmd.Start()
 }
 
