@@ -28,6 +28,8 @@ var (
 	vnc             bool
 	force           bool
 	args            string
+	env             string
+	browserEnv      string
 )
 
 func init() {
@@ -102,10 +104,17 @@ func initFlags() {
 		selenoidUpdateCmd,
 	} {
 		c.Flags().StringVarP(&version, "version", "v", selenoid.Latest, "desired version; default is latest release")
+		c.Flags().StringVarP(&registry, "registry", "r", registryUrl, "Docker registry to use")
+	}
+	for _, c := range []*cobra.Command{
+		selenoidConfigureCmd,
+		selenoidStartCmd,
+		selenoidUpdateCmd,
+	} {
 		c.Flags().StringVarP(&browsers, "browsers", "b", "", "comma separated list of browser names to process")
+		c.Flags().StringVarP(&browserEnv, "browser-env", "w", "", "override container or driver environment variables (e.g. \"KEY1=value1 KEY2=value2\")")
 		c.Flags().StringVarP(&browsersJSONUrl, "browsers-json", "j", defaultBrowsersJsonURL, "browsers JSON data URL (in most cases never need to be set manually)")
 		c.Flags().BoolVarP(&skipDownload, "no-download", "n", false, "only output config file without downloading images or drivers")
-		c.Flags().StringVarP(&registry, "registry", "r", registryUrl, "Docker registry to use")
 		c.Flags().IntVarP(&lastVersions, "last-versions", "l", 2, "process only last N versions (Docker only)")
 		c.Flags().IntVarP(&tmpfs, "tmpfs", "t", 0, "add tmpfs volume sized in megabytes (Docker only)")
 		c.Flags().BoolVarP(&vnc, "vnc", "s", false, "download containers with VNC support (Docker only)")
@@ -126,17 +135,20 @@ func initFlags() {
 		selenoidUpdateUICmd,
 	} {
 		c.Flags().StringVarP(&args, "args", "g", "", "additional service arguments (e.g. \"-limit 5\")")
+		c.Flags().StringVarP(&env, "env", "e", "", "override service environment variables (e.g. \"KEY1=value1 KEY2=value2\")")
 	}
 }
 
 func createLifecycle() (*selenoid.Lifecycle, error) {
 	config := selenoid.LifecycleConfig{
-		Quiet:     quiet,
-		Force:     force,
-		ConfigDir: configDir,
-		Browsers:  browsers,
-		Download:  !skipDownload,
-		Args:      args,
+		Quiet:      quiet,
+		Force:      force,
+		ConfigDir:  configDir,
+		Browsers:   browsers,
+		BrowserEnv: browserEnv,
+		Download:   !skipDownload,
+		Args:       args,
+		Env:        env,
 
 		LastVersions: lastVersions,
 		RegistryUrl:  registry,

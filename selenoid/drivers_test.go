@@ -22,6 +22,7 @@ const (
 	previousReleaseTag = "1.2.0"
 	latestReleaseTag   = "1.2.1"
 	version            = "version"
+	testEnv            = "MYKEY=myvalue"
 )
 
 var (
@@ -148,6 +149,9 @@ func TestConfigureDrivers(t *testing.T) {
 			BrowsersJsonUrl: browsersJsonUrl,
 			Download:        true,
 			Quiet:           false,
+			Args:            "-limit 42",
+			Env:             testEnv,
+			BrowserEnv:      testEnv,
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
 		AssertThat(t, configurator.IsConfigured(), Is{false})
@@ -167,6 +171,7 @@ func TestConfigureDrivers(t *testing.T) {
 					Latest: {
 						Image: []string{unpackedFirstFile},
 						Path:  "/",
+						Env:   []string{testEnv},
 					},
 				},
 			},
@@ -176,6 +181,7 @@ func TestConfigureDrivers(t *testing.T) {
 					Latest: {
 						Image: []string{unpackedSecondFile},
 						Path:  "/",
+						Env:   []string{testEnv},
 					},
 				},
 			},
@@ -390,7 +396,6 @@ func TestStartStopProcess(t *testing.T) {
 			OS:            runtime.GOOS,
 			Arch:          runtime.GOARCH,
 			Version:       Latest,
-			Args:          "-limit 42",
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
 		AssertThat(t, configurator.IsRunning(), Is{true}) //This is probably true because test binary has name selenoid.test; no fake process is launched

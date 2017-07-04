@@ -72,3 +72,11 @@ type RequestedBrowsersAware struct {
 type ArgsAware struct {
 	Args string
 }
+
+type EnvAware struct {
+	Env string
+}
+
+type BrowserEnvAware struct {
+	BrowserEnv string
+}

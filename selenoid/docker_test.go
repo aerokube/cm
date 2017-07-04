@@ -243,6 +243,8 @@ func testConfigure(t *testing.T, download bool) {
 			Browsers:     "firefox,opera",
 			Args:         "-limit 42",
 			VNC:          true,
+			Env:          testEnv,
+			BrowserEnv:   testEnv,
 		}
 		c, err := NewDockerConfigurator(&lcConfig)
 		AssertThat(t, err, Is{nil})
@@ -268,28 +270,31 @@ func testConfigure(t *testing.T, download bool) {
 			Port:  "4444",
 			Path:  "/wd/hub",
 			Tmpfs: tmpfsMap,
+			Env:   []string{testEnv},
 		}
 		correctFFBrowsers["45.0"] = &config.Browser{
 			Image: "selenoid/vnc:firefox_45.0",
 			Port:  "4444",
 			Path:  "/wd/hub",
 			Tmpfs: tmpfsMap,
+			Env:   []string{testEnv},
 		}
 		AssertThat(t, firefoxVersions, EqualTo{config.Versions{
 			Default:  "46.0",
 			Versions: correctFFBrowsers,
 		}})
 
-		operaVersions, hasPhantomjsKey := cfg["opera"]
-		AssertThat(t, hasPhantomjsKey, Is{true})
+		operaVersions, hasOperaKey := cfg["opera"]
+		AssertThat(t, hasOperaKey, Is{true})
 		AssertThat(t, operaVersions, Is{Not{nil}})
 		AssertThat(t, operaVersions.Default, EqualTo{"44.0"})
 
-		correctPhantomjsBrowsers := make(map[string]*config.Browser)
-		correctPhantomjsBrowsers["2.1.1"] = &config.Browser{
+		correctOperaBrowsers := make(map[string]*config.Browser)
+		correctOperaBrowsers["2.1.1"] = &config.Browser{
 			Image: "selenoid/opera:44.0",
 			Port:  "4444",
 			Tmpfs: tmpfsMap,
+			Env:   []string{testEnv},
 		}
 	})
 }

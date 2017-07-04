@@ -49,6 +49,8 @@ type DockerConfigurator struct {
 	DownloadAware
 	RequestedBrowsersAware
 	ArgsAware
+	EnvAware
+	BrowserEnvAware
 	LastVersions int
 	Pull         bool
 	RegistryUrl  string
@@ -66,6 +68,8 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		DownloadAware:          DownloadAware{DownloadNeeded: config.Download},
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
 		ArgsAware:              ArgsAware{Args: config.Args},
+		EnvAware:               EnvAware{Env: config.Env},
+		BrowserEnvAware:        BrowserEnvAware{BrowserEnv: config.BrowserEnv},
 		RegistryUrl:            config.RegistryUrl,
 		LastVersions:           config.LastVersions,
 		Tmpfs:                  config.Tmpfs,
@@ -318,6 +322,10 @@ func (c *DockerConfigurator) createVersions(browserName string, image string, ta
 			tmpfs["/tmp"] = fmt.Sprintf("size=%dm", c.Tmpfs)
 			browser.Tmpfs = tmpfs
 		}
+		browserEnv := strings.Fields(c.BrowserEnv)
+		if len(browserEnv) > 0 {
+			browser.Env = browserEnv
+		}
 		versions.Versions[version] = browser
 	}
 	return versions
@@ -453,7 +461,8 @@ func (c *DockerConfigurator) Start() error {
 		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
 	}
 
-	return c.startContainer(selenoidContainerName, image, selenoidContainerPort, volumes, []string{}, strings.Fields(c.Args))
+	overrideEnv := strings.Fields(c.Env)
+	return c.startContainer(selenoidContainerName, image, selenoidContainerPort, volumes, []string{}, strings.Fields(c.Args), overrideEnv)
 }
 
 func (c *DockerConfigurator) StartUI() error {
@@ -470,12 +479,16 @@ func (c *DockerConfigurator) StartUI() error {
 		cmd = overrideCmd
 	}
 
-	return c.startContainer(selenoidUIContainerName, image, selenoidUIContainerPort, []string{}, links, cmd)
+	overrideEnv := strings.Fields(c.Env)
+	return c.startContainer(selenoidUIContainerName, image, selenoidUIContainerPort, []string{}, links, cmd, overrideEnv)
 }
 
-func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, forwardedPort int, volumes []string, links []string, cmd []string) error {
+func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, forwardedPort int, volumes []string, links []string, cmd []string, envOverride []string) error {
 	env := os.Environ()
 	env = append(env, fmt.Sprintf("TZ=%s", time.Local))
+	if len(envOverride) > 0 {
+		env = envOverride
+	}
 	portString := strconv.Itoa(forwardedPort)
 	port, err := nat.NewPort("tcp", portString)
 	if err != nil {

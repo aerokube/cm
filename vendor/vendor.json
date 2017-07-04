@@ -23,16 +23,16 @@
 			"revisionTime": "2016-07-29T13:19:23Z"
 		},
 		{
-			"checksumSHA1": "RvHpyzTcdkjUkKBn0kmZ9irr724=",
+			"checksumSHA1": "RJ93VwpT4yuW2nQOfdi/ocfhoKc=",
 			"path": "github.com/aerokube/selenoid/config",
-			"revision": "5b39d2bab8e58ae2d813b38f0a4305096b8ca92e",
-			"revisionTime": "2017-05-13T11:25:18Z"
+			"revision": "368bfbbfbc0ea07ec9f81f8ea5b1aabe38516cbd",
+			"revisionTime": "2017-07-03T10:52:49Z"
 		},
 		{
-			"checksumSHA1": "Cq8PTDf6LLWGYm2Dwu/D3Nh0JqM=",
+			"checksumSHA1": "wwFIjzJhaV3fFP02UwrHAXFMNiE=",
 			"path": "github.com/aerokube/selenoid/session",
-			"revision": "5b39d2bab8e58ae2d813b38f0a4305096b8ca92e",
-			"revisionTime": "2017-05-13T11:25:18Z"
+			"revision": "368bfbbfbc0ea07ec9f81f8ea5b1aabe38516cbd",
+			"revisionTime": "2017-07-03T10:52:49Z"
 		},
 		{
 			"checksumSHA1": "Nge8TFcb8UiM2yAHwIoV8qdFKy4=",
