@@ -9,7 +9,7 @@ var selenoidDownloadUICmd = &cobra.Command{
 	Use:   "download",
 	Short: "Download latest or specified release of Selenoid UI",
 	Run: func(cmd *cobra.Command, args []string) {
-		downloadImpl(func(lc *selenoid.Lifecycle) error {
+		downloadImpl(uiConfigDir, func(lc *selenoid.Lifecycle) error {
 			return lc.DownloadUI()
 		})
 	},

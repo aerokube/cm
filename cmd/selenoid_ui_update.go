@@ -9,7 +9,7 @@ var selenoidUpdateUICmd = &cobra.Command{
 	Use:   "update",
 	Short: "Update Selenoid UI (download latest Selenoid UI and start)",
 	Run: func(cmd *cobra.Command, args []string) {
-		startImpl(func(lc *selenoid.Lifecycle) error {
+		startImpl(uiConfigDir, func(lc *selenoid.Lifecycle) error {
 			return lc.StartUI()
 		}, true)
 	},
