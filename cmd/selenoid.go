@@ -24,6 +24,7 @@ var (
 	browsers        string
 	browsersJSONUrl string
 	configDir       string
+	uiConfigDir     string
 	skipDownload    bool
 	vnc             bool
 	force           bool
@@ -82,7 +83,7 @@ func initFlags() {
 		selenoidCleanupUICmd,
 		selenoidUIStatusCmd,
 	} {
-		c.Flags().StringVarP(&configDir, "config-dir", "c", getSelenoidUIConfigDir(), "directory to save files")
+		c.Flags().StringVarP(&uiConfigDir, "config-dir", "c", getSelenoidUIConfigDir(), "directory to save files")
 	}
 
 	for _, c := range []*cobra.Command{
@@ -139,7 +140,7 @@ func initFlags() {
 	}
 }
 
-func createLifecycle() (*selenoid.Lifecycle, error) {
+func createLifecycle(configDir string) (*selenoid.Lifecycle, error) {
 	config := selenoid.LifecycleConfig{
 		Quiet:      quiet,
 		Force:      force,

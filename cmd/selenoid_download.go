@@ -10,14 +10,14 @@ var selenoidDownloadCmd = &cobra.Command{
 	Use:   "download",
 	Short: "Download Selenoid latest or specified release",
 	Run: func(cmd *cobra.Command, args []string) {
-		downloadImpl(func(lc *selenoid.Lifecycle) error {
+		downloadImpl(configDir, func(lc *selenoid.Lifecycle) error {
 			return lc.Download()
 		})
 	},
 }
 
-func downloadImpl(downloadAction func(*selenoid.Lifecycle) error) {
-	lifecycle, err := createLifecycle()
+func downloadImpl(configDir string, downloadAction func(*selenoid.Lifecycle) error) {
+	lifecycle, err := createLifecycle(configDir)
 	if err != nil {
 		stderr("Failed to initialize: %v\n", err)
 		os.Exit(1)

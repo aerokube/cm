@@ -10,14 +10,14 @@ var selenoidCleanupCmd = &cobra.Command{
 	Use:   "cleanup",
 	Short: "Remove Selenoid traces",
 	Run: func(cmd *cobra.Command, args []string) {
-		cleanupImpl(func(lc *selenoid.Lifecycle) error {
+		cleanupImpl(configDir, func(lc *selenoid.Lifecycle) error {
 			return lc.Stop()
 		})
 	},
 }
 
-func cleanupImpl(stopAction func(*selenoid.Lifecycle) error) {
-	lifecycle, err := createLifecycle()
+func cleanupImpl(configDir string, stopAction func(*selenoid.Lifecycle) error) {
+	lifecycle, err := createLifecycle(configDir)
 	if err != nil {
 		stderr("Failed to initialize: %v\n", err)
 		os.Exit(1)
