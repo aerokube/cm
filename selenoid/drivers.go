@@ -169,7 +169,8 @@ func (d *DriversConfigurator) Download() (string, error) {
 			return "", fmt.Errorf("failed to stop Selenoid: %v\n", err)
 		}
 	}
-	outputFile, err := d.downloadFile(u)
+	d.Printf("Downloading Selenoid release from %s\n", u)
+	outputFile, err := d.downloadFile(u, d.getSelenoidBinaryPath())
 	if err != nil {
 		return "", fmt.Errorf("failed to download Selenoid for arch = %s and version = %s: %v\n", d.Arch, d.Version, err)
 	}
@@ -197,7 +198,8 @@ func (d *DriversConfigurator) DownloadUI() (string, error) {
 			return "", fmt.Errorf("failed to stop Selenoid UI: %v\n", err)
 		}
 	}
-	outputFile, err := d.downloadFile(u)
+	d.Printf("Downloading Selenoid UI release from %s\n", u)
+	outputFile, err := d.downloadFile(u, d.getSelenoidUIBinaryPath())
 	if err != nil {
 		return "", fmt.Errorf("failed to download Selenoid UI for arch = %s and version = %s: %v\n", d.Arch, d.Version, err)
 	}
@@ -245,9 +247,7 @@ func (d *DriversConfigurator) getUrl(repo string, missingBinaryError error) (str
 	return "", missingBinaryError
 }
 
-func (d *DriversConfigurator) downloadFile(url string) (string, error) {
-	d.Printf("Downloading Selenoid release from %s\n", url)
-	outputPath := d.getSelenoidBinaryPath()
+func (d *DriversConfigurator) downloadFile(url string, outputPath string) (string, error) {
 	f, err := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		return "", err
@@ -258,7 +258,6 @@ func (d *DriversConfigurator) downloadFile(url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	d.Printf("Selenoid binary saved to %s\n", outputPath)
 	return outputPath, nil
 }
 
