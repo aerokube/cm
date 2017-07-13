@@ -60,7 +60,7 @@
   },
   
   "opera": {
-    "command": "%s --port=4444 --whitelisted-ips='' --verbose",
+    "command": "%s --whitelisted-ips='' --verbose",
     "files": {
       "linux": {
         "386": {
@@ -92,6 +92,18 @@
     }
   },
   
+  "safari": {
+    "command": "%s --port=4444",
+    "files": {
+      "darwin": {
+        "amd64": {
+          "url": "",
+          "filename": "/usr/bin/safaridriver"
+        }
+      }
+    }
+  },
+
   "internet explorer": {
     "command": "%s",
     "files": {

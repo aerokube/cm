@@ -65,6 +65,17 @@ func driversMux() http.Handler {
 						},
 					},
 				},
+				"safari": Browser{
+					Command: "%s",
+					Files: Files{
+						goos: {
+							goarch: Driver{
+								URL:      "",
+								Filename: "/usr/bin/safaridriver",
+							},
+						},
+					},
+				},
 			}
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(&browsers)
@@ -117,22 +128,24 @@ func TestAllUrlsAreValid(t *testing.T) {
 		for _, architectures := range browser.Files {
 			for _, driver := range architectures {
 				u := driver.URL
-				fmt.Printf("Checking URL: %s\n", u)
-				req, err := http.NewRequest(http.MethodHead, u, nil)
-				client := &http.Client{
-					CheckRedirect: func(req *http.Request, via []*http.Request) error {
-						/*
-							Do not follow redirects in order to avoid 403 Forbidden responses from S3 when checking Github releases links
-						*/
-						return http.ErrUseLastResponse
-					},
-				}
-				resp, err := client.Do(req)
-				if err != nil {
-					t.Fatalf("failed to request url %s: %v\n", u, err)
-				}
-				if resp.StatusCode != 200 && resp.StatusCode != 301 && resp.StatusCode != 302 {
-					t.Fatalf("broken url %s: %d", u, resp.StatusCode)
+				if u != "" {
+					fmt.Printf("Checking URL: %s\n", u)
+					req, err := http.NewRequest(http.MethodHead, u, nil)
+					client := &http.Client{
+						CheckRedirect: func(req *http.Request, via []*http.Request) error {
+							/*
+								Do not follow redirects in order to avoid 403 Forbidden responses from S3 when checking Github releases links
+							*/
+							return http.ErrUseLastResponse
+						},
+					}
+					resp, err := client.Do(req)
+					if err != nil {
+						t.Fatalf("failed to request url %s: %v\n", u, err)
+					}
+					if resp.StatusCode != 200 && resp.StatusCode != 301 && resp.StatusCode != 302 {
+						t.Fatalf("broken url %s: %d", u, resp.StatusCode)
+					}
 				}
 			}
 		}
@@ -145,7 +158,7 @@ func TestConfigureDrivers(t *testing.T) {
 		browsersJsonUrl := mockServerUrl(mockDriverServer, "/browsers.json")
 		lcConfig := LifecycleConfig{
 			ConfigDir:       dir,
-			Browsers:        "first,second,third",
+			Browsers:        "first,second,safari,fourth",
 			BrowsersJsonUrl: browsersJsonUrl,
 			Download:        true,
 			Quiet:           false,
@@ -160,7 +173,7 @@ func TestConfigureDrivers(t *testing.T) {
 		AssertThat(t, cfgPointer, Is{Not{nil}})
 
 		cfg := *cfgPointer
-		AssertThat(t, len(cfg), EqualTo{2})
+		AssertThat(t, len(cfg), EqualTo{3})
 
 		unpackedFirstFile := path.Join(dir, "zip-testfile")
 		unpackedSecondFile := path.Join(dir, "gzip-testfile")
@@ -180,6 +193,16 @@ func TestConfigureDrivers(t *testing.T) {
 				Versions: map[string]*config.Browser{
 					Latest: {
 						Image: []string{unpackedSecondFile},
+						Path:  "/",
+						Env:   []string{testEnv},
+					},
+				},
+			},
+			"safari": config.Versions{
+				Default: Latest,
+				Versions: map[string]*config.Browser{
+					Latest: {
+						Image: []string{"/usr/bin/safaridriver"},
 						Path:  "/",
 						Env:   []string{testEnv},
 					},
