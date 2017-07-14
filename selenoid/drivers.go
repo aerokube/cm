@@ -364,6 +364,10 @@ func downloadFileWithProgressBar(url string, w io.Writer) error {
 }
 
 func (d *DriversConfigurator) downloadDriver(driver *Driver, dir string) (string, error) {
+	if driver.URL == "" {
+		d.Printf("Assuming that driver is present in %s...", driver.Filename)
+		return driver.Filename, nil
+	}
 	if d.DownloadNeeded {
 		d.Printf("Downloading driver from %s...\n", driver.URL)
 		data, err := downloadFile(driver.URL)
