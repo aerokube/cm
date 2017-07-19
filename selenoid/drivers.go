@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/aerokube/selenoid/config"
 	"github.com/google/go-github/github"
@@ -400,8 +399,14 @@ func extractFile(data []byte, filename string, outputDir string) (string, error)
 		return unzip(data, filename, outputDir)
 	} else if isTarGzFile(data) {
 		return untar(data, filename, outputDir)
+	} else {
+		outputPath := filepath.Join(outputDir, filename)
+		err := ioutil.WriteFile(outputPath, data, os.ModePerm)
+		if err != nil {
+			return "", fmt.Errorf("failed to save file %s: %v", outputPath, err)
+		}
+		return outputPath, nil
 	}
-	return "", errors.New("Unknown archive type")
 }
 
 // Based on http://stackoverflow.com/questions/20357223/easy-way-to-unzip-file-with-golang

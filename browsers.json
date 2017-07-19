@@ -93,7 +93,7 @@
   },
   
   "safari": {
-    "command": "%s --port=4444",
+    "command": "%s",
     "files": {
       "darwin": {
         "amd64": {
@@ -115,6 +115,22 @@
         "amd64": {
           "url": "http://selenium-release.storage.googleapis.com/3.4/IEDriverServer_x64_3.4.0.zip",
           "filename": "IEDriverServer.exe"
+        }
+      }
+    }
+  },
+  
+  "MicrosoftEdge": {
+    "command": "%s",
+    "files": {
+      "windows": {
+        "386": {
+          "url": "https://download.microsoft.com/download/3/4/2/342316D7-EBE0-4F10-ABA2-AE8E0CDF36DD/MicrosoftWebDriver.exe",
+          "filename": "MicrosoftWebDriver.exe"
+        },
+        "amd64": {
+          "url": "https://download.microsoft.com/download/3/4/2/342316D7-EBE0-4F10-ABA2-AE8E0CDF36DD/MicrosoftWebDriver.exe",
+          "filename": "MicrosoftWebDriver.exe"
         }
       }
     }

@@ -65,6 +65,17 @@ func driversMux() http.Handler {
 						},
 					},
 				},
+				"third": Browser{
+					Command: "%s",
+					Files: Files{
+						goos: {
+							goarch: Driver{
+								URL:      mockServerUrl(mockDriverServer, "/testfile"),
+								Filename: "testfile",
+							},
+						},
+					},
+				},
 				"safari": Browser{
 					Command: "%s",
 					Files: Files{
@@ -158,7 +169,7 @@ func TestConfigureDrivers(t *testing.T) {
 		browsersJsonUrl := mockServerUrl(mockDriverServer, "/browsers.json")
 		lcConfig := LifecycleConfig{
 			ConfigDir:       dir,
-			Browsers:        "first,second,safari,fourth",
+			Browsers:        "first,second,third,safari,fourth",
 			BrowsersJsonUrl: browsersJsonUrl,
 			Download:        true,
 			Quiet:           false,
@@ -173,10 +184,11 @@ func TestConfigureDrivers(t *testing.T) {
 		AssertThat(t, cfgPointer, Is{Not{nil}})
 
 		cfg := *cfgPointer
-		AssertThat(t, len(cfg), EqualTo{3})
+		AssertThat(t, len(cfg), EqualTo{4})
 
 		unpackedFirstFile := path.Join(dir, "zip-testfile")
 		unpackedSecondFile := path.Join(dir, "gzip-testfile")
+		unpackedThirdFile := path.Join(dir, "testfile")
 		correctConfig := SelenoidConfig{
 			"first": config.Versions{
 				Default: Latest,
@@ -193,6 +205,16 @@ func TestConfigureDrivers(t *testing.T) {
 				Versions: map[string]*config.Browser{
 					Latest: {
 						Image: []string{unpackedSecondFile},
+						Path:  "/",
+						Env:   []string{testEnv},
+					},
+				},
+			},
+			"third": config.Versions{
+				Default: Latest,
+				Versions: map[string]*config.Browser{
+					Latest: {
+						Image: []string{unpackedThirdFile},
 						Path:  "/",
 						Env:   []string{testEnv},
 					},
