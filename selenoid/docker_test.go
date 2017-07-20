@@ -373,3 +373,8 @@ func TestGetSelenoidImage(t *testing.T) {
 	setImageName(selenoidUIImage)
 	AssertThat(t, c.getSelenoidImage() == nil, Is{true})
 }
+
+func TestFilterOutLatest(t *testing.T) {
+	tags := filterOutLatest([]string{"one", "latest", "latest-release", "two"})
+	AssertThat(t, tags, EqualTo{[]string{"one", "two"}})
+}
