@@ -176,8 +176,8 @@ func (c *DockerConfigurator) getImage(name string) *types.ImageSummary {
 	}
 	for _, img := range images {
 		const colon = ":"
-		if len(img.RepoTags) > 0 {
-			imageName := strings.Split(img.RepoTags[0], colon)[0]
+		for _, tag := range img.RepoTags {
+			imageName := strings.Split(tag, colon)[0]
 			if imageName == name {
 				return &img
 			}
@@ -295,7 +295,7 @@ func (c *DockerConfigurator) fetchImageTags(image string) []string {
 func filterOutLatest(tags []string) []string {
 	ret := []string{}
 	for _, tag := range tags {
-		if tag != Latest {
+		if !strings.HasPrefix(tag, Latest) {
 			ret = append(ret, tag)
 		}
 	}
