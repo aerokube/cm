@@ -178,7 +178,7 @@ func (c *DockerConfigurator) getImage(name string) *types.ImageSummary {
 		const colon = ":"
 		for _, tag := range img.RepoTags {
 			imageName := strings.Split(tag, colon)[0]
-			if imageName == name {
+			if strings.HasSuffix(imageName, name) {
 				return &img
 			}
 		}

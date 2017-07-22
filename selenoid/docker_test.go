@@ -32,7 +32,7 @@ func setImageName(name string) {
 }
 
 func resetImageName() {
-	setImageName(selenoidImage)
+	setImageName("docker.io/" + selenoidImage)
 }
 
 func setContainerName(name string) {
