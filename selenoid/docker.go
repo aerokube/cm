@@ -38,6 +38,7 @@ const (
 	selenoidContainerPort   = 4444
 	selenoidUIContainerName = "selenoid-ui"
 	selenoidUIContainerPort = 8080
+	overrideHome            = "OVERRIDE_HOME"
 )
 
 type SelenoidConfig map[string]config.Versions
@@ -455,7 +456,8 @@ func (c *DockerConfigurator) Start() error {
 		return errors.New("Selenoid image is not downloaded: this is probably a bug")
 	}
 
-	volumes := []string{fmt.Sprintf("%s:/etc/selenoid:ro", c.ConfigDir)}
+	volumeConfigDir := c.getVolumeConfigDir(selenoidConfigDirElem)
+	volumes := []string{fmt.Sprintf("%s:/etc/selenoid:ro", volumeConfigDir)}
 	const dockerSocket = "/var/run/docker.sock"
 	if fileExists(dockerSocket) {
 		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
@@ -463,6 +465,18 @@ func (c *DockerConfigurator) Start() error {
 
 	overrideEnv := strings.Fields(c.Env)
 	return c.startContainer(selenoidContainerName, image, selenoidContainerPort, volumes, []string{}, strings.Fields(c.Args), overrideEnv)
+}
+
+func (c *DockerConfigurator) getVolumeConfigDir(elem []string) string {
+	return chooseVolumeConfigDir(c.ConfigDir, elem)
+}
+
+func chooseVolumeConfigDir(defaultConfigDir string, elem []string) string {
+	overrideHome := os.Getenv(overrideHome)
+	if overrideHome != "" {
+		return joinPaths(overrideHome, elem)
+	}
+	return defaultConfigDir
 }
 
 func (c *DockerConfigurator) StartUI() error {
