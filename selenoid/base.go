@@ -3,6 +3,8 @@ package selenoid
 import (
 	"log"
 	"os"
+	"os/user"
+	"path/filepath"
 )
 
 type StatusAware interface {
@@ -79,4 +81,36 @@ type EnvAware struct {
 
 type BrowserEnvAware struct {
 	BrowserEnv string
+}
+
+func getHomeDir() string {
+	usr, err := user.Current()
+	if err != nil {
+		return ""
+	}
+	return usr.HomeDir
+}
+
+func joinPaths(baseDir string, elem []string) string {
+	var p string
+	if baseDir == "" {
+		p = filepath.Join(elem...)
+	} else {
+		p = filepath.Join(append([]string{baseDir}, elem...)...)
+	}
+	ap, _ := filepath.Abs(p)
+	return ap
+}
+
+var (
+	selenoidConfigDirElem   = []string{".aerokube", "selenoid"}
+	selenoidUIConfigDirElem = []string{".aerokube", "selenoid-ui"}
+)
+
+func GetSelenoidConfigDir() string {
+	return joinPaths(getHomeDir(), selenoidConfigDirElem)
+}
+
+func GetSelenoidUIConfigDir() string {
+	return joinPaths(getHomeDir(), selenoidUIConfigDirElem)
 }

@@ -5,8 +5,6 @@ import (
 	"github.com/aerokube/cm/selenoid"
 	"github.com/spf13/cobra"
 	"os"
-	"os/user"
-	"path/filepath"
 	"runtime"
 )
 
@@ -73,7 +71,7 @@ func initFlags() {
 		selenoidCleanupCmd,
 		selenoidStatusCmd,
 	} {
-		c.Flags().StringVarP(&configDir, "config-dir", "c", getSelenoidConfigDir(), "directory to save files")
+		c.Flags().StringVarP(&configDir, "config-dir", "c", selenoid.GetSelenoidConfigDir(), "directory to save files")
 	}
 	for _, c := range []*cobra.Command{
 		selenoidDownloadUICmd,
@@ -83,7 +81,7 @@ func initFlags() {
 		selenoidCleanupUICmd,
 		selenoidUIStatusCmd,
 	} {
-		c.Flags().StringVarP(&uiConfigDir, "config-dir", "c", getSelenoidUIConfigDir(), "directory to save files")
+		c.Flags().StringVarP(&uiConfigDir, "config-dir", "c", selenoid.GetSelenoidUIConfigDir(), "directory to save files")
 	}
 
 	for _, c := range []*cobra.Command{
@@ -170,25 +168,6 @@ var selenoidCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return cmd.Usage()
 	},
-}
-
-func getConfigDir(elem ...string) string {
-	usr, err := user.Current()
-	var p string
-	if err != nil {
-		p = filepath.Join(elem...)
-	}
-	p = filepath.Join(append([]string{usr.HomeDir}, elem...)...)
-	ap, _ := filepath.Abs(p)
-	return ap
-}
-
-func getSelenoidConfigDir() string {
-	return getConfigDir(".aerokube", "selenoid")
-}
-
-func getSelenoidUIConfigDir() string {
-	return getConfigDir(".aerokube", "selenoid-ui")
 }
 
 func stderr(format string, a ...interface{}) {

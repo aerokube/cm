@@ -378,3 +378,10 @@ func TestFilterOutLatest(t *testing.T) {
 	tags := filterOutLatest([]string{"one", "latest", "latest-release", "two"})
 	AssertThat(t, tags, EqualTo{[]string{"one", "two"}})
 }
+
+func TestChooseVolumeConfigDir(t *testing.T) {
+	os.Setenv("OVERRIDE_HOME", "/test/dir")
+	defer os.Unsetenv("OVERRIDE_HOME")
+	dir := chooseVolumeConfigDir("/some/dir", []string{"one", "two"})
+	AssertThat(t, dir, EqualTo{"/test/dir/one/two"})
+}
