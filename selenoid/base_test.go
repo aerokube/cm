@@ -1,9 +1,9 @@
 package selenoid
 
 import (
-	"testing"
 	. "github.com/aandryashin/matchers"
 	"path/filepath"
+	"testing"
 )
 
 func TestGetConfigDir(t *testing.T) {

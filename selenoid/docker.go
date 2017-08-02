@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"runtime"
 	. "vbom.ml/util/sortorder"
 )
 
@@ -468,7 +469,16 @@ func (c *DockerConfigurator) Start() error {
 }
 
 func (c *DockerConfigurator) getVolumeConfigDir(elem []string) string {
-	return chooseVolumeConfigDir(c.ConfigDir, elem)
+	configDir := chooseVolumeConfigDir(c.ConfigDir, elem)
+	if runtime.GOOS == "windows" { //A bit ugly, but conditional compilation is even worse
+		return postProcessPath(configDir)
+	}
+	return configDir
+}
+
+// According to https://stackoverflow.com/questions/34161352/docker-sharing-a-volume-on-windows-with-docker-toolbox
+func postProcessPath(path string) string {
+	return "/" + strings.Replace(strings.Replace(path, string("\\"), "/", -1), ":", "", 1)
 }
 
 func chooseVolumeConfigDir(defaultConfigDir string, elem []string) string {

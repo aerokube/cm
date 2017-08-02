@@ -385,3 +385,8 @@ func TestChooseVolumeConfigDir(t *testing.T) {
 	dir := chooseVolumeConfigDir("/some/dir", []string{"one", "two"})
 	AssertThat(t, dir, EqualTo{"/test/dir/one/two"})
 }
+
+func TestPostProcessPath(t *testing.T) {
+	AssertThat(t, postProcessPath("c:\\Users\\admin"), EqualTo{"/c/Users/admin"})
+	AssertThat(t, postProcessPath("c:\\c:\\Users\\admin"), EqualTo{"/c/c:/Users/admin"})
+}
