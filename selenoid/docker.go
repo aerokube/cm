@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"regexp"
 	"runtime"
 	. "vbom.ml/util/sortorder"
 )
@@ -478,7 +479,14 @@ func (c *DockerConfigurator) getVolumeConfigDir(elem []string) string {
 
 // According to https://stackoverflow.com/questions/34161352/docker-sharing-a-volume-on-windows-with-docker-toolbox
 func postProcessPath(path string) string {
-	return "/" + strings.Replace(strings.Replace(path, string("\\"), "/", -1), ":", "", 1)
+	if len(path) >= 2 {
+		replacedSlashes := strings.Replace(path, string("\\"), "/", -1)
+		re := regexp.MustCompile("([A-Z]):(.+)")
+		lowerCaseDriveLetter := strings.ToLower(re.ReplaceAllString(replacedSlashes, "$1"))
+		pathTail := re.ReplaceAllString(replacedSlashes, "$2")
+		return "/" + lowerCaseDriveLetter + pathTail
+	}
+	return path
 }
 
 func chooseVolumeConfigDir(defaultConfigDir string, elem []string) string {
