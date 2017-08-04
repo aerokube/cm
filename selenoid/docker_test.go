@@ -387,6 +387,8 @@ func TestChooseVolumeConfigDir(t *testing.T) {
 }
 
 func TestPostProcessPath(t *testing.T) {
-	AssertThat(t, postProcessPath("c:\\Users\\admin"), EqualTo{"/c/Users/admin"})
-	AssertThat(t, postProcessPath("c:\\c:\\Users\\admin"), EqualTo{"/c/c:/Users/admin"})
+	AssertThat(t, postProcessPath("C:\\Users\\admin"), EqualTo{"/c/Users/admin"})
+	AssertThat(t, postProcessPath("C:\\C:\\Users\\admin"), EqualTo{"/c/C:/Users/admin"})
+	AssertThat(t, postProcessPath("1"), EqualTo{"1"})
+	AssertThat(t, postProcessPath(""), EqualTo{""})
 }
