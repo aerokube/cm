@@ -380,6 +380,8 @@ func TestFilterOutLatest(t *testing.T) {
 }
 
 func TestChooseVolumeConfigDir(t *testing.T) {
+	dirWithoutVariable := chooseVolumeConfigDir("/some/dir", []string{"one", "two"})
+	AssertThat(t, dirWithoutVariable, EqualTo{"/some/dir"})
 	os.Setenv("OVERRIDE_HOME", "/test/dir")
 	defer os.Unsetenv("OVERRIDE_HOME")
 	dir := chooseVolumeConfigDir("/some/dir", []string{"one", "two"})
