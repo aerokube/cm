@@ -92,12 +92,7 @@ func getHomeDir() string {
 }
 
 func joinPaths(baseDir string, elem []string) string {
-	var p string
-	if baseDir == "" {
-		p = filepath.Join(elem...)
-	} else {
-		p = filepath.Join(append([]string{baseDir}, elem...)...)
-	}
+	p := filepath.Join(append([]string{baseDir}, elem...)...)
 	ap, _ := filepath.Abs(p)
 	return ap
 }
