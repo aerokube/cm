@@ -65,7 +65,7 @@ func driversMux() http.Handler {
 						},
 					},
 				},
-				"third": Browser{
+				"MicrosoftEdge": Browser{
 					Command: "%s",
 					Files: Files{
 						goos: {
@@ -169,7 +169,7 @@ func TestConfigureDrivers(t *testing.T) {
 		browsersJsonUrl := mockServerUrl(mockDriverServer, "/browsers.json")
 		lcConfig := LifecycleConfig{
 			ConfigDir:       dir,
-			Browsers:        "first,second,third,safari,fourth",
+			Browsers:        "first,second,MicrosoftEdge,safari,fourth",
 			BrowsersJsonUrl: browsersJsonUrl,
 			Download:        true,
 			Quiet:           false,
@@ -210,11 +210,11 @@ func TestConfigureDrivers(t *testing.T) {
 					},
 				},
 			},
-			"third": config.Versions{
+			"MicrosoftEdge": config.Versions{
 				Default: Latest,
 				Versions: map[string]*config.Browser{
 					Latest: {
-						Image: []string{unpackedThirdFile},
+						Image: []string{unpackedThirdFile, "--host=127.0.0.1", "--verbose"},
 						Path:  "/",
 						Env:   []string{testEnv},
 					},
