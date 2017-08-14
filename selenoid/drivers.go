@@ -33,6 +33,7 @@ const (
 	owner           = "aerokube"
 	selenoidRepo    = "selenoid"
 	selenoidUIRepo  = "selenoid-ui"
+	microsoftEdge   = "MicrosoftEdge"
 )
 
 type Browsers map[string]Browser
@@ -286,6 +287,9 @@ func (d *DriversConfigurator) generateConfig(downloadedDrivers []downloadedDrive
 	browsers := make(SelenoidConfig)
 	for _, dd := range downloadedDrivers {
 		cmd := strings.Fields(dd.Command)
+		if dd.BrowserName == microsoftEdge {
+			cmd = append(cmd, "--host=127.0.0.1", "--verbose")
+		}
 		browser := &config.Browser{
 			Image: cmd,
 			Path:  "/",
