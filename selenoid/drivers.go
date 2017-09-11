@@ -558,16 +558,28 @@ func (d *DriversConfigurator) IsUIRunning() bool {
 }
 
 func (d *DriversConfigurator) Start() error {
-	args := []string{
-		"-conf", getSelenoidConfigPath(d.ConfigDir),
-		"-disable-docker",
-	}
+	args := []string{}
 	overrideArgs := strings.Fields(d.Args)
 	if len(overrideArgs) > 0 {
 		args = overrideArgs
 	}
+	if !contains(args, "-conf") {
+		args = append(args, "-conf", getSelenoidConfigPath(d.ConfigDir))
+	}
+	if !contains(args, "-disable-docker") {
+		args = append(args, "-disable-docker")
+	}
 	env := strings.Fields(d.Env)
 	return runCommand(d.getSelenoidBinaryPath(), args, env)
+}
+
+func contains(haystack []string, needle string) bool {
+	for _, elem := range haystack {
+		if strings.Contains(elem, needle) {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *DriversConfigurator) StartUI() error {
