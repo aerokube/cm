@@ -505,10 +505,13 @@ func (c *DockerConfigurator) StartUI() error {
 
 	links := []string{selenoidContainerName}
 
-	cmd := []string{fmt.Sprintf("--selenoid-uri=http://%s:%d", selenoidContainerName, selenoidContainerPort)}
+	cmd := []string{}
 	overrideCmd := strings.Fields(c.Args)
 	if len(overrideCmd) > 0 {
 		cmd = overrideCmd
+	}
+	if !contains(cmd, "--selenoid-uri") {
+		cmd = append(cmd, fmt.Sprintf("--selenoid-uri=http://%s:%d", selenoidContainerName, selenoidContainerPort))
 	}
 
 	overrideEnv := strings.Fields(c.Env)
