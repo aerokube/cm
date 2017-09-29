@@ -4,7 +4,7 @@
 [![Release](https://img.shields.io/github/release/aerokube/cm.svg)](https://github.com/aerokube/cm/releases/latest)
 [![Docker Pulls](https://img.shields.io/docker/pulls/aerokube/cm.svg)](https://hub.docker.com/r/aerokube/cm)
 
-Configuration manager is used to generate configuration for Aerokube products.
+Configuration manager is used to automate installation of Aerokube products.
 
 ## Complete Guide & Build Instructions
 
