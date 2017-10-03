@@ -518,8 +518,20 @@ func (c *DockerConfigurator) StartUI() error {
 	return c.startContainer(selenoidUIContainerName, image, selenoidUIContainerPort, []string{}, links, cmd, overrideEnv)
 }
 
-func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, forwardedPort int, volumes []string, links []string, cmd []string, envOverride []string) error {
+func ValidEnviron() []string {
 	env := os.Environ()
+	validEnv := make([]string, 0, 50)
+	for _, e := range env {
+		k := strings.Split(e, "=")
+		if len(k[0]) != 0 {
+			validEnv = append(validEnv, e)
+		}
+	}
+	return validEnv
+}
+
+func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, forwardedPort int, volumes []string, links []string, cmd []string, envOverride []string) error {
+	env := ValidEnviron()
 	env = append(env, fmt.Sprintf("TZ=%s", time.Local))
 	if len(envOverride) > 0 {
 		env = envOverride
