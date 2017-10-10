@@ -394,3 +394,8 @@ func TestPostProcessPath(t *testing.T) {
 	AssertThat(t, postProcessPath("1"), EqualTo{"1"})
 	AssertThat(t, postProcessPath(""), EqualTo{""})
 }
+
+func TestValidEnviron(t *testing.T) {
+	AssertThat(t, validateEnviron([]string{"=::=::"}), EqualTo{[]string{}})
+	AssertThat(t, validateEnviron([]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1" , "=::=::"}), EqualTo{[]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1"}})
+	}
