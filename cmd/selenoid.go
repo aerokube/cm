@@ -29,6 +29,8 @@ var (
 	args            string
 	env             string
 	browserEnv      string
+	port            uint16
+	uiPort            uint16
 )
 
 func init() {
@@ -59,6 +61,12 @@ func initFlags() {
 		selenoidUpdateCmd,
 		selenoidCleanupCmd,
 		selenoidStatusCmd,
+		selenoidDownloadUICmd,
+		selenoidStartUICmd,
+		selenoidStopUICmd,
+		selenoidUpdateUICmd,
+		selenoidCleanupUICmd,
+		selenoidUIStatusCmd,
 	} {
 		c.Flags().BoolVarP(&quiet, "quiet", "q", false, "suppress output")
 	}
@@ -72,6 +80,7 @@ func initFlags() {
 		selenoidStatusCmd,
 	} {
 		c.Flags().StringVarP(&configDir, "config-dir", "c", selenoid.GetSelenoidConfigDir(), "directory to save files")
+		c.Flags().Uint16VarP(&port, "port", "p", selenoid.SelenoidDefaultPort, "override listen port")
 	}
 	for _, c := range []*cobra.Command{
 		selenoidDownloadUICmd,
@@ -82,6 +91,7 @@ func initFlags() {
 		selenoidUIStatusCmd,
 	} {
 		c.Flags().StringVarP(&uiConfigDir, "config-dir", "c", selenoid.GetSelenoidUIConfigDir(), "directory to save files")
+		c.Flags().Uint16VarP(&uiPort, "port", "p", selenoid.SelenoidUIDefaultPort, "override listen port")
 	}
 
 	for _, c := range []*cobra.Command{
@@ -138,7 +148,7 @@ func initFlags() {
 	}
 }
 
-func createLifecycle(configDir string) (*selenoid.Lifecycle, error) {
+func createLifecycle(configDir string, port uint16) (*selenoid.Lifecycle, error) {
 	config := selenoid.LifecycleConfig{
 		Quiet:      quiet,
 		Force:      force,
@@ -148,6 +158,7 @@ func createLifecycle(configDir string) (*selenoid.Lifecycle, error) {
 		Download:   !skipDownload,
 		Args:       args,
 		Env:        env,
+		Port:       int(port),
 
 		LastVersions: lastVersions,
 		RegistryUrl:  registry,

@@ -83,6 +83,15 @@ type BrowserEnvAware struct {
 	BrowserEnv string
 }
 
+type PortAware struct {
+	Port int
+}
+
+const (
+	SelenoidDefaultPort   = 4444
+	SelenoidUIDefaultPort = 8080
+)
+
 func getHomeDir() string {
 	usr, err := user.Current()
 	if err != nil {

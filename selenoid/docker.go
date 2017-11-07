@@ -37,9 +37,7 @@ const (
 	selenoidImage           = "aerokube/selenoid"
 	selenoidUIImage         = "aerokube/selenoid-ui"
 	selenoidContainerName   = "selenoid"
-	selenoidContainerPort   = 4444
 	selenoidUIContainerName = "selenoid-ui"
-	selenoidUIContainerPort = 8080
 	overrideHome            = "OVERRIDE_HOME"
 )
 
@@ -54,6 +52,7 @@ type DockerConfigurator struct {
 	ArgsAware
 	EnvAware
 	BrowserEnvAware
+	PortAware
 	LastVersions int
 	Pull         bool
 	RegistryUrl  string
@@ -73,6 +72,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		ArgsAware:              ArgsAware{Args: config.Args},
 		EnvAware:               EnvAware{Env: config.Env},
 		BrowserEnvAware:        BrowserEnvAware{BrowserEnv: config.BrowserEnv},
+		PortAware:              PortAware{Port: config.Port},
 		RegistryUrl:            config.RegistryUrl,
 		LastVersions:           config.LastVersions,
 		Tmpfs:                  config.Tmpfs,
@@ -424,7 +424,7 @@ func (c *DockerConfigurator) IsRunning() bool {
 }
 
 func (c *DockerConfigurator) getSelenoidContainer() *types.Container {
-	return c.getContainer(selenoidContainerName, selenoidContainerPort)
+	return c.getContainer(selenoidContainerName, c.Port)
 }
 
 func (c *DockerConfigurator) IsUIRunning() bool {
@@ -432,10 +432,10 @@ func (c *DockerConfigurator) IsUIRunning() bool {
 }
 
 func (c *DockerConfigurator) getSelenoidUIContainer() *types.Container {
-	return c.getContainer(selenoidUIContainerName, selenoidUIContainerPort)
+	return c.getContainer(selenoidUIContainerName, c.Port)
 }
 
-func (c *DockerConfigurator) getContainer(name string, port uint16) *types.Container {
+func (c *DockerConfigurator) getContainer(name string, port int) *types.Container {
 	f := filters.NewArgs()
 	f.Add("name", name)
 	containers, err := c.docker.ContainerList(context.Background(), types.ContainerListOptions{Filters: f})
@@ -444,7 +444,7 @@ func (c *DockerConfigurator) getContainer(name string, port uint16) *types.Conta
 	}
 	for _, c := range containers {
 		for _, p := range c.Ports {
-			if p.PublicPort == port {
+			if p.PublicPort == uint16(port) {
 				return &c
 			}
 		}
@@ -466,7 +466,7 @@ func (c *DockerConfigurator) Start() error {
 	}
 
 	overrideEnv := strings.Fields(c.Env)
-	return c.startContainer(selenoidContainerName, image, selenoidContainerPort, volumes, []string{}, strings.Fields(c.Args), overrideEnv)
+	return c.startContainer(selenoidContainerName, image, c.Port, SelenoidDefaultPort, volumes, []string{}, strings.Fields(c.Args), overrideEnv)
 }
 
 func (c *DockerConfigurator) getVolumeConfigDir(elem []string) string {
@@ -511,11 +511,11 @@ func (c *DockerConfigurator) StartUI() error {
 		cmd = overrideCmd
 	}
 	if !contains(cmd, "--selenoid-uri") {
-		cmd = append(cmd, fmt.Sprintf("--selenoid-uri=http://%s:%d", selenoidContainerName, selenoidContainerPort))
+		cmd = append(cmd, fmt.Sprintf("--selenoid-uri=http://%s:%d", selenoidContainerName, SelenoidDefaultPort))
 	}
 
 	overrideEnv := strings.Fields(c.Env)
-	return c.startContainer(selenoidUIContainerName, image, selenoidUIContainerPort, []string{}, links, cmd, overrideEnv)
+	return c.startContainer(selenoidUIContainerName, image, c.Port, SelenoidUIDefaultPort, []string{}, links, cmd, overrideEnv)
 }
 
 func validateEnviron(envs []string) []string {
@@ -529,20 +529,21 @@ func validateEnviron(envs []string) []string {
 	return validEnv
 }
 
-func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, forwardedPort int, volumes []string, links []string, cmd []string, envOverride []string) error {
+func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, hostPort int, servicePort int, volumes []string, links []string, cmd []string, envOverride []string) error {
 	env := validateEnviron(os.Environ())
 	env = append(env, fmt.Sprintf("TZ=%s", time.Local))
 	if len(envOverride) > 0 {
 		env = envOverride
 	}
-	portString := strconv.Itoa(forwardedPort)
-	port, err := nat.NewPort("tcp", portString)
+	hostPortString := strconv.Itoa(hostPort)
+	servicePortString := strconv.Itoa(servicePort)
+	port, err := nat.NewPort("tcp", servicePortString)
 	if err != nil {
 		return fmt.Errorf("failed to init port: %v", err)
 	}
 	exposedPorts := map[nat.Port]struct{}{port: {}}
 	portBindings := nat.PortMap{}
-	portBindings[port] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: portString}}
+	portBindings[port] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: hostPortString}}
 	ctx := context.Background()
 	containerConfig := container.Config{
 		Hostname:     "localhost",

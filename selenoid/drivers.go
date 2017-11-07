@@ -65,6 +65,7 @@ type DriversConfigurator struct {
 	ArgsAware
 	EnvAware
 	BrowserEnvAware
+	PortAware
 	RequestedBrowsersAware
 	Browsers        string
 	BrowsersJsonUrl string
@@ -82,6 +83,7 @@ func NewDriversConfigurator(config *LifecycleConfig) *DriversConfigurator {
 		ArgsAware:              ArgsAware{Args: config.Args},
 		EnvAware:               EnvAware{Env: config.Env},
 		BrowserEnvAware:        BrowserEnvAware{BrowserEnv: config.BrowserEnv},
+		PortAware:              PortAware{Port: config.Port},
 		DownloadAware:          DownloadAware{DownloadNeeded: config.Download},
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
 		BrowsersJsonUrl:        config.BrowsersJsonUrl,
@@ -562,6 +564,9 @@ func (d *DriversConfigurator) Start() error {
 	overrideArgs := strings.Fields(d.Args)
 	if len(overrideArgs) > 0 {
 		args = overrideArgs
+	}
+	if !contains(args, "-listen") {
+		args = append(args, "-listen", fmt.Sprintf(":%d", d.Port))
 	}
 	if !contains(args, "-conf") {
 		args = append(args, "-conf", getSelenoidConfigPath(d.ConfigDir))

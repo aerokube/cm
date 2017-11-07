@@ -9,7 +9,7 @@ var selenoidStopUICmd = &cobra.Command{
 	Use:   "stop",
 	Short: "Stop Selenoid UI",
 	Run: func(cmd *cobra.Command, args []string) {
-		stopImpl(uiConfigDir, func(lc *selenoid.Lifecycle) error {
+		stopImpl(uiConfigDir, uiPort, func(lc *selenoid.Lifecycle) error {
 			return lc.StopUI()
 		})
 	},
