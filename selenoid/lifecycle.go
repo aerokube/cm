@@ -17,6 +17,7 @@ type LifecycleConfig struct {
 	Args       string
 	Env        string
 	Version    string
+	Port       int
 
 	// Docker specific
 	LastVersions int
@@ -82,7 +83,7 @@ func (l *Lifecycle) Status() {
 }
 
 func (l *Lifecycle) UIStatus() {
-	l.statusAware.Status()
+	l.statusAware.UIStatus()
 }
 
 func (l *Lifecycle) Download() error {

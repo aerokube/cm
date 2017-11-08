@@ -9,7 +9,7 @@ var selenoidUIStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Shows Selenoid UI status",
 	Run: func(cmd *cobra.Command, args []string) {
-		lifecycle, err := createLifecycle(uiConfigDir)
+		lifecycle, err := createLifecycle(uiConfigDir, uiPort)
 		if err != nil {
 			stderr("Failed to initialize: %v\n", err)
 			os.Exit(1)

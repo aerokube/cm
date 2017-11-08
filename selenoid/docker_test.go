@@ -48,7 +48,7 @@ func setPort(p int) {
 }
 
 func resetPort() {
-	setPort(selenoidContainerPort)
+	setPort(SelenoidDefaultPort)
 }
 
 func mux() http.Handler {
@@ -302,6 +302,7 @@ func testConfigure(t *testing.T, download bool) {
 func TestStartStopContainer(t *testing.T) {
 	c, err := NewDockerConfigurator(&LifecycleConfig{
 		RegistryUrl: mockDockerServer.URL,
+		Port:        SelenoidDefaultPort,
 	})
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, c.IsRunning(), Is{true})
@@ -318,11 +319,12 @@ func TestStartStopUIContainer(t *testing.T) {
 	}()
 	c, err := NewDockerConfigurator(&LifecycleConfig{
 		RegistryUrl: mockDockerServer.URL,
+		Port:        SelenoidUIDefaultPort,
 	})
 	AssertThat(t, err, Is{nil})
 	setContainerName(selenoidUIContainerName)
 	setImageName(selenoidUIImage)
-	setPort(selenoidUIContainerPort)
+	setPort(SelenoidUIDefaultPort)
 	AssertThat(t, c.IsUIRunning(), Is{true})
 	AssertThat(t, c.StartUI(), Is{nil})
 	c.UIStatus()
@@ -397,5 +399,5 @@ func TestPostProcessPath(t *testing.T) {
 
 func TestValidEnviron(t *testing.T) {
 	AssertThat(t, validateEnviron([]string{"=::=::"}), EqualTo{[]string{}})
-	AssertThat(t, validateEnviron([]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1" , "=::=::"}), EqualTo{[]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1"}})
-	}
+	AssertThat(t, validateEnviron([]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1", "=::=::"}), EqualTo{[]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1"}})
+}

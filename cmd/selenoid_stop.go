@@ -10,14 +10,14 @@ var selenoidStopCmd = &cobra.Command{
 	Use:   "stop",
 	Short: "Stop Selenoid",
 	Run: func(cmd *cobra.Command, args []string) {
-		stopImpl(configDir, func(lc *selenoid.Lifecycle) error {
+		stopImpl(configDir, port, func(lc *selenoid.Lifecycle) error {
 			return lc.Stop()
 		})
 	},
 }
 
-func stopImpl(configDir string, stopAction func(*selenoid.Lifecycle) error) {
-	lifecycle, err := createLifecycle(configDir)
+func stopImpl(configDir string, port uint16, stopAction func(*selenoid.Lifecycle) error) {
+	lifecycle, err := createLifecycle(configDir, port)
 	if err != nil {
 		stderr("Failed to initialize: %v\n", err)
 		os.Exit(1)

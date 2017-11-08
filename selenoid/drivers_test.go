@@ -441,6 +441,7 @@ func TestStartStopProcess(t *testing.T) {
 			OS:            runtime.GOOS,
 			Arch:          runtime.GOARCH,
 			Version:       Latest,
+			Port:          SelenoidDefaultPort,
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
 		AssertThat(t, configurator.IsRunning(), Is{true}) //This is probably true because test binary has name selenoid.test; no fake process is launched
@@ -448,6 +449,7 @@ func TestStartStopProcess(t *testing.T) {
 		configurator.Status()
 		AssertThat(t, configurator.Stop(), Is{nil})
 
+		lcConfig.Port = SelenoidUIDefaultPort
 		AssertThat(t, configurator.IsUIRunning(), Is{false})
 		AssertThat(t, configurator.StartUI(), Is{nil})
 		configurator.UIStatus()
