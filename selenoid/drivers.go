@@ -589,6 +589,9 @@ func contains(haystack []string, needle string) bool {
 
 func (d *DriversConfigurator) StartUI() error {
 	args := strings.Fields(d.Args)
+	if !contains(args, "-listen") {
+		args = append(args, "-listen", fmt.Sprintf(":%d", d.Port))
+	}
 	env := strings.Fields(d.Env)
 	return runCommand(d.getSelenoidUIBinaryPath(), args, env)
 }
