@@ -703,6 +703,14 @@ table.CodeRay td.code>pre{padding:0}
 </div>
 </div>
 <div class="paragraph">
+<p>To override Selenoid listen port add <code>--port</code> flag:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ ./cm selenoid start --port 4445</pre>
+</div>
+</div>
+<div class="paragraph">
 <p>To override Selenoid startup arguments sessions add <code>--args</code> flag:</p>
 </div>
 <div class="literalblock">
@@ -806,6 +814,7 @@ table.CodeRay td.code>pre{padding:0}
 <div class="content">
 <pre>$ ./cm selenoid-ui download [--version 1.2.1] [--force]
 $ ./cm selenoid-ui start
+$ ./cm selenoid-ui start --port 8081
 $ ./cm selenoid-ui start --args "--period 100ms"
 # docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root aerokube/cm:latest-release selenoid-ui start</pre>
 </div>
@@ -898,7 +907,7 @@ $ docker build -t cm:latest .</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version latest<br>
-Last updated 2017-11-09 04:49:20 UTC
+Last updated 2017-11-09 16:42:43 UTC
 </div>
 </div>
 <!-- Yandex.Metrika counter -->
