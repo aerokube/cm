@@ -61,6 +61,10 @@ By default Selenoid data is stored in `~/.aerokube/selenoid` but you can specify
 
     $ ./cm selenoid start --vnc
 +
+To override Selenoid listen port add `--port` flag:
+
+    $ ./cm selenoid start --port 4445
++
 To override Selenoid startup arguments sessions add `--args` flag:
 
     $ ./cm selenoid start --args "-limit 10"
