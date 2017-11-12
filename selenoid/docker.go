@@ -36,6 +36,7 @@ const (
 	tag_1216                = "12.16"
 	selenoidImage           = "aerokube/selenoid"
 	selenoidUIImage         = "aerokube/selenoid-ui"
+	videoRecorderImage      = "selenoid/video-recorder"
 	selenoidContainerName   = "selenoid"
 	selenoidUIContainerName = "selenoid-ui"
 	overrideHome            = "OVERRIDE_HOME"
@@ -263,6 +264,9 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 		pulledTags := tags
 		if c.DownloadNeeded {
 			pulledTags = c.pullImages(image, tags)
+			if c.VNC {
+				c.pullVideoRecorderImage()
+			}
 		} else if c.LastVersions > 0 && c.LastVersions <= len(tags) {
 			pulledTags = tags[:c.LastVersions]
 		}
@@ -354,6 +358,11 @@ loop:
 		}
 	}
 	return pulledTags
+}
+
+func (c *DockerConfigurator) pullVideoRecorderImage() {
+	c.Printf("Pulling video recorder image...\n")
+	c.pullImage(context.Background(), videoRecorderImage)
 }
 
 func (c *DockerConfigurator) preProcessImageTags(image string, browserName string, tags []string) (string, []string) {
