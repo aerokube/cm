@@ -3,9 +3,6 @@ To build cm:
 
 . Install https://golang.org/doc/install[Golang]
 . Setup `$GOPATH` https://github.com/golang/go/wiki/GOPATH[properly]
-. Install https://github.com/kardianos/govendor[govendor]: 
-    $ go get -u github.com/kardianos/govendor
-
 . Get cm source:
 
     $ go get -d github.com/aerokube/cm
@@ -16,7 +13,7 @@ To build cm:
 
 . Checkout dependencies:
 
-    $ govendor sync
+    $ go get -u github.com/golang/dep/cmd/dep && dep ensure
 
 . Build source:
 
