@@ -60,3 +60,7 @@
 [[constraint]]
   revision = "256737ac55c46798123f754ab7d2c784e2c71783"
   name = "vbom.ml/util"
+
+[[constraint]]
+  name = "github.com/fatih/color"
+  version = "v1.5.0"

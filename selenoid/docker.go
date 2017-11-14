@@ -27,6 +27,9 @@ import (
 	"regexp"
 	"runtime"
 	. "vbom.ml/util/sortorder"
+	"github.com/aerokube/cm/render/rewriter"
+	"github.com/fatih/color"
+	"net/http"
 )
 
 const (
@@ -104,10 +107,21 @@ func (c *DockerConfigurator) initDockerClient() error {
 }
 
 func (c *DockerConfigurator) initRegistryClient() error {
-	reg, err := registry.New(c.RegistryUrl, "", "")
-	if err != nil {
+	url := strings.TrimSuffix(c.RegistryUrl, "/")
+	reg := &registry.Registry{
+		URL: url,
+		Client: &http.Client{
+			Transport: registry.WrapTransport(http.DefaultTransport, url, "", ""),
+		},
+		Logf: func(format string, args ...interface{}) {
+			c.Tracef(format, args...)
+		},
+	}
+
+	if err := reg.Ping(); err != nil {
 		return fmt.Errorf("Docker Registry is not available: %v", err)
 	}
+
 	c.reg = reg
 	return nil
 }
@@ -175,7 +189,7 @@ func (c *DockerConfigurator) getSelenoidUIImage() *types.ImageSummary {
 func (c *DockerConfigurator) getImage(name string) *types.ImageSummary {
 	images, err := c.docker.ImageList(context.Background(), types.ImageListOptions{})
 	if err != nil {
-		c.Printf("Failed to list images: %v\n", err)
+		c.Errorf("Failed to list images: %v\n", err)
 		return nil
 	}
 	for _, img := range images {
@@ -258,7 +272,7 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 		}
 	}
 	for browserName, image := range browsersToIterate {
-		c.Printf("Processing browser \"%s\"...\n", browserName)
+		c.Titlef(`Processing browser "%v"...`, color.GreenString(browserName))
 		tags := c.fetchImageTags(image)
 		image, tags = c.preProcessImageTags(image, browserName, tags)
 		pulledTags := tags
@@ -287,10 +301,10 @@ func (c *DockerConfigurator) getSupportedBrowsers() map[string]string {
 }
 
 func (c *DockerConfigurator) fetchImageTags(image string) []string {
-	c.Printf("Fetching tags for image \"%s\"...\n", image)
+	c.Pointf(`Fetching tags for image %v`, color.BlueString(image))
 	tags, err := c.reg.Tags(image)
 	if err != nil {
-		c.Printf("Failed to fetch tags for image \"%s\"\n", image)
+		c.Errorf(`Failed to fetch tags for image "%s"`, image)
 		return nil
 	}
 	tagsWithoutLatest := filterOutLatest(tags)
@@ -348,7 +362,6 @@ func (c *DockerConfigurator) pullImages(image string, tags []string) []string {
 loop:
 	for _, tag := range tags {
 		ref := imageWithTag(image, tag)
-		c.Printf("Pulling image \"%s\"...\n", ref)
 		if !c.pullImage(ctx, ref) {
 			continue
 		}
@@ -361,7 +374,7 @@ loop:
 }
 
 func (c *DockerConfigurator) pullVideoRecorderImage() {
-	c.Printf("Pulling video recorder image...\n")
+	c.Pointf("Pulling video recorder image...")
 	c.pullImage(context.Background(), videoRecorderImage)
 }
 
@@ -369,7 +382,7 @@ func (c *DockerConfigurator) preProcessImageTags(image string, browserName strin
 	imageToProcess := image
 	tagsToProcess := tags
 	if c.VNC {
-		c.Printf("Requested to download VNC images...\n")
+		c.Pointf("Requested to download VNC images...")
 		imageToProcess = "selenoid/vnc"
 		tagsToProcess = []string{}
 		for _, tag := range tags {
@@ -390,40 +403,71 @@ func (c *DockerConfigurator) getVersionFromTag(browserName string, tag string) s
 	return tag
 }
 
+// JSONMessage defines a message struct from docker.
+type JSONMessage struct {
+	Status          string        `json:"status,omitempty"`
+	Progress        *JSONProgress `json:"progressDetail,omitempty"`
+	ID              string        `json:"id,omitempty"`
+	ProgressMessage string        `json:"progress,omitempty"` //deprecated
+}
+
+// JSONProgress describes a Progress. terminalFd is the fd of the current terminal,
+// Start is the initial value for the operation. Current is the current status and
+// value of the progress made towards Total. Total is the end value describing when
+// we made 100% progress for an operation.
+type JSONProgress struct {
+	terminalFd uintptr
+	Current    int64 `json:"current,omitempty"`
+	Total      int64 `json:"total,omitempty"`
+	Start      int64 `json:"start,omitempty"`
+	// If true, don't show xB/yB
+	HideCounts bool   `json:"hidecounts,omitempty"`
+	Units      string `json:"units,omitempty"`
+}
+
 func (c *DockerConfigurator) pullImage(ctx context.Context, ref string) bool {
+	c.Pointf("Pulling image %v", color.BlueString(ref))
 	resp, err := c.docker.ImagePull(ctx, ref, types.ImagePullOptions{})
 	if err != nil {
-		c.Printf("Failed to pull image \"%s\": %v", ref, err)
+		c.Errorf(`Failed to pull image "%s": %v`, ref, err)
 		return false
 	}
 	defer resp.Close()
-	var row struct {
-		Id     string `json:"id"`
-		Status string `json:"status"`
-	}
+
+	var row JSONMessage
+
 	scanner := bufio.NewScanner(resp)
-	for prev := ""; scanner.Scan(); {
+	writer := rewriter.New(os.Stdout)
+
+	for _ = ""; scanner.Scan(); {
 		err := json.Unmarshal(scanner.Bytes(), &row)
 		if err != nil {
 			return false
 		}
+
 		select {
 		case <-ctx.Done():
 			{
-				c.Printf("Pulling \"%s\" interrupted: %v", ref, ctx.Err())
+				c.Errorf(`Pulling "%s" interrupted: %v`, ref, ctx.Err())
 				return false
 			}
 		default:
 			{
-				if prev != row.Status {
-					prev = row.Status
-					c.Printf("%s: %s\n", row.Status, row.Id)
+				if row.Progress != nil {
+					if row.Progress.Current != row.Progress.Total {
+						fmt.Fprintf(writer, "\t[%s]: %s %s\n", row.ID, row.Status, row.ProgressMessage)
+					} else {
+						fmt.Fprint(writer, "\r")
+					}
 				}
+
+				writer.Flush()
 			}
 		}
 	}
+
 	if err := scanner.Err(); err != nil {
-		c.Printf("Failed to pull image \"%s\": %v", ref, err)
+		c.Errorf(`Failed to pull image "%s": %v`, ref, color.RedString("%v", err))
 	}
 	return true
 }
