@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"fmt"
+	"github.com/fatih/color"
 )
 
 type StatusAware interface {
@@ -40,6 +42,28 @@ type Logger struct {
 func (c *Logger) Printf(format string, v ...interface{}) {
 	if !c.Quiet {
 		log.Printf(format, v...)
+	}
+}
+
+func (c *Logger) Titlef(format string, v ...interface{}) {
+	if !c.Quiet {
+		fmt.Printf(color.GreenString("> ")+format+"\n", v...)
+	}
+}
+
+func (c *Logger) Errorf(format string, v ...interface{}) {
+	fmt.Printf(color.RedString("x ")+format+"\n", v...)
+}
+
+func (c *Logger) Pointf(format string, v ...interface{}) {
+	if !c.Quiet {
+		fmt.Printf(color.HiBlackString("- ")+format+"\n", v...)
+	}
+}
+
+func (c *Logger) Tracef(format string, v ...interface{}) {
+	if !c.Quiet {
+		color.HiBlack(format, v...)
 	}
 }
 

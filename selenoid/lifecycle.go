@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"github.com/docker/docker/client"
 	"io"
+	"github.com/fatih/color"
+	"github.com/aerokube/cm/render/rewriter"
+	"os"
 )
 
 type LifecycleConfig struct {
@@ -50,7 +53,7 @@ func NewLifecycle(config *LifecycleConfig) (*Lifecycle, error) {
 		Config:    config,
 	}
 	if isDockerAvailable() {
-		lc.Printf("Using Docker...\n")
+		lc.Titlef("Using %v", color.BlueString("Docker"))
 		dockerCfg, err := NewDockerConfigurator(config)
 		if err != nil {
 			return nil, err
@@ -61,7 +64,7 @@ func NewLifecycle(config *LifecycleConfig) (*Lifecycle, error) {
 		lc.runnable = dockerCfg
 		lc.closer = dockerCfg
 	} else {
-		lc.Printf("Docker is not supported - using binaries...\n")
+		lc.Titlef("Docker is not supported - using binaries...")
 		driversCfg := NewDriversConfigurator(config)
 		lc.statusAware = driversCfg
 		lc.downloadable = driversCfg
@@ -88,10 +91,10 @@ func (l *Lifecycle) UIStatus() {
 
 func (l *Lifecycle) Download() error {
 	if l.downloadable.IsDownloaded() && !l.Force {
-		l.Printf("Selenoid is already downloaded")
+		l.Pointf("Selenoid is already downloaded")
 		return nil
 	} else {
-		l.Printf("Downloading Selenoid...")
+		l.Pointf("Downloading Selenoid...")
 		_, err := l.downloadable.Download()
 		return err
 	}
@@ -115,13 +118,13 @@ func (l *Lifecycle) Configure() error {
 		},
 		func() error {
 			if l.configurable.IsConfigured() && !l.Force {
-				l.Printf("Selenoid is already configured")
+				l.Pointf("Selenoid configured")
 				return nil
 			}
-			l.Printf("Configuring Selenoid...\n")
+			l.Pointf("Configuring Selenoid...")
 			_, err := l.configurable.Configure()
 			if err == nil {
-				l.Printf("Successfully saved configuration to %s\n", getSelenoidConfigPath(l.Config.ConfigDir))
+				l.Pointf("Configuration saved to %v", color.GreenString(getSelenoidConfigPath(l.Config.ConfigDir)))
 			}
 			return err
 		},
@@ -142,14 +145,18 @@ func (l *Lifecycle) Start() error {
 						return fmt.Errorf("failed to stop previous Selenoid instance: %v\n", err)
 					}
 				} else {
-					l.Printf("Selenoid is already running\n")
+					l.Pointf("Selenoid is already running")
 					return nil
 				}
 			}
-			l.Printf("Starting Selenoid...\n")
+
+			rw := rewriter.New(os.Stdout)
+			fmt.Fprintf(rw, "%v Starting Selenoid...\n", color.HiBlackString("-"))
+			rw.Flush()
 			err := l.runnable.Start()
 			if err == nil {
-				l.Printf("Successfully started Selenoid\n")
+				fmt.Fprintf(rw, "%v Successfully started Selenoid\n", color.GreenString(">"))
+				rw.Flush()
 			}
 			return err
 		},
