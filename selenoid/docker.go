@@ -30,6 +30,7 @@ import (
 	"github.com/aerokube/cm/render/rewriter"
 	"github.com/fatih/color"
 	"net/http"
+	"path/filepath"
 )
 
 const (
@@ -278,9 +279,7 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 		pulledTags := tags
 		if c.DownloadNeeded {
 			pulledTags = c.pullImages(image, tags)
-			if c.VNC {
-				c.pullVideoRecorderImage()
-			}
+			c.pullVideoRecorderImage()
 		} else if c.LastVersions > 0 && c.LastVersions <= len(tags) {
 			pulledTags = tags[:c.LastVersions]
 		}
@@ -519,6 +518,10 @@ func (c *DockerConfigurator) Start() error {
 	}
 
 	overrideEnv := strings.Fields(c.Env)
+	videoPath := filepath.Join(c.ConfigDir, "video")
+	if !strings.Contains(c.Env, "OVERRIDE_VIDEO_OUTPUT_DIR") {
+		overrideEnv = append(overrideEnv, fmt.Sprintf("OVERRIDE_VIDEO_OUTPUT_DIR=%s", videoPath))
+	}
 	return c.startContainer(selenoidContainerName, image, c.Port, SelenoidDefaultPort, volumes, []string{}, strings.Fields(c.Args), overrideEnv)
 }
 
