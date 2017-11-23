@@ -4,11 +4,11 @@ package rewriter
 
 import (
 	"fmt"
+	"github.com/mattn/go-isatty"
 	"io"
+	"strings"
 	"syscall"
 	"unsafe"
-	"strings"
-	"github.com/mattn/go-isatty"
 )
 
 var kernel32 = syscall.NewLazyDLL("kernel32.dll")
@@ -22,7 +22,7 @@ var (
 
 type (
 	short int16
-	word uint16
+	word  uint16
 	dword uint32
 
 	coord struct {

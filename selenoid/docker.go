@@ -24,13 +24,13 @@ import (
 	"strings"
 	"time"
 
-	"regexp"
-	"runtime"
-	. "vbom.ml/util/sortorder"
 	"github.com/aerokube/cm/render/rewriter"
 	"github.com/fatih/color"
 	"net/http"
 	"path/filepath"
+	"regexp"
+	"runtime"
+	. "vbom.ml/util/sortorder"
 )
 
 const (
@@ -137,37 +137,37 @@ func (c *DockerConfigurator) Close() error {
 func (c *DockerConfigurator) Status() {
 	selenoidImage := c.getSelenoidImage()
 	if selenoidImage != nil {
-		c.Printf("Using Selenoid image: %s (%s)", selenoidImage.RepoTags[0], selenoidImage.ID)
+		c.Pointf("Using Selenoid image: %s (%s)", selenoidImage.RepoTags[0], selenoidImage.ID)
 	} else {
-		c.Printf("Selenoid image is not present")
+		c.Pointf("Selenoid image is not present")
 	}
 	configPath := getSelenoidConfigPath(c.ConfigDir)
-	c.Printf("Selenoid configuration directory is %s", c.ConfigDir)
+	c.Pointf("Selenoid configuration directory is %s", c.ConfigDir)
 	if fileExists(configPath) {
-		c.Printf("Selenoid configuration file is %s", configPath)
+		c.Pointf("Selenoid configuration file is %s", configPath)
 	} else {
-		c.Printf("Selenoid is not configured")
+		c.Pointf("Selenoid is not configured")
 	}
 	selenoidContainer := c.getSelenoidContainer()
 	if selenoidContainer != nil {
-		c.Printf("Selenoid container is running: %s (%s)", selenoidContainerName, selenoidContainer.ID)
+		c.Pointf("Selenoid container is running: %s (%s)", selenoidContainerName, selenoidContainer.ID)
 	} else {
-		c.Printf("Selenoid container is not running")
+		c.Pointf("Selenoid container is not running")
 	}
 }
 
 func (c *DockerConfigurator) UIStatus() {
 	selenoidUIImage := c.getSelenoidUIImage()
 	if selenoidUIImage != nil {
-		c.Printf("Using Selenoid UI image: %s (%s)", selenoidUIImage.RepoTags[0], selenoidUIImage.ID)
+		c.Pointf("Using Selenoid UI image: %s (%s)", selenoidUIImage.RepoTags[0], selenoidUIImage.ID)
 	} else {
-		c.Printf("Selenoid UI image is not present")
+		c.Pointf("Selenoid UI image is not present")
 	}
 	selenoidUIContainer := c.getSelenoidUIContainer()
 	if selenoidUIContainer != nil {
-		c.Printf("Selenoid UI container is running: %s (%s)", selenoidUIContainerName, selenoidUIContainer.ID)
+		c.Pointf("Selenoid UI container is running: %s (%s)", selenoidUIContainerName, selenoidUIContainer.ID)
 	} else {
-		c.Printf("Selenoid UI container is not running")
+		c.Pointf("Selenoid UI container is not running")
 	}
 }
 
@@ -190,7 +190,7 @@ func (c *DockerConfigurator) getSelenoidUIImage() *types.ImageSummary {
 func (c *DockerConfigurator) getImage(name string) *types.ImageSummary {
 	images, err := c.docker.ImageList(context.Background(), types.ImageListOptions{})
 	if err != nil {
-		c.Errorf("Failed to list images: %v\n", err)
+		c.Errorf("Failed to list images: %v", err)
 		return nil
 	}
 	for _, img := range images {
@@ -246,11 +246,11 @@ func (c *DockerConfigurator) Configure() (*SelenoidConfig, error) {
 	cfg := c.createConfig()
 	data, err := json.MarshalIndent(cfg, "", "    ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal json: %v\n", err)
+		return nil, fmt.Errorf("failed to marshal json: %v", err)
 	}
 	err = c.createConfigDir()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create output directory: %v\n", err)
+		return nil, fmt.Errorf("failed to create output directory: %v", err)
 	}
 	return &cfg, ioutil.WriteFile(getSelenoidConfigPath(c.ConfigDir), data, 0644)
 }
@@ -268,7 +268,7 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 					browsersToIterate[rb] = image
 					continue
 				}
-				c.Printf("Unsupported browser: %s\n", rb)
+				c.Errorf("Unsupported browser: %s", rb)
 			}
 		}
 	}
@@ -373,7 +373,7 @@ loop:
 }
 
 func (c *DockerConfigurator) pullVideoRecorderImage() {
-	c.Pointf("Pulling video recorder image...")
+	c.Titlef("Pulling video recorder image...")
 	c.pullImage(context.Background(), videoRecorderImage)
 }
 

@@ -2,9 +2,9 @@
 package rewriter
 
 import (
-	"io"
 	"bytes"
 	"fmt"
+	"io"
 )
 
 // ESC is the ASCII code for escape character

@@ -24,7 +24,7 @@ func downloadImpl(configDir string, port uint16, downloadAction func(*selenoid.L
 	}
 	err = downloadAction(lifecycle)
 	if err != nil {
-		lifecycle.Printf("Failed to download: %v\n", err)
+		lifecycle.Errorf("Failed to download: %v\n", err)
 		os.Exit(1)
 	}
 	os.Exit(0)

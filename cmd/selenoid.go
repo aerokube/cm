@@ -30,7 +30,7 @@ var (
 	env             string
 	browserEnv      string
 	port            uint16
-	uiPort            uint16
+	uiPort          uint16
 )
 
 func init() {

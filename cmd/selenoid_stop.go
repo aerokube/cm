@@ -24,7 +24,7 @@ func stopImpl(configDir string, port uint16, stopAction func(*selenoid.Lifecycle
 	}
 	err = stopAction(lifecycle)
 	if err != nil {
-		lifecycle.Printf("Failed to stop: %v\n", err)
+		lifecycle.Errorf("Failed to stop: %v\n", err)
 		os.Exit(1)
 	}
 	os.Exit(0)
