@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aerokube/selenoid/config"
+	"github.com/fatih/color"
 	"github.com/google/go-github/github"
 	"github.com/mitchellh/go-ps"
 	"gopkg.in/cheggaaa/pb.v1"
@@ -97,37 +98,37 @@ func NewDriversConfigurator(config *LifecycleConfig) *DriversConfigurator {
 func (d *DriversConfigurator) Status() {
 	binaryPath := d.getSelenoidBinaryPath()
 	if fileExists(binaryPath) {
-		d.Printf("Selenoid binary is %s", binaryPath)
+		d.Pointf("Selenoid binary is %s", binaryPath)
 	} else {
-		d.Printf("Selenoid binary is not downloaded")
+		d.Pointf("Selenoid binary is not downloaded")
 	}
 	configPath := getSelenoidConfigPath(d.ConfigDir)
-	d.Printf("Selenoid configuration directory is %s", d.ConfigDir)
+	d.Pointf("Selenoid configuration directory is %s", d.ConfigDir)
 	if fileExists(configPath) {
-		d.Printf("Selenoid configuration file is %s", configPath)
+		d.Pointf("Selenoid configuration file is %s", configPath)
 	} else {
-		d.Printf("Selenoid is not configured")
+		d.Pointf("Selenoid is not configured")
 	}
 	selenoidProcesses := findSelenoidProcesses()
 	if len(selenoidProcesses) > 0 {
-		d.Printf("Selenoid is running as process %d", selenoidProcesses[0].Pid)
+		d.Pointf("Selenoid is running as process %d", selenoidProcesses[0].Pid)
 	} else {
-		d.Printf("Selenoid is not running")
+		d.Pointf("Selenoid is not running")
 	}
 }
 
 func (d *DriversConfigurator) UIStatus() {
 	binaryPath := d.getSelenoidUIBinaryPath()
 	if fileExists(binaryPath) {
-		d.Printf("Selenoid UI binary is %s", binaryPath)
+		d.Pointf("Selenoid UI binary is %s", binaryPath)
 	} else {
-		d.Printf("Selenoid UI binary is not downloaded")
+		d.Pointf("Selenoid UI binary is not downloaded")
 	}
 	selenoidUIProcesses := findSelenoidUIProcesses()
 	if len(selenoidUIProcesses) > 0 {
-		d.Printf("Selenoid UI is running as process %d", selenoidUIProcesses[0].Pid)
+		d.Pointf("Selenoid UI is running as process %d", selenoidUIProcesses[0].Pid)
 	} else {
-		d.Printf("Selenoid UI is not running")
+		d.Pointf("Selenoid UI is not running")
 	}
 }
 
@@ -158,60 +159,60 @@ func getSelenoidConfigPath(outputDir string) string {
 func (d *DriversConfigurator) Download() (string, error) {
 	u, err := d.getSelenoidUrl()
 	if err != nil {
-		return "", fmt.Errorf("failed to get Selenoid download URL for arch = %s and version = %s: %v\n", d.Arch, d.Version, err)
+		return "", fmt.Errorf("failed to get Selenoid download URL for arch = %s and version = %s: %v", d.Arch, d.Version, err)
 	}
 	err = d.createConfigDir()
 	if err != nil {
-		return "", fmt.Errorf("failed to create Selenoid config directory: %v\n", err)
+		return "", fmt.Errorf("failed to create Selenoid config directory: %v", err)
 	}
 	if d.IsRunning() {
-		d.Printf("Stopping Selenoid to overwrite its binary...")
+		d.Titlef("Stopping Selenoid to overwrite its binary...")
 		err := d.Stop()
 		if err != nil {
-			return "", fmt.Errorf("failed to stop Selenoid: %v\n", err)
+			return "", fmt.Errorf("failed to stop Selenoid: %v", err)
 		}
 	}
-	d.Printf("Downloading Selenoid release from %s\n", u)
+	d.Titlef("Downloading Selenoid release from %s", color.BlueString(u))
 	outputFile, err := d.downloadFile(u, d.getSelenoidBinaryPath())
 	if err != nil {
-		return "", fmt.Errorf("failed to download Selenoid for arch = %s and version = %s: %v\n", d.Arch, d.Version, err)
+		return "", fmt.Errorf("failed to download Selenoid for arch = %s and version = %s: %v", d.Arch, d.Version, err)
 	}
-	d.Printf("Successfully downloaded Selenoid to %s\n", outputFile)
+	d.Titlef("Successfully downloaded Selenoid to %s", color.GreenString(outputFile))
 	return outputFile, nil
 }
 func (d *DriversConfigurator) getSelenoidUrl() (string, error) {
-	d.Printf("Getting Selenoid release information for version: %s\n", d.Version)
-	return d.getUrl(selenoidRepo, fmt.Errorf("Selenoid binary for %s %s is not available for specified release: %s\n", strings.Title(d.OS), d.Arch, d.Version))
+	d.Titlef("Getting Selenoid release information for version: %s", d.Version)
+	return d.getUrl(selenoidRepo, fmt.Errorf("Selenoid binary for %s %s is not available for specified release: %s", strings.Title(d.OS), d.Arch, d.Version))
 }
 
 func (d *DriversConfigurator) DownloadUI() (string, error) {
 	u, err := d.getSelenoidUIUrl()
 	if err != nil {
-		return "", fmt.Errorf("failed to get download URL for arch = %s and version = %s: %v\n", d.Arch, d.Version, err)
+		return "", fmt.Errorf("failed to get download URL for arch = %s and version = %s: %v", d.Arch, d.Version, err)
 	}
 	err = d.createConfigDir()
 	if err != nil {
-		return "", fmt.Errorf("failed to create Selenoid UI config directory: %v\n", err)
+		return "", fmt.Errorf("failed to create Selenoid UI config directory: %v", err)
 	}
 	if d.IsUIRunning() {
-		d.Printf("Stopping Selenoid UI to overwrite its binary...")
+		d.Titlef("Stopping Selenoid UI to overwrite its binary...")
 		err := d.StopUI()
 		if err != nil {
-			return "", fmt.Errorf("failed to stop Selenoid UI: %v\n", err)
+			return "", fmt.Errorf("failed to stop Selenoid UI: %v", err)
 		}
 	}
-	d.Printf("Downloading Selenoid UI release from %s\n", u)
+	d.Titlef("Downloading Selenoid UI release from %s", color.BlueString(u))
 	outputFile, err := d.downloadFile(u, d.getSelenoidUIBinaryPath())
 	if err != nil {
-		return "", fmt.Errorf("failed to download Selenoid UI for arch = %s and version = %s: %v\n", d.Arch, d.Version, err)
+		return "", fmt.Errorf("failed to download Selenoid UI for arch = %s and version = %s: %v", d.Arch, d.Version, err)
 	}
-	d.Printf("Successfully downloaded Selenoid UI to %s\n", outputFile)
+	d.Titlef("Successfully downloaded Selenoid UI to %s", color.GreenString(outputFile))
 	return outputFile, nil
 }
 
 func (d *DriversConfigurator) getSelenoidUIUrl() (string, error) {
-	d.Printf("Getting Selenoid UI release information for version: %s\n", d.Version)
-	return d.getUrl(selenoidUIRepo, fmt.Errorf("Selenoid UI binary for %s %s is not available for specified release: %s\n", strings.Title(d.OS), d.Arch, d.Version))
+	d.Titlef("Getting Selenoid UI release information for version: %s", color.BlueString(d.Version))
+	return d.getUrl(selenoidUIRepo, fmt.Errorf("Selenoid UI binary for %s %s is not available for specified release: %s", strings.Title(d.OS), d.Arch, d.Version))
 }
 
 func (d *DriversConfigurator) getUrl(repo string, missingBinaryError error) (string, error) {
@@ -220,7 +221,7 @@ func (d *DriversConfigurator) getUrl(repo string, missingBinaryError error) (str
 	if d.GithubBaseUrl != "" {
 		u, err := url.Parse(d.GithubBaseUrl)
 		if err != nil {
-			return "", fmt.Errorf("invalid Github base url [%s]: %v\n", d.GithubBaseUrl, err)
+			return "", fmt.Errorf("invalid Github base url [%s]: %v", d.GithubBaseUrl, err)
 		}
 		client.BaseURL = u
 	}
@@ -237,7 +238,7 @@ func (d *DriversConfigurator) getUrl(repo string, missingBinaryError error) (str
 	}
 
 	if release == nil {
-		return "", fmt.Errorf("unknown release: %s\n", d.Version)
+		return "", fmt.Errorf("unknown release: %s", d.Version)
 	}
 
 	for _, asset := range release.Assets {
@@ -270,17 +271,17 @@ func (d *DriversConfigurator) IsConfigured() bool {
 func (d *DriversConfigurator) Configure() (*SelenoidConfig, error) {
 	browsers, err := d.loadAvailableBrowsers()
 	if err != nil {
-		return nil, fmt.Errorf("failed to load available browsers: %v\n", err)
+		return nil, fmt.Errorf("failed to load available browsers: %v", err)
 	}
 	err = d.createConfigDir()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create output directory: %v\n", err)
+		return nil, fmt.Errorf("failed to create output directory: %v", err)
 	}
 	downloadedDrivers := d.downloadDrivers(browsers, d.ConfigDir)
 	cfg := d.generateConfig(downloadedDrivers)
 	data, err := json.MarshalIndent(cfg, "", "    ")
 	if err != nil {
-		return &cfg, fmt.Errorf("failed to marshal json: %v\n", err)
+		return &cfg, fmt.Errorf("failed to marshal json: %v", err)
 	}
 	return &cfg, ioutil.WriteFile(getSelenoidConfigPath(d.ConfigDir), data, 0644)
 }
@@ -313,16 +314,16 @@ func (d *DriversConfigurator) generateConfig(downloadedDrivers []downloadedDrive
 
 func (d *DriversConfigurator) loadAvailableBrowsers() (*Browsers, error) {
 	jsonUrl := d.BrowsersJsonUrl
-	d.Printf("Downloading browser data from: %s\n", jsonUrl)
+	d.Titlef("Downloading browser data from: %s", color.BlueString(jsonUrl))
 	data, err := downloadFile(jsonUrl)
 	if err != nil {
-		d.Printf("Browsers data download error: %v\n", err)
+		d.Errorf("Browsers data download error: %v", err)
 		return nil, err
 	}
 	var browsers Browsers
 	err = json.Unmarshal(data, &browsers)
 	if err != nil {
-		d.Printf("Browsers data read error: %v\n", err)
+		d.Errorf("Browsers data read error: %v", err)
 		return nil, err
 	}
 	return &browsers, nil
@@ -370,16 +371,16 @@ func downloadFileWithProgressBar(url string, w io.Writer) error {
 
 func (d *DriversConfigurator) downloadDriver(driver *Driver, dir string) (string, error) {
 	if driver.URL == "" {
-		d.Printf("Assuming that driver is present in %s...", driver.Filename)
+		d.Pointf("Assuming that driver is present in %s...", color.BlueString(driver.Filename))
 		return driver.Filename, nil
 	}
 	if d.DownloadNeeded {
-		d.Printf("Downloading driver from %s...\n", driver.URL)
+		d.Pointf("Downloading driver from %s...", color.BlueString(driver.URL))
 		data, err := downloadFile(driver.URL)
 		if err != nil {
-			return "", fmt.Errorf("failed to download driver archive: %v\n", err)
+			return "", fmt.Errorf("failed to download driver archive: %v", err)
 		}
-		d.Printf("Unpacking archive to %s...\n", dir)
+		d.Pointf("Unpacking archive to %s...", color.BlueString(dir))
 		return extractFile(data, driver.Filename, dir)
 	}
 	return filepath.Join(dir, driver.Filename), nil
@@ -521,7 +522,7 @@ func (d *DriversConfigurator) downloadDrivers(browsers *Browsers, configDir stri
 					browsersToIterate[rb] = browser
 					continue
 				}
-				d.Printf("Unsupported browser: %s\n", rb)
+				d.Errorf("Unsupported browser: %s", rb)
 			}
 		}
 	}
@@ -532,10 +533,10 @@ loop:
 		goarch := runtime.GOARCH
 		if architectures, ok := browser.Files[goos]; ok {
 			if driver, ok := architectures[goarch]; ok {
-				d.Printf("Processing %s...\n", strings.Title(browserName))
+				d.Titlef("Processing browser \"%s\"...", color.GreenString(strings.Title(browserName)))
 				driverPath, err := d.downloadDriver(&driver, configDir)
 				if err != nil {
-					d.Printf("Failed to download %s driver: %v\n", strings.Title(browserName), err)
+					d.Errorf("Failed to download %s driver: %v", strings.Title(browserName), err)
 					continue loop
 				}
 				command := fmt.Sprintf(browser.Command, driverPath)

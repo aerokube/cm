@@ -25,7 +25,7 @@ func startImpl(configDir string, port uint16, startAction func(*selenoid.Lifecyc
 	lifecycle.Force = force
 	err = startAction(lifecycle)
 	if err != nil {
-		lifecycle.Printf("Failed to start: %v\n", err)
+		lifecycle.Errorf("Failed to start: %v\n", err)
 		os.Exit(1)
 	}
 	os.Exit(0)

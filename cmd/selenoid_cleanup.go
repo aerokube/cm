@@ -25,15 +25,15 @@ func cleanupImpl(configDir string, port uint16, stopAction func(*selenoid.Lifecy
 
 	err = stopAction(lifecycle)
 	if err != nil {
-		stderr("Failed to stop: %v\n", err)
+		lifecycle.Errorf("Failed to stop: %v\n", err)
 		os.Exit(1)
 	}
 
 	err = os.RemoveAll(configDir)
 	if err != nil {
-		lifecycle.Printf("Failed to remove configuration directory: %v\n", err)
+		lifecycle.Errorf("Failed to remove configuration directory: %v\n", err)
 		os.Exit(1)
 	}
-	lifecycle.Printf("Successfully removed configuration directory\n")
+	lifecycle.Titlef("Successfully removed configuration directory\n")
 	os.Exit(0)
 }

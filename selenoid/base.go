@@ -1,12 +1,12 @@
 package selenoid
 
 import (
+	"fmt"
+	"github.com/fatih/color"
 	"log"
 	"os"
 	"os/user"
 	"path/filepath"
-	"fmt"
-	"github.com/fatih/color"
 )
 
 type StatusAware interface {

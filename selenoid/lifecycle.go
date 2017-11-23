@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/docker/docker/client"
-	"io"
 	"github.com/fatih/color"
-	"github.com/aerokube/cm/render/rewriter"
-	"os"
+	"io"
 )
 
 type LifecycleConfig struct {
@@ -91,10 +89,10 @@ func (l *Lifecycle) UIStatus() {
 
 func (l *Lifecycle) Download() error {
 	if l.downloadable.IsDownloaded() && !l.Force {
-		l.Pointf("Selenoid is already downloaded")
+		l.Titlef("Selenoid is already downloaded")
 		return nil
 	} else {
-		l.Pointf("Downloading Selenoid...")
+		l.Titlef("Downloading Selenoid...")
 		_, err := l.downloadable.Download()
 		return err
 	}
@@ -102,10 +100,10 @@ func (l *Lifecycle) Download() error {
 
 func (l *Lifecycle) DownloadUI() error {
 	if l.downloadable.IsUIDownloaded() && !l.Force {
-		l.Printf("Selenoid UI is already downloaded")
+		l.Titlef("Selenoid UI is already downloaded")
 		return nil
 	} else {
-		l.Printf("Downloading Selenoid UI...")
+		l.Titlef("Downloading Selenoid UI...")
 		_, err := l.downloadable.DownloadUI()
 		return err
 	}
@@ -118,13 +116,13 @@ func (l *Lifecycle) Configure() error {
 		},
 		func() error {
 			if l.configurable.IsConfigured() && !l.Force {
-				l.Pointf("Selenoid configured")
+				l.Titlef("Selenoid is alredy configured")
 				return nil
 			}
-			l.Pointf("Configuring Selenoid...")
+			l.Titlef("Configuring Selenoid...")
 			_, err := l.configurable.Configure()
 			if err == nil {
-				l.Pointf("Configuration saved to %v", color.GreenString(getSelenoidConfigPath(l.Config.ConfigDir)))
+				l.Titlef("Configuration saved to %v", color.GreenString(getSelenoidConfigPath(l.Config.ConfigDir)))
 			}
 			return err
 		},
@@ -139,24 +137,21 @@ func (l *Lifecycle) Start() error {
 		func() error {
 			if l.runnable.IsRunning() {
 				if l.Force {
-					l.Printf("Stopping previous Selenoid instance...\n")
+					l.Titlef("Stopping previous Selenoid instance...\n")
 					err := l.Stop()
 					if err != nil {
 						return fmt.Errorf("failed to stop previous Selenoid instance: %v\n", err)
 					}
 				} else {
-					l.Pointf("Selenoid is already running")
+					l.Titlef("Selenoid is already running")
 					return nil
 				}
 			}
 
-			rw := rewriter.New(os.Stdout)
-			fmt.Fprintf(rw, "%v Starting Selenoid...\n", color.HiBlackString("-"))
-			rw.Flush()
+			l.Titlef("Starting Selenoid...")
 			err := l.runnable.Start()
 			if err == nil {
-				fmt.Fprintf(rw, "%v Successfully started Selenoid\n", color.GreenString(">"))
-				rw.Flush()
+				l.Titlef("Successfully started Selenoid")
 			}
 			return err
 		},
@@ -171,20 +166,20 @@ func (l *Lifecycle) StartUI() error {
 		func() error {
 			if l.runnable.IsUIRunning() {
 				if l.Force {
-					l.Printf("Stopping previous Selenoid UI instance...\n")
+					l.Titlef("Stopping previous Selenoid UI instance...")
 					err := l.StopUI()
 					if err != nil {
-						return fmt.Errorf("failed to stop previous Selenoid UI instance: %v\n", err)
+						return fmt.Errorf("failed to stop previous Selenoid UI instance: %v", err)
 					}
 				} else {
-					l.Printf("Selenoid UI is already running\n")
+					l.Titlef("Selenoid UI is already running")
 					return nil
 				}
 			}
-			l.Printf("Starting Selenoid UI...\n")
+			l.Titlef("Starting Selenoid UI...")
 			err := l.runnable.StartUI()
 			if err == nil {
-				l.Printf("Successfully started Selenoid UI\n")
+				l.Titlef("Successfully started Selenoid UI")
 			}
 			return err
 		},
@@ -193,26 +188,26 @@ func (l *Lifecycle) StartUI() error {
 
 func (l *Lifecycle) Stop() error {
 	if !l.runnable.IsRunning() {
-		l.Printf("Selenoid is not running\n")
+		l.Titlef("Selenoid is not running")
 		return nil
 	}
-	l.Printf("Stopping Selenoid...\n")
+	l.Titlef("Stopping Selenoid...")
 	err := l.runnable.Stop()
 	if err == nil {
-		l.Printf("Successfully stopped Selenoid\n")
+		l.Titlef("Successfully stopped Selenoid")
 	}
 	return err
 }
 
 func (l *Lifecycle) StopUI() error {
 	if !l.runnable.IsUIRunning() {
-		l.Printf("Selenoid UI is not running\n")
+		l.Titlef("Selenoid UI is not running")
 		return nil
 	}
-	l.Printf("Stopping Selenoid UI...\n")
+	l.Titlef("Stopping Selenoid UI...")
 	err := l.runnable.StopUI()
 	if err == nil {
-		l.Printf("Successfully stopped Selenoid UI\n")
+		l.Titlef("Successfully stopped Selenoid UI")
 	}
 	return err
 }
