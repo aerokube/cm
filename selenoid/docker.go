@@ -510,23 +510,27 @@ func (c *DockerConfigurator) Start() error {
 		return errors.New("Selenoid image is not downloaded: this is probably a bug")
 	}
 
-	volumeConfigDir := c.getVolumeConfigDir(selenoidConfigDirElem)
-	volumes := []string{fmt.Sprintf("%s:/etc/selenoid:ro", volumeConfigDir)}
+	const videoDirName = "video"
+	volumeConfigDir := getVolumeConfigDir(c.ConfigDir, selenoidConfigDirElem)
+	videoConfigDir := getVolumeConfigDir(filepath.Join(c.ConfigDir, videoDirName), append(selenoidConfigDirElem, videoDirName))
+	volumes := []string{
+		fmt.Sprintf("%s:/etc/selenoid:ro", volumeConfigDir),
+		fmt.Sprintf("%s:/output", videoConfigDir),
+	}
 	const dockerSocket = "/var/run/docker.sock"
 	if fileExists(dockerSocket) {
 		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
 	}
 
 	overrideEnv := strings.Fields(c.Env)
-	videoPath := filepath.Join(c.ConfigDir, "video")
 	if !strings.Contains(c.Env, "OVERRIDE_VIDEO_OUTPUT_DIR") {
-		overrideEnv = append(overrideEnv, fmt.Sprintf("OVERRIDE_VIDEO_OUTPUT_DIR=%s", videoPath))
+		overrideEnv = append(overrideEnv, fmt.Sprintf("OVERRIDE_VIDEO_OUTPUT_DIR=%s", videoConfigDir))
 	}
 	return c.startContainer(selenoidContainerName, image, c.Port, SelenoidDefaultPort, volumes, []string{}, strings.Fields(c.Args), overrideEnv)
 }
 
-func (c *DockerConfigurator) getVolumeConfigDir(elem []string) string {
-	configDir := chooseVolumeConfigDir(c.ConfigDir, elem)
+func getVolumeConfigDir(defaultConfigDir string, elem []string) string {
+	configDir := chooseVolumeConfigDir(defaultConfigDir, elem)
 	if runtime.GOOS == "windows" { //A bit ugly, but conditional compilation is even worse
 		return postProcessPath(configDir)
 	}
