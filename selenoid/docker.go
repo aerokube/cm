@@ -279,7 +279,6 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 		pulledTags := tags
 		if c.DownloadNeeded {
 			pulledTags = c.pullImages(image, tags)
-			c.pullVideoRecorderImage()
 		} else if c.LastVersions > 0 && c.LastVersions <= len(tags) {
 			pulledTags = tags[:c.LastVersions]
 		}
@@ -287,6 +286,9 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 		if len(pulledTags) > 0 {
 			browsers[browserName] = c.createVersions(browserName, image, pulledTags)
 		}
+	}
+	if c.DownloadNeeded {
+		c.pullVideoRecorderImage()
 	}
 	return browsers
 }
