@@ -2,11 +2,13 @@ package selenoid
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"log"
 	"os"
 	"os/user"
 	"path/filepath"
+
+	"github.com/fatih/color"
+	colorable "github.com/mattn/go-colorable"
 )
 
 type StatusAware interface {
@@ -47,23 +49,23 @@ func (c *Logger) Printf(format string, v ...interface{}) {
 
 func (c *Logger) Titlef(format string, v ...interface{}) {
 	if !c.Quiet {
-		fmt.Printf(color.GreenString("> ")+format+"\n", v...)
+		fmt.Fprintf(colorable.NewColorableStdout(), color.GreenString("> ")+format+"\n", v...)
 	}
 }
 
 func (c *Logger) Errorf(format string, v ...interface{}) {
-	fmt.Printf(color.RedString("x ")+format+"\n", v...)
+	fmt.Fprintf(colorable.NewColorableStdout(), color.RedString("x ")+format+"\n", v...)
 }
 
 func (c *Logger) Pointf(format string, v ...interface{}) {
 	if !c.Quiet {
-		fmt.Printf(color.HiBlackString("- ")+format+"\n", v...)
+		fmt.Fprintf(colorable.NewColorableStdout(), color.HiBlackString("- ")+format+"\n", v...)
 	}
 }
 
 func (c *Logger) Tracef(format string, v ...interface{}) {
 	if !c.Quiet {
-		color.HiBlack(format, v...)
+		color.New(color.FgHiBlack).Fprintf(colorable.NewColorableStdout(), format+"\n", v...)
 	}
 }
 
