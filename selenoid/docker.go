@@ -517,7 +517,7 @@ func (c *DockerConfigurator) Start() error {
 	videoConfigDir := getVolumeConfigDir(filepath.Join(c.ConfigDir, videoDirName), append(selenoidConfigDirElem, videoDirName))
 	volumes := []string{
 		fmt.Sprintf("%s:/etc/selenoid:ro", volumeConfigDir),
-		fmt.Sprintf("%s:/output", videoConfigDir),
+		fmt.Sprintf("%s:/opt/selenoid/video", videoConfigDir),
 	}
 	const dockerSocket = "/var/run/docker.sock"
 	if fileExists(dockerSocket) {

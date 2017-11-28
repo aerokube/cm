@@ -137,10 +137,10 @@ func (l *Lifecycle) Start() error {
 		func() error {
 			if l.runnable.IsRunning() {
 				if l.Force {
-					l.Titlef("Stopping previous Selenoid instance...\n")
+					l.Titlef("Stopping previous Selenoid instance...")
 					err := l.Stop()
 					if err != nil {
-						return fmt.Errorf("failed to stop previous Selenoid instance: %v\n", err)
+						return fmt.Errorf("failed to stop previous Selenoid instance: %v", err)
 					}
 				} else {
 					l.Titlef("Selenoid is already running")
