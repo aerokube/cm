@@ -10,6 +10,11 @@ import (
 	"sort"
 
 	"errors"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/aerokube/selenoid/config"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -19,17 +24,15 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/heroku/docker-registry-client/registry"
-	"os"
-	"strconv"
-	"strings"
-	"time"
+	colorable "github.com/mattn/go-colorable"
 
-	"github.com/aerokube/cm/render/rewriter"
-	"github.com/fatih/color"
 	"net/http"
 	"path/filepath"
 	"regexp"
 	"runtime"
+
+	"github.com/aerokube/cm/render/rewriter"
+	"github.com/fatih/color"
 	. "vbom.ml/util/sortorder"
 )
 
@@ -438,7 +441,7 @@ func (c *DockerConfigurator) pullImage(ctx context.Context, ref string) bool {
 	var row JSONMessage
 
 	scanner := bufio.NewScanner(resp)
-	writer := rewriter.New(os.Stdout)
+	writer := rewriter.New(colorable.NewColorableStdout())
 
 	for _ = ""; scanner.Scan(); {
 		err := json.Unmarshal(scanner.Bytes(), &row)

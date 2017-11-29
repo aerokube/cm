@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strings"
 )
 
 // ESC is the ASCII code for escape character
@@ -48,4 +49,8 @@ func (w *Rewriter) Flush() error {
 // Write save the contents of b to its buffers. The only errors returned are ones encountered while writing to the underlying buffer.
 func (w *Rewriter) Write(b []byte) (n int, err error) {
 	return w.buf.Write(b)
+}
+
+func (w *Rewriter) clearLines() {
+	fmt.Fprint(w.out, strings.Repeat(clearCursorAndLine, w.lineCount))
 }

@@ -1,5 +1,6 @@
 .idea
 *.iml
 cm
+cm.exe
 vendor/*/
 coverage.*
