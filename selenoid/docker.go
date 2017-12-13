@@ -527,11 +527,20 @@ func (c *DockerConfigurator) Start() error {
 		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
 	}
 
+	cmd := []string{}
+	overrideCmd := strings.Fields(c.Args)
+	if len(overrideCmd) > 0 {
+		cmd = overrideCmd
+	}
+	if !contains(cmd, "-conf") {
+		cmd = append(cmd, "-conf", "/etc/selenoid/browsers.json")
+	}
+
 	overrideEnv := strings.Fields(c.Env)
 	if !strings.Contains(c.Env, "OVERRIDE_VIDEO_OUTPUT_DIR") {
 		overrideEnv = append(overrideEnv, fmt.Sprintf("OVERRIDE_VIDEO_OUTPUT_DIR=%s", videoConfigDir))
 	}
-	return c.startContainer(selenoidContainerName, image, c.Port, SelenoidDefaultPort, volumes, []string{}, strings.Fields(c.Args), overrideEnv)
+	return c.startContainer(selenoidContainerName, image, c.Port, SelenoidDefaultPort, volumes, []string{}, cmd, overrideEnv)
 }
 
 func getVolumeConfigDir(defaultConfigDir string, elem []string) string {
