@@ -69,6 +69,11 @@ To override Selenoid startup arguments sessions add `--args` flag:
 
     $ ./cm selenoid start --args "-limit 10"
 +
+To download images from private registry - log in with `docker login` command and add `--registry` flag:
+
+    $ docker login my-registry.example.com # Specify user name and password
+    $ ./cm selenoid start --registry https://my-registry.example.com
++
 An alternative to downloading `cm` manually is using Docker container:
 
     # docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root -e OVERRIDE_HOME=${HOME} aerokube/cm:latest-release selenoid start

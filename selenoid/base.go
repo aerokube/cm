@@ -114,8 +114,10 @@ type PortAware struct {
 }
 
 const (
-	SelenoidDefaultPort   = 4444
-	SelenoidUIDefaultPort = 8080
+	SelenoidDefaultPort    = 4444
+	SelenoidUIDefaultPort  = 8080
+	DefaultRegistryUrl     = "https://registry.hub.docker.com"
+	DefaultBrowsersJsonURL = "https://raw.githubusercontent.com/aerokube/cm/master/browsers.json"
 )
 
 func getHomeDir() string {

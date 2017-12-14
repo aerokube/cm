@@ -8,11 +8,6 @@ import (
 	"runtime"
 )
 
-const (
-	registryUrl            = "https://registry.hub.docker.com"
-	defaultBrowsersJsonURL = "https://raw.githubusercontent.com/aerokube/cm/master/browsers.json"
-)
-
 var (
 	lastVersions    int
 	tmpfs           int
@@ -111,9 +106,12 @@ func initFlags() {
 		selenoidConfigureCmd,
 		selenoidStartCmd,
 		selenoidUpdateCmd,
+		selenoidDownloadUICmd,
+		selenoidStartUICmd,
+		selenoidUpdateUICmd,
 	} {
 		c.Flags().StringVarP(&version, "version", "v", selenoid.Latest, "desired version; default is latest release")
-		c.Flags().StringVarP(&registry, "registry", "r", registryUrl, "Docker registry to use")
+		c.Flags().StringVarP(&registry, "registry", "r", selenoid.DefaultRegistryUrl, "Docker registry to use")
 	}
 	for _, c := range []*cobra.Command{
 		selenoidConfigureCmd,
@@ -122,7 +120,7 @@ func initFlags() {
 	} {
 		c.Flags().StringVarP(&browsers, "browsers", "b", "", "comma separated list of browser names to process")
 		c.Flags().StringVarP(&browserEnv, "browser-env", "w", "", "override container or driver environment variables (e.g. \"KEY1=value1 KEY2=value2\")")
-		c.Flags().StringVarP(&browsersJSONUrl, "browsers-json", "j", defaultBrowsersJsonURL, "browsers JSON data URL (in most cases never need to be set manually)")
+		c.Flags().StringVarP(&browsersJSONUrl, "browsers-json", "j", selenoid.DefaultBrowsersJsonURL, "browsers JSON data URL (in most cases never need to be set manually)")
 		c.Flags().BoolVarP(&skipDownload, "no-download", "n", false, "only output config file without downloading images or drivers")
 		c.Flags().IntVarP(&lastVersions, "last-versions", "l", 2, "process only last N versions (Docker only)")
 		c.Flags().IntVarP(&tmpfs, "tmpfs", "t", 0, "add tmpfs volume sized in megabytes (Docker only)")

@@ -60,6 +60,21 @@ func mux() http.Handler {
 			w.WriteHeader(http.StatusOK)
 		},
 	))
+
+	mux.HandleFunc("/v2/aerokube/selenoid/tags/list", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Content-Type", "application/json")
+			fmt.Fprintln(w, `{"name":"selenoid", "tags": ["1.4.0", "1.4.1"]}`)
+		},
+	))
+
+	mux.HandleFunc("/v2/aerokube/selenoid-ui/tags/list", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Content-Type", "application/json")
+			fmt.Fprintln(w, `{"name":"selenoid-ui", "tags": ["1.5.2"]}`)
+		},
+	))
+
 	mux.HandleFunc("/v2/selenoid/firefox/tags/list", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
@@ -249,6 +264,7 @@ func testConfigure(t *testing.T, download bool) {
 		c, err := NewDockerConfigurator(&lcConfig)
 		AssertThat(t, err, Is{nil})
 		defer c.Close()
+		c.registryHostname = ""
 		AssertThat(t, c.IsConfigured(), Is{false})
 		cfgPointer, err := (*c).Configure()
 		AssertThat(t, err, Is{nil})
@@ -290,12 +306,17 @@ func testConfigure(t *testing.T, download bool) {
 		AssertThat(t, operaVersions.Default, EqualTo{"44.0"})
 
 		correctOperaBrowsers := make(map[string]*config.Browser)
-		correctOperaBrowsers["2.1.1"] = &config.Browser{
-			Image: "selenoid/opera:44.0",
+		correctOperaBrowsers["44.0"] = &config.Browser{
+			Image: "selenoid/vnc:opera_44.0",
 			Port:  "4444",
+			Path:  "/",
 			Tmpfs: tmpfsMap,
 			Env:   []string{testEnv},
 		}
+		AssertThat(t, operaVersions, EqualTo{config.Versions{
+			Default:  "44.0",
+			Versions: correctOperaBrowsers,
+		}})
 	})
 }
 
@@ -337,8 +358,9 @@ func TestDownload(t *testing.T) {
 		Quiet:       true,
 		Version:     Latest,
 	})
-	AssertThat(t, c.IsDownloaded(), Is{true})
 	AssertThat(t, err, Is{nil})
+	c.registryHostname = ""
+	AssertThat(t, c.IsDownloaded(), Is{true})
 	ref, err := c.Download()
 	AssertThat(t, ref, Not{nil})
 	AssertThat(t, err, Is{nil})
@@ -354,8 +376,9 @@ func TestDownloadUI(t *testing.T) {
 		Version:     Latest,
 	})
 	setImageName(selenoidUIImage)
-	AssertThat(t, c.IsUIDownloaded(), Is{true})
 	AssertThat(t, err, Is{nil})
+	c.registryHostname = ""
+	AssertThat(t, c.IsUIDownloaded(), Is{true})
 	ref, err := c.DownloadUI()
 	AssertThat(t, ref, Not{nil})
 	AssertThat(t, err, Is{nil})
