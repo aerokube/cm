@@ -21,6 +21,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
+	authconfig "github.com/docker/docker/cliconfig"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/heroku/docker-registry-client/registry"
@@ -31,8 +32,10 @@ import (
 	"regexp"
 	"runtime"
 
+	"encoding/base64"
 	"github.com/aerokube/cm/render/rewriter"
 	"github.com/fatih/color"
+	"net/url"
 	. "vbom.ml/util/sortorder"
 )
 
@@ -61,13 +64,15 @@ type DockerConfigurator struct {
 	EnvAware
 	BrowserEnvAware
 	PortAware
-	LastVersions int
-	Pull         bool
-	RegistryUrl  string
-	Tmpfs        int
-	VNC          bool
-	docker       *client.Client
-	reg          *registry.Registry
+	LastVersions     int
+	Pull             bool
+	RegistryUrl      string
+	Tmpfs            int
+	VNC              bool
+	docker           *client.Client
+	reg              *registry.Registry
+	authConfig       *types.AuthConfig
+	registryHostname string
 }
 
 func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error) {
@@ -94,6 +99,12 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 	if err != nil {
 		return nil, fmt.Errorf("new configurator: %v", err)
 	}
+	authConfig, err := c.initAuthConfig()
+	if err != nil {
+
+	} else {
+		c.authConfig = authConfig
+	}
 	err = c.initRegistryClient()
 	if err != nil {
 		return nil, fmt.Errorf("new configurator: %v", err)
@@ -110,12 +121,38 @@ func (c *DockerConfigurator) initDockerClient() error {
 	return nil
 }
 
+func (c *DockerConfigurator) initAuthConfig() (*types.AuthConfig, error) {
+	configFile, err := authconfig.Load("")
+	if err != nil {
+		return nil, err
+	}
+	u, err := url.Parse(c.RegistryUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	registryHostname := u.Hostname()
+	if c.RegistryUrl != DefaultRegistryUrl {
+		c.registryHostname = registryHostname
+	}
+	if cfg, ok := configFile.AuthConfigs[registryHostname]; ok {
+		c.Titlef(`Loaded authentication data for "%s"`, registryHostname)
+		return &cfg, nil
+	}
+
+	return nil, nil
+}
+
 func (c *DockerConfigurator) initRegistryClient() error {
 	url := strings.TrimSuffix(c.RegistryUrl, "/")
+	username, password := "", ""
+	if c.authConfig != nil {
+		username, password = c.authConfig.Username, c.authConfig.Password
+	}
 	reg := &registry.Registry{
 		URL: url,
 		Client: &http.Client{
-			Transport: registry.WrapTransport(http.DefaultTransport, url, "", ""),
+			Transport: registry.WrapTransport(http.DefaultTransport, url, username, password),
 		},
 		Logf: func(format string, args ...interface{}) {
 			c.Tracef(format, args...)
@@ -223,9 +260,9 @@ func (c *DockerConfigurator) downloadImpl(imageName string, version string, erro
 			version = *latestVersion
 		}
 	}
-	ref := imageName
+	ref := c.getFullyQualifiedImageRef(imageName)
 	if version != Latest {
-		ref = fmt.Sprintf("%s:%s", ref, version)
+		ref = imageWithTag(ref, version)
 	}
 	if !c.pullImage(context.Background(), ref) {
 		return "", errors.New(errorMessage)
@@ -280,14 +317,15 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 		tags := c.fetchImageTags(image)
 		image, tags = c.preProcessImageTags(image, browserName, tags)
 		pulledTags := tags
+		fullyQualifiedImage := c.getFullyQualifiedImageRef(image)
 		if c.DownloadNeeded {
-			pulledTags = c.pullImages(image, tags)
+			pulledTags = c.pullImages(fullyQualifiedImage, tags)
 		} else if c.LastVersions > 0 && c.LastVersions <= len(tags) {
 			pulledTags = tags[:c.LastVersions]
 		}
 
 		if len(pulledTags) > 0 {
-			browsers[browserName] = c.createVersions(browserName, image, pulledTags)
+			browsers[browserName] = c.createVersions(browserName, fullyQualifiedImage, pulledTags)
 		}
 	}
 	if c.DownloadNeeded {
@@ -299,8 +337,8 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 func (c *DockerConfigurator) getSupportedBrowsers() map[string]string {
 	return map[string]string{
 		"firefox": "selenoid/firefox",
-		"chrome":  "selenoid/chrome",
-		"opera":   "selenoid/opera",
+		"chrome": "selenoid/chrome",
+		"opera": "selenoid/opera",
 	}
 }
 
@@ -379,7 +417,14 @@ loop:
 
 func (c *DockerConfigurator) pullVideoRecorderImage() {
 	c.Titlef("Pulling video recorder image...")
-	c.pullImage(context.Background(), videoRecorderImage)
+	c.pullImage(context.Background(), c.getFullyQualifiedImageRef(videoRecorderImage))
+}
+
+func (c *DockerConfigurator) getFullyQualifiedImageRef(ref string) string {
+	if c.registryHostname != "" {
+		return fmt.Sprintf("%s/%s", c.registryHostname, ref)
+	}
+	return ref
 }
 
 func (c *DockerConfigurator) preProcessImageTags(image string, browserName string, tags []string) (string, []string) {
@@ -431,7 +476,16 @@ type JSONProgress struct {
 
 func (c *DockerConfigurator) pullImage(ctx context.Context, ref string) bool {
 	c.Pointf("Pulling image %v", color.BlueString(ref))
-	resp, err := c.docker.ImagePull(ctx, ref, types.ImagePullOptions{})
+	pullOptions := types.ImagePullOptions{}
+	if c.authConfig != nil {
+		buf, err := json.Marshal(c.authConfig)
+		if err != nil {
+			c.Errorf("Failed to prepare registry authentication config: %v", err)
+		} else {
+			pullOptions.RegistryAuth = base64.URLEncoding.EncodeToString(buf)
+		}
+	}
+	resp, err := c.docker.ImagePull(ctx, ref, pullOptions)
 	if err != nil {
 		c.Errorf(`Failed to pull image "%s": %v`, ref, err)
 		return false
