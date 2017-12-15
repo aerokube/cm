@@ -101,7 +101,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 	}
 	authConfig, err := c.initAuthConfig()
 	if err != nil {
-
+		c.Errorf("Failed to load authentication configuration, using default values: %v", err)
 	} else {
 		c.authConfig = authConfig
 	}
