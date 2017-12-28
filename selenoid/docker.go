@@ -589,6 +589,9 @@ func (c *DockerConfigurator) Start() error {
 	if !contains(cmd, "-conf") {
 		cmd = append(cmd, "-conf", "/etc/selenoid/browsers.json")
 	}
+	if !contains(cmd, "-video-output-dir") {
+		cmd = append(cmd, "-video-output-dir", "/opt/selenoid/video/")
+	}
 
 	overrideEnv := strings.Fields(c.Env)
 	if !strings.Contains(c.Env, "OVERRIDE_VIDEO_OUTPUT_DIR") {
