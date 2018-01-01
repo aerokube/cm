@@ -4,6 +4,7 @@ import (
 	"fmt"
 	. "github.com/aandryashin/matchers"
 	"github.com/aerokube/selenoid/config"
+	"github.com/docker/docker/api/types"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -397,6 +398,46 @@ func TestGetSelenoidImage(t *testing.T) {
 	AssertThat(t, c.getSelenoidImage() == nil, Is{false})
 	setImageName(selenoidUIImage)
 	AssertThat(t, c.getSelenoidImage() == nil, Is{true})
+}
+
+func TestFindMatchingImage(t *testing.T) {
+
+	var (
+		selenoid141 = types.ImageSummary{
+			ID:       "1",
+			RepoTags: []string{"aerokube/selenoid:1.4.1"},
+			Created:  100,
+		}
+		selenoid143 = types.ImageSummary{
+			ID:       "3",
+			RepoTags: []string{"aerokube/selenoid:1.4.3"},
+			Created:  300,
+		}
+	)
+	images := []types.ImageSummary{
+		selenoid141,
+		{
+			ID:       "2",
+			RepoTags: []string{"aerokube/selenoid-ui:1.5.1"},
+			Created:  200, //Intentionally using small timestamps
+		},
+		selenoid143,
+	}
+
+	AssertThat(t, findMatchingImage(images, "unknown-image-name", Latest) == nil, Is{true})
+	AssertThat(t, findMatchingImage(images, "aerokube/selenoid", "missing-version") == nil, Is{true})
+
+	foundSelenoid141 := findMatchingImage(images, "aerokube/selenoid", "1.4.1")
+	AssertThat(t, foundSelenoid141, Not{nil})
+	AssertThat(t, *foundSelenoid141, EqualTo{selenoid141})
+
+	foundSelenoidEmpty := findMatchingImage(images, "aerokube/selenoid", "")
+	AssertThat(t, foundSelenoidEmpty, Not{nil})
+	AssertThat(t, *foundSelenoidEmpty, EqualTo{selenoid143})
+
+	foundSelenoidLatest := findMatchingImage(images, "aerokube/selenoid", Latest)
+	AssertThat(t, foundSelenoidLatest, Not{nil})
+	AssertThat(t, *foundSelenoidLatest, EqualTo{selenoid143})
 }
 
 func TestFilterOutLatest(t *testing.T) {

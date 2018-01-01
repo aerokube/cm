@@ -216,7 +216,7 @@ func (c *DockerConfigurator) IsDownloaded() bool {
 }
 
 func (c *DockerConfigurator) getSelenoidImage() *types.ImageSummary {
-	return c.getImage(selenoidImage)
+	return c.getImage(selenoidImage, c.Version)
 }
 
 func (c *DockerConfigurator) IsUIDownloaded() bool {
@@ -224,20 +224,29 @@ func (c *DockerConfigurator) IsUIDownloaded() bool {
 }
 
 func (c *DockerConfigurator) getSelenoidUIImage() *types.ImageSummary {
-	return c.getImage(selenoidUIImage)
+	return c.getImage(selenoidUIImage, c.Version)
 }
 
-func (c *DockerConfigurator) getImage(name string) *types.ImageSummary {
+func (c *DockerConfigurator) getImage(name string, version string) *types.ImageSummary {
 	images, err := c.docker.ImageList(context.Background(), types.ImageListOptions{})
 	if err != nil {
 		c.Errorf("Failed to list images: %v", err)
 		return nil
 	}
+	return findMatchingImage(images, name, version)
+}
+
+func findMatchingImage(images []types.ImageSummary, name string, version string) *types.ImageSummary {
+	sort.Slice(images, func(i, j int) bool {
+		return images[i].Created > images[j].Created
+	})
 	for _, img := range images {
 		const colon = ":"
 		for _, tag := range img.RepoTags {
-			imageName := strings.Split(tag, colon)[0]
-			if strings.HasSuffix(imageName, name) {
+			nameAndVersion := strings.Split(tag, colon)
+			imageName := nameAndVersion[0]
+			imageVersion := nameAndVersion[1]
+			if strings.HasSuffix(imageName, name) && (version == "" || version == Latest || version == imageVersion) {
 				return &img
 			}
 		}
@@ -337,8 +346,8 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 func (c *DockerConfigurator) getSupportedBrowsers() map[string]string {
 	return map[string]string{
 		"firefox": "selenoid/firefox",
-		"chrome": "selenoid/chrome",
-		"opera": "selenoid/opera",
+		"chrome":  "selenoid/chrome",
+		"opera":   "selenoid/opera",
 	}
 }
 
