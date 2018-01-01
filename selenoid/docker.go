@@ -611,6 +611,9 @@ func (c *DockerConfigurator) Start() error {
 }
 
 func isVideoRecordingSupported(logger Logger, version string) bool {
+	if version == Latest {
+		return true
+	}
 	constraint, _ := ver.NewConstraint(">= 1.4.0")
 	v, err := ver.NewVersion(version)
 	if err != nil {
