@@ -447,6 +447,7 @@ func TestIsVideoRecordingSupported(t *testing.T) {
 	AssertThat(t, isVideoRecordingSupported(logger, "1.4.0"), Is{true})
 	AssertThat(t, isVideoRecordingSupported(logger, "1.4.1"), Is{true})
 	AssertThat(t, isVideoRecordingSupported(logger, "1.5.0"), Is{true})
+	AssertThat(t, isVideoRecordingSupported(logger, "latest"), Is{true})
 }
 
 func TestFilterOutLatest(t *testing.T) {
