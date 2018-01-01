@@ -91,6 +91,12 @@
   version = "v1.6.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/go-version"
+  packages = ["."]
+  revision = "4fe82ae3040f80a03d04d2cccb5606a626b8e1ee"
+
+[[projects]]
   name = "github.com/heroku/docker-registry-client"
   packages = ["registry"]
   revision = "95467b6cacee2a06f112a3cf7e47a70fad6000cf"
@@ -186,6 +192,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c2e2a974e49c38adfb19cfe42fb7571235ef38b6c28d52aa84418d8b7d4f9bbe"
+  inputs-digest = "d6788a2373f7b507e5dada3a1fa4017766ccefc87ef23b0860c5741cb3cddde2"
   solver-name = "gps-cdcl"
   solver-version = 1

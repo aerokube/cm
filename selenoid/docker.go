@@ -24,6 +24,7 @@ import (
 	authconfig "github.com/docker/docker/cliconfig"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	ver "github.com/hashicorp/go-version"
 	"github.com/heroku/docker-registry-client/registry"
 	colorable "github.com/mattn/go-colorable"
 
@@ -598,7 +599,7 @@ func (c *DockerConfigurator) Start() error {
 	if !contains(cmd, "-conf") {
 		cmd = append(cmd, "-conf", "/etc/selenoid/browsers.json")
 	}
-	if !contains(cmd, "-video-output-dir") {
+	if !contains(cmd, "-video-output-dir") && isVideoRecordingSupported(c.Logger, c.Version) {
 		cmd = append(cmd, "-video-output-dir", "/opt/selenoid/video/")
 	}
 
@@ -607,6 +608,16 @@ func (c *DockerConfigurator) Start() error {
 		overrideEnv = append(overrideEnv, fmt.Sprintf("OVERRIDE_VIDEO_OUTPUT_DIR=%s", videoConfigDir))
 	}
 	return c.startContainer(selenoidContainerName, image, c.Port, SelenoidDefaultPort, volumes, []string{}, cmd, overrideEnv)
+}
+
+func isVideoRecordingSupported(logger Logger, version string) bool {
+	constraint, _ := ver.NewConstraint(">= 1.4.0")
+	v, err := ver.NewVersion(version)
+	if err != nil {
+		logger.Pointf(`Not enabling video feature because specified version "%s" is not semantic`, version)
+		return false
+	}
+	return constraint.Check(v)
 }
 
 func getVolumeConfigDir(defaultConfigDir string, elem []string) string {

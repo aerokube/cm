@@ -440,6 +440,15 @@ func TestFindMatchingImage(t *testing.T) {
 	AssertThat(t, *foundSelenoidLatest, EqualTo{selenoid143})
 }
 
+func TestIsVideoRecordingSupported(t *testing.T) {
+	logger := Logger{}
+	AssertThat(t, isVideoRecordingSupported(logger, "wrong-version"), Is{false})
+	AssertThat(t, isVideoRecordingSupported(logger, "1.3.9"), Is{false})
+	AssertThat(t, isVideoRecordingSupported(logger, "1.4.0"), Is{true})
+	AssertThat(t, isVideoRecordingSupported(logger, "1.4.1"), Is{true})
+	AssertThat(t, isVideoRecordingSupported(logger, "1.5.0"), Is{true})
+}
+
 func TestFilterOutLatest(t *testing.T) {
 	tags := filterOutLatest([]string{"one", "latest", "latest-release", "two"})
 	AssertThat(t, tags, EqualTo{[]string{"one", "two"}})
