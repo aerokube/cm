@@ -116,7 +116,7 @@ func (l *Lifecycle) Configure() error {
 		},
 		func() error {
 			if l.configurable.IsConfigured() && !l.Force {
-				l.Titlef("Selenoid is alredy configured")
+				l.Titlef("Selenoid is already configured")
 				return nil
 			}
 			l.Titlef("Configuring Selenoid...")
