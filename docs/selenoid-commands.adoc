@@ -3,21 +3,12 @@
 This guide will show how to start Selenoid in a fastest way with help of Configuration Manager.
 First, you need to download latest release binary from https://github.com/aerokube/cm/releases/latest[GitHub releases] for your platform (linux/darwin/windows).
 
-To simplify this process you can copy and run small script:
+To simplify this process you launch small script:
 
-.On Linux
+.On Linux and Mac OS
 [source,bash]
 ----
-curl -L -o cm `curl -s https://api.github.com/repos/aerokube/cm/releases/latest | grep "browser_download_url" | grep linux | cut -d : -f 2,3 | tr -d \"` \
-&& chmod +x ./cm \
-&& ./cm selenoid start --vnc
-----
-
-.On Mac:
-[source,bash]
-----
-curl -L -o cm `curl -s https://api.github.com/repos/aerokube/cm/releases/latest | grep "browser_download_url" | grep darwin | cut -d : -f 2,3 | tr -d \"` \
-&& chmod +x ./cm \
+curl -s aerokube.com/cm/bash | bash \
 && ./cm selenoid start --vnc
 ----
 
