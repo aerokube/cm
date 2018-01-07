@@ -1,12 +1,67 @@
+== Quick Start Guide
+
+This guide will show how to start Selenoid in a fastest way with help of Configuration Manager.
+First, you need to download latest release binary from https://github.com/aerokube/cm/releases/latest[GitHub releases] for your platform (linux/darwin/windows).
+
+To simplify this process you can copy and run small script:
+
+.On Linux
+[source,bash]
+----
+curl -L -o cm `curl -s https://api.github.com/repos/aerokube/cm/releases/latest | grep "browser_download_url" | grep linux | cut -d : -f 2,3 | tr -d \"` \
+&& chmod +x ./cm \
+&& ./cm selenoid start --vnc
+----
+
+.On Mac:
+[source,bash]
+----
+curl -L -o cm `curl -s https://api.github.com/repos/aerokube/cm/releases/latest | grep "browser_download_url" | grep darwin | cut -d : -f 2,3 | tr -d \"` \
+&& chmod +x ./cm \
+&& ./cm selenoid start --vnc
+----
+
+**On Windows** - just download the latest binary with your browser from https://github.com/aerokube/cm/releases/latest[releases page] for windows (386 and amd64 binaries available).
+Then if you have https://en.wikipedia.org/wiki/PowerShell[Powershell] type:
+
+[source,powershell]
+----
+> ./cm.exe selenoid start --vnc
+----
+
+[NOTE]
+====
+If you have https://docs.docker.com/engine/installation/[Docker] installed you can also use this one-liner:
+[source,bash,subs="attributes+"]
+# docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  \
+    -v ${HOME}:/root                                            \
+    -e OVERRIDE_HOME=${HOME}                                    \
+    aerokube/cm:latest-release selenoid start --vnc --tmpfs 128
+====
+
+[WARNING]
+====
+If you are working behind proxy you should set environment variables `HTTP_PROXY`, `HTTPS_PROXY` or `NO_PROXY`
+described in https://docs.docker.com/engine/admin/systemd/#runtime-directory-and-storage-driver[Docker documentation]:
+[source,bash,subs="attributes+"]
+$ HTTP_PROXY=http://proxy.example.com:80/ ./cm selenoid start
++
+When running `cm` in container - pass variable via `-e` flag of the `docker` command. These variables work because `cm` is using the same client as `docker` command.
+====
+
+
 == Configuring Selenoid
 This section describes supported ways of automatic https://github.com/aerokube/selenoid[Selenoid] configuration.
 
 [TIP]
 ====
-To quickly configure and run Selenoid type:
+To quickly configure and run Selenoid with defaults type:
 
-    $ ./cm selenoid start
-    
+[source,bash]
+----
+./cm selenoid start
+----
+
 ====
 
 Selenoid can be configured in two ways:
@@ -16,11 +71,17 @@ Selenoid can be configured in two ways:
 
 Which mode to use is detected automatically by trying to access Docker API. To view the list of available commands:
 
-    $ ./cm selenoid --help
-    
+[source,bash]
+----
+./cm selenoid --help
+----
+
 To launch command:
 
-    $ ./cm selenoid <command> [args...]
+[source,bash]
+----
+./cm selenoid <command> [args...]
+----
 
 Supported commands are:
 
@@ -39,41 +100,72 @@ Supported commands are:
 
 To see supported flags for each command append `--help`:
 
-    $ ./cm selenoid start --help
+[source,bash]
+----
+./cm selenoid start --help
+----
 
 === Example Commands
 * `download` command downloads latest or specified Selenoid release as standalone binary or container image:
-
-    $ ./cm selenoid download [--version 1.2.1] [--force]
 +
-Does nothing when already downloaded. Use `--force` flag to download again.
-* `configure` command in addition to downloading Selenoid also downloads container images or webdriver binaries and generates configuration file:
+[source,bash]
+----
+./cm selenoid download [--version 1.2.1] [--force]
+----
++
+This command does nothing when already downloaded. Use `--force` flag to download again.
 
-    $ ./cm selenoid configure [--browsers firefox,opera] [--last-versions 2] [--tmpfs 128]
+
+* `configure` command in addition to downloading Selenoid also downloads container images or webdriver binaries and generates configuration file:
++
+[source,bash]
+----
+./cm selenoid configure [--browsers firefox,opera] [--last-versions 2] [--tmpfs 128]
+----
 +    
 Use `--browsers` to limit browsers to be configured, `--tmpfs` - to add https://en.wikipedia.org/wiki/Tmpfs[Tmpfs] support, `--last-versions` - to limit how many last browser versions to download. If you wish to download all available versions - specify `--last-versions 0`.
 
+
 * `start` command configures Selenoid and starts it:
-
-    $ ./cm selenoid start
++
+[source,bash]
+----
+./cm selenoid start
+----
 +    
-By default Selenoid data is stored in `~/.aerokube/selenoid` but you can specify another directory using `--config-dir` flag. To download images with VNC server (to see live browser screen) use `--vnc` flag:
-
-    $ ./cm selenoid start --vnc
+By default Selenoid data is stored in `~/.aerokube/selenoid` but you can specify another
+directory using `--config-dir` flag. To download images with VNC server (to see live browser screen) use `--vnc` flag:
++
+[source,bash]
+----
+./cm selenoid start --vnc
+----
 +
 To override Selenoid listen port add `--port` flag:
-
-    $ ./cm selenoid start --port 4445
++
+[source,bash]
+----
+./cm selenoid start --port 4445
+----
 +
 To override Selenoid startup arguments sessions add `--args` flag:
-
-    $ ./cm selenoid start --args "-limit 10"
++
+[source,bash]
+----
+./cm selenoid start --args "-limit 10"
+----
 +
 To download images from private registry - log in with `docker login` command and add `--registry` flag:
-
-    $ docker login my-registry.example.com # Specify user name and password
-    $ ./cm selenoid start --registry https://my-registry.example.com
++
+[source,bash]
+----
+docker login my-registry.example.com # Specify user name and password
+./cm selenoid start --registry https://my-registry.example.com
+----
 +
 An alternative to downloading `cm` manually is using Docker container:
-
-    # docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root -e OVERRIDE_HOME=${HOME} aerokube/cm:latest-release selenoid start
++
+[source,bash]
+----
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root -e OVERRIDE_HOME=${HOME} aerokube/cm:latest-release selenoid start
+----
