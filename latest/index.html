@@ -562,21 +562,12 @@ table.CodeRay td.code>pre{padding:0}
 First, you need to download latest release binary from <a href="https://github.com/aerokube/cm/releases/latest">GitHub releases</a> for your platform (linux/darwin/windows).</p>
 </div>
 <div class="paragraph">
-<p>To simplify this process you can copy and run small script:</p>
+<p>To simplify this process you launch small script:</p>
 </div>
 <div class="listingblock">
-<div class="title">On Linux</div>
+<div class="title">On Linux and Mac OS</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="bash">curl -L -o cm `curl -s https://api.github.com/repos/aerokube/cm/releases/latest | grep &quot;browser_download_url&quot; | grep linux | cut -d : -f 2,3 | tr -d \&quot;` \
-&amp;&amp; chmod +x ./cm \
-&amp;&amp; ./cm selenoid start --vnc</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">On Mac:</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="bash">curl -L -o cm `curl -s https://api.github.com/repos/aerokube/cm/releases/latest | grep &quot;browser_download_url&quot; | grep darwin | cut -d : -f 2,3 | tr -d \&quot;` \
-&amp;&amp; chmod +x ./cm \
+<pre class="CodeRay highlight"><code data-lang="bash">curl -s aerokube.com/cm/bash | bash \
 &amp;&amp; ./cm selenoid start --vnc</code></pre>
 </div>
 </div>
@@ -995,7 +986,7 @@ $ docker build -t cm:latest .</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version latest<br>
-Last updated 2018-01-07 18:43:31 UTC
+Last updated 2018-01-07 19:25:31 UTC
 </div>
 </div>
 <!-- Yandex.Metrika counter -->
