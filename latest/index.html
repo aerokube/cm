@@ -524,22 +524,23 @@ table.CodeRay td.code>pre{padding:0}
 <div class="details">
 <span id="author" class="author">Alexander Andryashin, Ivan Krutov, Kirill Merkushev and the Aerokube community</span><br>
 <span id="revnumber">version latest,</span>
-<span id="revdate">2018-01-01</span>
+<span id="revdate">2018-01-07</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel2">
-<li><a href="#_configuring_selenoid">1. Configuring Selenoid</a>
+<li><a href="#_quick_start_guide">1. Quick Start Guide</a></li>
+<li><a href="#_configuring_selenoid">2. Configuring Selenoid</a>
 <ul class="sectlevel3">
-<li><a href="#_example_commands">1.1. Example Commands</a></li>
+<li><a href="#_example_commands">2.1. Example Commands</a></li>
 </ul>
 </li>
-<li><a href="#_starting_selenoid_ui">2. Starting Selenoid UI</a>
+<li><a href="#_starting_selenoid_ui">3. Starting Selenoid UI</a>
 <ul class="sectlevel3">
-<li><a href="#_example_commands_2">2.1. Example Commands</a></li>
+<li><a href="#_example_commands_2">3.1. Example Commands</a></li>
 </ul>
 </li>
-<li><a href="#_contributing_development">3. Contributing &amp; Development</a></li>
+<li><a href="#_contributing_development">4. Contributing &amp; Development</a></li>
 </ul>
 </div>
 </div>
@@ -555,7 +556,88 @@ table.CodeRay td.code>pre{padding:0}
 </div>
 </div>
 <div class="sect2">
-<h3 id="_configuring_selenoid"><a class="anchor" href="#_configuring_selenoid"></a>1. Configuring Selenoid</h3>
+<h3 id="_quick_start_guide"><a class="anchor" href="#_quick_start_guide"></a>1. Quick Start Guide</h3>
+<div class="paragraph">
+<p>This guide will show how to start Selenoid in a fastest way with help of Configuration Manager.
+First, you need to download latest release binary from <a href="https://github.com/aerokube/cm/releases/latest">GitHub releases</a> for your platform (linux/darwin/windows).</p>
+</div>
+<div class="paragraph">
+<p>To simplify this process you can copy and run small script:</p>
+</div>
+<div class="listingblock">
+<div class="title">On Linux</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">curl -L -o cm `curl -s https://api.github.com/repos/aerokube/cm/releases/latest | grep &quot;browser_download_url&quot; | grep linux | cut -d : -f 2,3 | tr -d \&quot;` \
+&amp;&amp; chmod +x ./cm \
+&amp;&amp; ./cm selenoid start --vnc</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">On Mac:</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">curl -L -o cm `curl -s https://api.github.com/repos/aerokube/cm/releases/latest | grep &quot;browser_download_url&quot; | grep darwin | cut -d : -f 2,3 | tr -d \&quot;` \
+&amp;&amp; chmod +x ./cm \
+&amp;&amp; ./cm selenoid start --vnc</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>On Windows</strong> - just download the latest binary with your browser from <a href="https://github.com/aerokube/cm/releases/latest">releases page</a> for windows (386 and amd64 binaries available).
+Then if you have <a href="https://en.wikipedia.org/wiki/PowerShell">Powershell</a> type:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="powershell">&gt; ./cm.exe selenoid start --vnc</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you have <a href="https://docs.docker.com/engine/installation/">Docker</a> installed you can also use this one-liner:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash"># docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  \
+    -v ${HOME}:/root                                            \
+    -e OVERRIDE_HOME=${HOME}                                    \
+    aerokube/cm:latest-release selenoid start --vnc --tmpfs 128</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you are working behind proxy you should set environment variables <code>HTTP_PROXY</code>, <code>HTTPS_PROXY</code> or <code>NO_PROXY</code>
+described in <a href="https://docs.docker.com/engine/admin/systemd/#runtime-directory-and-storage-driver">Docker documentation</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">$ HTTP_PROXY=http://proxy.example.com:80/ ./cm selenoid start</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>+
+When running <code>cm</code> in container - pass variable via <code>-e</code> flag of the <code>docker</code> command. These variables work because <code>cm</code> is using the same client as <code>docker</code> command.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuring_selenoid"><a class="anchor" href="#_configuring_selenoid"></a>2. Configuring Selenoid</h3>
 <div class="paragraph">
 <p>This section describes supported ways of automatic <a href="https://github.com/aerokube/selenoid">Selenoid</a> configuration.</p>
 </div>
@@ -567,11 +649,11 @@ table.CodeRay td.code>pre{padding:0}
 </td>
 <td class="content">
 <div class="paragraph">
-<p>To quickly configure and run Selenoid type:</p>
+<p>To quickly configure and run Selenoid with defaults type:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid start</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid start</code></pre>
 </div>
 </div>
 </td>
@@ -594,17 +676,17 @@ table.CodeRay td.code>pre{padding:0}
 <div class="paragraph">
 <p>Which mode to use is detected automatically by trying to access Docker API. To view the list of available commands:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid --help</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid --help</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>To launch command:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid &lt;command&gt; [args...]</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid &lt;command&gt; [args...]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -656,31 +738,31 @@ table.CodeRay td.code>pre{padding:0}
 <div class="paragraph">
 <p>To see supported flags for each command append <code>--help</code>:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid start --help</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid start --help</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_commands"><a class="anchor" href="#_example_commands"></a>1.1. Example Commands</h4>
+<h4 id="_example_commands"><a class="anchor" href="#_example_commands"></a>2.1. Example Commands</h4>
 <div class="ulist">
 <ul>
 <li>
 <p><code>download</code> command downloads latest or specified Selenoid release as standalone binary or container image:</p>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid download [--version 1.2.1] [--force]</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid download [--version 1.2.1] [--force]</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Does nothing when already downloaded. Use <code>--force</code> flag to download again.</p>
+<p>This command does nothing when already downloaded. Use <code>--force</code> flag to download again.</p>
 </div>
 </li>
 <li>
 <p><code>configure</code> command in addition to downloading Selenoid also downloads container images or webdriver binaries and generates configuration file:</p>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid configure [--browsers firefox,opera] [--last-versions 2] [--tmpfs 128]</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid configure [--browsers firefox,opera] [--last-versions 2] [--tmpfs 128]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -689,50 +771,51 @@ table.CodeRay td.code>pre{padding:0}
 </li>
 <li>
 <p><code>start</code> command configures Selenoid and starts it:</p>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid start</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid start</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>By default Selenoid data is stored in <code>~/.aerokube/selenoid</code> but you can specify another directory using <code>--config-dir</code> flag. To download images with VNC server (to see live browser screen) use <code>--vnc</code> flag:</p>
+<p>By default Selenoid data is stored in <code>~/.aerokube/selenoid</code> but you can specify another
+directory using <code>--config-dir</code> flag. To download images with VNC server (to see live browser screen) use <code>--vnc</code> flag:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid start --vnc</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid start --vnc</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>To override Selenoid listen port add <code>--port</code> flag:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid start --port 4445</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid start --port 4445</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>To override Selenoid startup arguments sessions add <code>--args</code> flag:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid start --args "-limit 10"</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid start --args &quot;-limit 10&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>To download images from private registry - log in with <code>docker login</code> command and add <code>--registry</code> flag:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ docker login my-registry.example.com # Specify user name and password
-$ ./cm selenoid start --registry https://my-registry.example.com</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">docker login my-registry.example.com # Specify user name and password
+./cm selenoid start --registry https://my-registry.example.com</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>An alternative to downloading <code>cm</code> manually is using Docker container:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre># docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root -e OVERRIDE_HOME=${HOME} aerokube/cm:latest-release selenoid start</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root -e OVERRIDE_HOME=${HOME} aerokube/cm:latest-release selenoid start</code></pre>
 </div>
 </div>
 </li>
@@ -741,7 +824,7 @@ $ ./cm selenoid start --registry https://my-registry.example.com</pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_starting_selenoid_ui"><a class="anchor" href="#_starting_selenoid_ui"></a>2. Starting Selenoid UI</h3>
+<h3 id="_starting_selenoid_ui"><a class="anchor" href="#_starting_selenoid_ui"></a>3. Starting Selenoid UI</h3>
 <div class="paragraph">
 <p>This section describes supported ways of automatic <a href="https://github.com/aerokube/selenoid-ui">Selenoid UI</a> startup.</p>
 </div>
@@ -815,7 +898,7 @@ $ ./cm selenoid start --registry https://my-registry.example.com</pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_commands_2"><a class="anchor" href="#_example_commands_2"></a>2.1. Example Commands</h4>
+<h4 id="_example_commands_2"><a class="anchor" href="#_example_commands_2"></a>3.1. Example Commands</h4>
 <div class="paragraph">
 <p>These commands just repeat similar commands for Selenoid so we give no comments here:</p>
 </div>
@@ -831,7 +914,7 @@ $ ./cm selenoid-ui start --args "--period 100ms"
 </div>
 </div>
 <div class="sect1">
-<h2 id="_contributing_development"><a class="anchor" href="#_contributing_development"></a>3. Contributing &amp; Development</h2>
+<h2 id="_contributing_development"><a class="anchor" href="#_contributing_development"></a>4. Contributing &amp; Development</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>To build cm:</p>
@@ -912,7 +995,7 @@ $ docker build -t cm:latest .</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version latest<br>
-Last updated 2018-01-01 15:09:16 UTC
+Last updated 2018-01-07 18:43:31 UTC
 </div>
 </div>
 <!-- Yandex.Metrika counter -->
