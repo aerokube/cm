@@ -91,6 +91,28 @@ func mux() http.Handler {
 	))
 
 	//Docker API mock
+	mux.HandleFunc("/v1.29/version", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			output := `
+				{
+				
+					"Version": "17.04.0",
+					"Os": "linux",
+					"KernelVersion": "3.19.0-23-generic",
+					"GoVersion": "go1.7.5",
+					"GitCommit": "deadbee",
+					"Arch": "amd64",
+					"ApiVersion": "1.29",
+					"MinAPIVersion": "1.12",
+					"BuildTime": "2016-06-14T07:09:13.444803460+00:00",
+					"Experimental": true
+				
+				}
+			`
+			w.Write([]byte(output))
+		},
+	))
 	mux.HandleFunc("/v1.29/images/create", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
