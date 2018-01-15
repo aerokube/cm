@@ -684,10 +684,17 @@ func validateEnviron(envs []string) []string {
 }
 
 func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, hostPort int, servicePort int, volumes []string, links []string, cmd []string, envOverride []string) error {
+	ctx := context.Background()
 	env := validateEnviron(os.Environ())
 	env = append(env, fmt.Sprintf("TZ=%s", time.Local))
 	if len(envOverride) > 0 {
 		env = envOverride
+	}
+	if !contains(env, "DOCKER_API_VERSION") {
+		apiVersion := c.getDockerApiVersion(ctx)
+		if apiVersion != "" {
+			env = append(env, fmt.Sprintf("DOCKER_API_VERSION=%s", apiVersion))
+		}
 	}
 	hostPortString := strconv.Itoa(hostPort)
 	servicePortString := strconv.Itoa(servicePort)
@@ -698,7 +705,6 @@ func (c *DockerConfigurator) startContainer(name string, image *types.ImageSumma
 	exposedPorts := map[nat.Port]struct{}{port: {}}
 	portBindings := nat.PortMap{}
 	portBindings[port] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: hostPortString}}
-	ctx := context.Background()
 	containerConfig := container.Config{
 		Hostname:     "localhost",
 		Image:        image.RepoTags[0],
@@ -728,6 +734,15 @@ func (c *DockerConfigurator) startContainer(name string, image *types.ImageSumma
 		return fmt.Errorf("failed to start container: %v", err)
 	}
 	return nil
+}
+
+func (c *DockerConfigurator) getDockerApiVersion(ctx context.Context) string {
+	apiInfo, err := c.docker.ServerVersion(ctx)
+	if err != nil {
+		c.Pointf("Failed to determine Docker API version: %v", err)
+		return ""
+	}
+	return apiInfo.APIVersion
 }
 
 func (c *DockerConfigurator) removeContainer(id string) error {
