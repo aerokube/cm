@@ -25,7 +25,6 @@ func init() {
 	resetPort()
 	mockDockerServer = httptest.NewServer(mux())
 	os.Setenv("DOCKER_HOST", "tcp://"+hostPort(mockDockerServer.URL))
-	os.Setenv("DOCKER_API_VERSION", "1.29")
 }
 
 func setImageName(name string) {

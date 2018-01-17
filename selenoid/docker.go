@@ -16,12 +16,13 @@ import (
 	"time"
 
 	"github.com/aerokube/selenoid/config"
+	authconfig "github.com/docker/cli/cli/config"
+	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
-	authconfig "github.com/docker/docker/cliconfig"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	ver "github.com/hashicorp/go-version"
@@ -51,6 +52,7 @@ const (
 	selenoidContainerName   = "selenoid"
 	selenoidUIContainerName = "selenoid-ui"
 	overrideHome            = "OVERRIDE_HOME"
+	dockerApiVersion        = "DOCKER_API_VERSION"
 )
 
 type SelenoidConfig map[string]config.Versions
@@ -114,12 +116,61 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 }
 
 func (c *DockerConfigurator) initDockerClient() error {
-	docker, err := client.NewEnvClient()
+	docker, err := c.createCompatibleDockerClient()
 	if err != nil {
 		return fmt.Errorf("failed to init Docker client: %v", err)
 	}
 	c.docker = docker
 	return nil
+}
+
+func (c *DockerConfigurator) createCompatibleDockerClient() (*client.Client, error) {
+	dockerApiVersionEnv := os.Getenv(dockerApiVersion)
+	if dockerApiVersionEnv != "" {
+		c.Pointf("Using Docker API version: %s", dockerApiVersionEnv)
+	} else {
+		maxMajorVersion, maxMinorVersion := parseVersion(api.DefaultVersion)
+		minMajorVersion, minMinorVersion := parseVersion(api.MinVersion)
+		for majorVersion := minMajorVersion; majorVersion <= maxMajorVersion; majorVersion++ {
+			for minorVersion := minMinorVersion; minorVersion <= maxMinorVersion; minorVersion++ {
+				apiVersion := fmt.Sprintf("%d.%d", majorVersion, minorVersion)
+				os.Setenv(dockerApiVersion, apiVersion)
+				docker, err := client.NewEnvClient()
+				if err != nil {
+					return nil, err
+				}
+				if isDockerAPIVersionCorrect(docker) {
+					c.Pointf("Your Docker API version is %s", apiVersion)
+					return docker, nil
+				}
+			}
+		}
+		c.Pointf("Did not manage to determine your Docker API version - using default version: %s", api.DefaultVersion)
+	}
+	return client.NewEnvClient()
+}
+
+func isDockerAPIVersionCorrect(docker *client.Client) bool {
+	ctx := context.Background()
+	apiInfo, err := docker.ServerVersion(ctx)
+	if err != nil {
+		return false
+	}
+	return apiInfo.APIVersion == docker.ClientVersion()
+}
+
+func parseVersion(ver string) (int, int) {
+	const point = "."
+	pieces := strings.Split(ver, point)
+	major, err := strconv.Atoi(pieces[0])
+	if err != nil {
+		return 0, 0
+	}
+	minor, err := strconv.Atoi(pieces[1])
+	if err != nil {
+		return 0, 0
+	}
+	return major, minor
 }
 
 func (c *DockerConfigurator) initAuthConfig() (*types.AuthConfig, error) {
@@ -690,11 +741,8 @@ func (c *DockerConfigurator) startContainer(name string, image *types.ImageSumma
 	if len(envOverride) > 0 {
 		env = envOverride
 	}
-	if !contains(env, "DOCKER_API_VERSION") {
-		apiVersion := c.getDockerApiVersion(ctx)
-		if apiVersion != "" {
-			env = append(env, fmt.Sprintf("DOCKER_API_VERSION=%s", apiVersion))
-		}
+	if !contains(env, dockerApiVersion) {
+		env = append(env, fmt.Sprintf("%s=%s", dockerApiVersion, c.docker.ClientVersion()))
 	}
 	hostPortString := strconv.Itoa(hostPort)
 	servicePortString := strconv.Itoa(servicePort)
@@ -734,15 +782,6 @@ func (c *DockerConfigurator) startContainer(name string, image *types.ImageSumma
 		return fmt.Errorf("failed to start container: %v", err)
 	}
 	return nil
-}
-
-func (c *DockerConfigurator) getDockerApiVersion(ctx context.Context) string {
-	apiInfo, err := c.docker.ServerVersion(ctx)
-	if err != nil {
-		c.Pointf("Failed to determine Docker API version: %v", err)
-		return ""
-	}
-	return apiInfo.APIVersion
 }
 
 func (c *DockerConfigurator) removeContainer(id string) error {
