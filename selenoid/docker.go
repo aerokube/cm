@@ -638,7 +638,10 @@ func (c *DockerConfigurator) Start() error {
 		fmt.Sprintf("%s:/opt/selenoid/video", videoConfigDir),
 	}
 	const dockerSocket = "/var/run/docker.sock"
-	if fileExists(dockerSocket) {
+	if c.isDockerForWindows() {
+		//With two slashes. See https://stackoverflow.com/questions/36765138/bind-to-docker-socket-on-windows
+		volumes = append(volumes, fmt.Sprintf("/%s:%s", dockerSocket, dockerSocket))
+	} else if fileExists(dockerSocket) {
 		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
 	}
 
@@ -659,6 +662,15 @@ func (c *DockerConfigurator) Start() error {
 		overrideEnv = append(overrideEnv, fmt.Sprintf("OVERRIDE_VIDEO_OUTPUT_DIR=%s", videoConfigDir))
 	}
 	return c.startContainer(selenoidContainerName, image, c.Port, SelenoidDefaultPort, volumes, []string{}, cmd, overrideEnv)
+}
+
+func (c *DockerConfigurator) isDockerForWindows() bool {
+	info, err := c.docker.Info(context.Background())
+	if err != nil {
+		c.Pointf("Failed to determine whether this is Docker for Windows: %v", err)
+		return false
+	}
+	return info.OSType == "linux" && info.OperatingSystem == "Docker for Windows"
 }
 
 func isVideoRecordingSupported(logger Logger, version string) bool {
