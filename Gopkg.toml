@@ -31,18 +31,22 @@
 
 [[constraint]]
   name = "github.com/docker/docker"
-  version = "1.13.1"
+  revision = "92309e34e42aec3a0e041403bdd3c4fc0dc20269"
+  
+[[override]]
+  name = "github.com/docker/cli"
+  revision = "fab4762941664751423f51dda0f3f8b644eb69a3"
 
-[[constraint]]
-  name = "github.com/docker/go-connections"
-  version = "0.3.0"
+[[override]]
+  name = "github.com/docker/distribution"
+  revision = "277ed486c948042cab91ad367c379524f3b25e18"
 
 [[constraint]]
   revision = "ebfec748347a9af6793c723f8859afcd906860fb"
   name = "github.com/google/go-github"
 
 [[constraint]]
-  revision = "95467b6cacee2a06f112a3cf7e47a70fad6000cf"
+  revision = "fd2fe803496897db70c236ee244f41487ea92ec2"
   name = "github.com/heroku/docker-registry-client"
 
 [[constraint]]

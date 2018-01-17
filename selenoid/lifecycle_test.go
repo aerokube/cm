@@ -88,12 +88,9 @@ func TestDockerAvailable(t *testing.T) {
 	))
 	mockDockerServer := httptest.NewServer(mux)
 	os.Setenv("DOCKER_HOST", "tcp://"+hostPort(mockDockerServer.URL))
-	os.Setenv("DOCKER_API_VERSION", "1.29")
+	defer os.Unsetenv("DOCKER_HOST")
 
 	AssertThat(t, isDockerAvailable(), Is{true})
-
-	os.Unsetenv("DOCKER_HOST")
-	os.Unsetenv("DOCKER_API_VERSION")
 }
 
 func TestLifecycle(t *testing.T) {
