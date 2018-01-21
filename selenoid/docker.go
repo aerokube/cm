@@ -670,7 +670,7 @@ func (c *DockerConfigurator) isDockerForWindows() bool {
 		c.Pointf("Failed to determine whether this is Docker for Windows: %v", err)
 		return false
 	}
-	return info.OSType == "linux" && info.OperatingSystem == "Docker for Windows"
+	return strings.Contains(info.OSType, "linux") && strings.Contains(strings.ToLower(info.OperatingSystem), "windows")
 }
 
 func isVideoRecordingSupported(logger Logger, version string) bool {
