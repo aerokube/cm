@@ -55,7 +55,7 @@ type Driver struct {
 
 type downloadedDriver struct {
 	BrowserName string
-	Command     string
+	Command     []string
 }
 
 type DriversConfigurator struct {
@@ -289,12 +289,8 @@ func (d *DriversConfigurator) Configure() (*SelenoidConfig, error) {
 func (d *DriversConfigurator) generateConfig(downloadedDrivers []downloadedDriver) SelenoidConfig {
 	browsers := make(SelenoidConfig)
 	for _, dd := range downloadedDrivers {
-		cmd := strings.Fields(dd.Command)
-		if dd.BrowserName == microsoftEdge {
-			cmd = append(cmd, "--host=127.0.0.1", "--verbose")
-		}
 		browser := &config.Browser{
-			Image: cmd,
+			Image: dd.Command,
 			Path:  "/",
 		}
 		browserEnv := strings.Fields(d.BrowserEnv)
@@ -539,13 +535,24 @@ loop:
 					d.Errorf("Failed to download %s driver: %v", strings.Title(browserName), err)
 					continue loop
 				}
-				command := fmt.Sprintf(browser.Command, driverPath)
 				ret = append(ret, downloadedDriver{
 					BrowserName: browserName,
-					Command:     command,
+					Command:     prepareCommand(browser.Command, driverPath),
 				})
 			}
 		}
+	}
+	return ret
+}
+
+func prepareCommand(cmd string, driverPath string) []string {
+	var ret []string
+	for _, p := range strings.Fields(cmd) {
+		piece := p
+		if strings.Contains(p, "%s") {
+			piece = fmt.Sprintf(p, driverPath)
+		}
+		ret = append(ret, piece)
 	}
 	return ret
 }

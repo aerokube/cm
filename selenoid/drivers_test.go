@@ -169,7 +169,7 @@ func TestConfigureDrivers(t *testing.T) {
 		browsersJsonUrl := mockServerUrl(mockDriverServer, "/browsers.json")
 		lcConfig := LifecycleConfig{
 			ConfigDir:       dir,
-			Browsers:        "first,second,MicrosoftEdge,safari,fourth",
+			Browsers:        "first,second,safari,fourth",
 			BrowsersJsonUrl: browsersJsonUrl,
 			Download:        true,
 			Quiet:           false,
@@ -184,11 +184,10 @@ func TestConfigureDrivers(t *testing.T) {
 		AssertThat(t, cfgPointer, Is{Not{nil}})
 
 		cfg := *cfgPointer
-		AssertThat(t, len(cfg), EqualTo{4})
+		AssertThat(t, len(cfg), EqualTo{3})
 
 		unpackedFirstFile := path.Join(dir, "zip-testfile")
 		unpackedSecondFile := path.Join(dir, "gzip-testfile")
-		unpackedThirdFile := path.Join(dir, "testfile")
 		correctConfig := SelenoidConfig{
 			"first": config.Versions{
 				Default: Latest,
@@ -205,16 +204,6 @@ func TestConfigureDrivers(t *testing.T) {
 				Versions: map[string]*config.Browser{
 					Latest: {
 						Image: []string{unpackedSecondFile},
-						Path:  "/",
-						Env:   []string{testEnv},
-					},
-				},
-			},
-			"MicrosoftEdge": config.Versions{
-				Default: Latest,
-				Versions: map[string]*config.Browser{
-					Latest: {
-						Image: []string{unpackedThirdFile, "--host=127.0.0.1", "--verbose"},
 						Path:  "/",
 						Env:   []string{testEnv},
 					},
@@ -464,4 +453,14 @@ func fakeExecCommand(command string, args ...string) *exec.Cmd {
 	cmd := exec.Command(os.Args[0], cs...)
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 	return cmd
+}
+
+func TestPrepareCommand(t *testing.T) {
+	AssertThat(
+		t,
+		prepareCommand("%s --some-arg", "/path/with spaces"),
+		EqualTo{[]string{
+			"/path/with spaces", "--some-arg",
+		}},
+	)
 }
