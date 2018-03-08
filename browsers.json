@@ -121,7 +121,7 @@
   },
   
   "MicrosoftEdge": {
-    "command": "%s",
+    "command": "%s --host=127.0.0.1 --verbose",
     "files": {
       "windows": {
         "386": {
