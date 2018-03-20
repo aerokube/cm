@@ -29,17 +29,9 @@
   name = "github.com/aerokube/selenoid"
   version = "1.3.9"
 
-[[constraint]]
-  name = "github.com/docker/docker"
-  revision = "92309e34e42aec3a0e041403bdd3c4fc0dc20269"
-  
 [[override]]
   name = "github.com/docker/cli"
   revision = "fab4762941664751423f51dda0f3f8b644eb69a3"
-
-[[override]]
-  name = "github.com/docker/distribution"
-  revision = "277ed486c948042cab91ad367c379524f3b25e18"
 
 [[constraint]]
   revision = "ebfec748347a9af6793c723f8859afcd906860fb"
@@ -72,3 +64,6 @@
 [[constraint]]
   name = "github.com/mattn/go-colorable"
   version = "v0.0.9"
+[[constraint]]
+  name = "github.com/aerokube/util"
+  revision = "94e53a31e9529f5117aaa93a6a5a5269339e9352"
