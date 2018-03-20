@@ -17,7 +17,6 @@ import (
 
 	"github.com/aerokube/selenoid/config"
 	authconfig "github.com/docker/cli/cli/config"
-	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -36,6 +35,7 @@ import (
 
 	"encoding/base64"
 	"github.com/aerokube/cm/render/rewriter"
+	dc "github.com/aerokube/util/docker"
 	"github.com/fatih/color"
 	"net/url"
 	. "vbom.ml/util/sortorder"
@@ -116,61 +116,22 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 }
 
 func (c *DockerConfigurator) initDockerClient() error {
-	docker, err := c.createCompatibleDockerClient()
+	docker, err := dc.CreateCompatibleDockerClient(
+		func(specifiedApiVersion string) {
+			c.Pointf("Using Docker API version: %s", specifiedApiVersion)
+		},
+		func(determinedApiVersion string) {
+			c.Pointf("Your Docker API version is %s", determinedApiVersion)
+		},
+		func(defaultApiVersion string) {
+			c.Pointf("Did not manage to determine your Docker API version - using default version: %s", defaultApiVersion)
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("failed to init Docker client: %v", err)
 	}
 	c.docker = docker
 	return nil
-}
-
-func (c *DockerConfigurator) createCompatibleDockerClient() (*client.Client, error) {
-	dockerApiVersionEnv := os.Getenv(dockerApiVersion)
-	if dockerApiVersionEnv != "" {
-		c.Pointf("Using Docker API version: %s", dockerApiVersionEnv)
-	} else {
-		maxMajorVersion, maxMinorVersion := parseVersion(api.DefaultVersion)
-		minMajorVersion, minMinorVersion := parseVersion(api.MinVersion)
-		for majorVersion := minMajorVersion; majorVersion <= maxMajorVersion; majorVersion++ {
-			for minorVersion := minMinorVersion; minorVersion <= maxMinorVersion; minorVersion++ {
-				apiVersion := fmt.Sprintf("%d.%d", majorVersion, minorVersion)
-				os.Setenv(dockerApiVersion, apiVersion)
-				docker, err := client.NewEnvClient()
-				if err != nil {
-					return nil, err
-				}
-				if isDockerAPIVersionCorrect(docker) {
-					c.Pointf("Your Docker API version is %s", apiVersion)
-					return docker, nil
-				}
-			}
-		}
-		c.Pointf("Did not manage to determine your Docker API version - using default version: %s", api.DefaultVersion)
-	}
-	return client.NewEnvClient()
-}
-
-func isDockerAPIVersionCorrect(docker *client.Client) bool {
-	ctx := context.Background()
-	apiInfo, err := docker.ServerVersion(ctx)
-	if err != nil {
-		return false
-	}
-	return apiInfo.APIVersion == docker.ClientVersion()
-}
-
-func parseVersion(ver string) (int, int) {
-	const point = "."
-	pieces := strings.Split(ver, point)
-	major, err := strconv.Atoi(pieces[0])
-	if err != nil {
-		return 0, 0
-	}
-	minor, err := strconv.Atoi(pieces[1])
-	if err != nil {
-		return 0, 0
-	}
-	return major, minor
 }
 
 func (c *DockerConfigurator) initAuthConfig() (*types.AuthConfig, error) {

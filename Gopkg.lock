@@ -32,6 +32,11 @@
   version = "1.3.9"
 
 [[projects]]
+  name = "github.com/aerokube/util"
+  packages = [".","docker"]
+  revision = "94e53a31e9529f5117aaa93a6a5a5269339e9352"
+
+[[projects]]
   branch = "master"
   name = "github.com/containerd/continuity"
   packages = ["pathdriver"]
@@ -237,6 +242,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a1eeb9fc4d07989f3d8765d9a16aa782d364d97f57c0d845eb46e06ad73cf858"
+  inputs-digest = "1e2ed40ebbcd4cc6b2283619e497eff02af8831a6896c67aa17cf28987d95bdd"
   solver-name = "gps-cdcl"
   solver-version = 1

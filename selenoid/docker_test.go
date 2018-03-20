@@ -4,10 +4,10 @@ import (
 	"fmt"
 	. "github.com/aandryashin/matchers"
 	"github.com/aerokube/selenoid/config"
+	"github.com/aerokube/util"
 	"github.com/docker/docker/api/types"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"testing"
 )
@@ -24,7 +24,7 @@ func init() {
 	resetContainerName()
 	resetPort()
 	mockDockerServer = httptest.NewServer(mux())
-	os.Setenv("DOCKER_HOST", "tcp://"+hostPort(mockDockerServer.URL))
+	os.Setenv("DOCKER_HOST", "tcp://"+util.HostPort(mockDockerServer.URL))
 }
 
 func setImageName(name string) {
@@ -201,14 +201,6 @@ func mux() http.Handler {
 		},
 	))
 	return mux
-}
-
-func hostPort(input string) string {
-	u, err := url.Parse(input)
-	if err != nil {
-		panic(err)
-	}
-	return u.Host
 }
 
 func TestImageWithTag(t *testing.T) {

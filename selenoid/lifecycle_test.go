@@ -2,6 +2,7 @@ package selenoid
 
 import (
 	. "github.com/aandryashin/matchers"
+	"github.com/aerokube/util"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -87,7 +88,7 @@ func TestDockerAvailable(t *testing.T) {
 		},
 	))
 	mockDockerServer := httptest.NewServer(mux)
-	os.Setenv("DOCKER_HOST", "tcp://"+hostPort(mockDockerServer.URL))
+	os.Setenv("DOCKER_HOST", "tcp://"+util.HostPort(mockDockerServer.URL))
 	defer os.Unsetenv("DOCKER_HOST")
 
 	AssertThat(t, isDockerAvailable(), Is{true})
