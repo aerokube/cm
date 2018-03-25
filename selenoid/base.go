@@ -11,9 +11,14 @@ import (
 	colorable "github.com/mattn/go-colorable"
 )
 
-type StatusAware interface {
+type StatusProvider interface {
 	Status()
 	UIStatus()
+}
+
+type ArgsProvider interface {
+	PrintArgs() error
+	PrintUIArgs() error
 }
 
 type Downloadable interface {

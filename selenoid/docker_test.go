@@ -158,6 +158,13 @@ func mux() http.Handler {
 			w.WriteHeader(http.StatusNoContent)
 		},
 	))
+	mux.HandleFunc("/v1.29/containers/e90e34656806/logs", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Some logs...\n"))
+		},
+	))
 	mux.HandleFunc("/v1.29/containers/e90e34656806", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNoContent)
@@ -378,6 +385,7 @@ func TestDownload(t *testing.T) {
 	ref, err := c.Download()
 	AssertThat(t, ref, Not{nil})
 	AssertThat(t, err, Is{nil})
+	AssertThat(t, c.PrintArgs(), Is{nil})
 }
 
 func TestDownloadUI(t *testing.T) {
@@ -396,6 +404,7 @@ func TestDownloadUI(t *testing.T) {
 	ref, err := c.DownloadUI()
 	AssertThat(t, ref, Not{nil})
 	AssertThat(t, err, Is{nil})
+	AssertThat(t, c.PrintUIArgs(), Is{nil})
 }
 
 func TestGetSelenoidImage(t *testing.T) {

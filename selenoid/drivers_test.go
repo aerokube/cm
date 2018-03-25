@@ -437,12 +437,14 @@ func TestStartStopProcess(t *testing.T) {
 		AssertThat(t, configurator.Start(), Is{nil})
 		configurator.Status()
 		AssertThat(t, configurator.Stop(), Is{nil})
+		AssertThat(t, configurator.PrintArgs(), Is{nil})
 
 		lcConfig.Port = SelenoidUIDefaultPort
 		AssertThat(t, configurator.IsUIRunning(), Is{false})
 		AssertThat(t, configurator.StartUI(), Is{nil})
 		configurator.UIStatus()
 		AssertThat(t, configurator.StopUI(), Is{nil})
+		AssertThat(t, configurator.PrintUIArgs(), Is{nil})
 	})
 
 }

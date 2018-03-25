@@ -80,6 +80,7 @@ Supported commands are:
 |===
 | Command | Meaning
 
+| args | Print Selenoid command line arguments
 | cleanup | Removes Selenoid traces
 | configure | Creates Selenoid configuration file (implies download)
 | download | Downloads Selenoid binary or container image
