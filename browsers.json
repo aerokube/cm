@@ -32,7 +32,7 @@
   },
   
   "firefox": {
-    "command": "%s --host :: --log debug",
+    "command": "%s --host 127.0.0.1 --log debug",
     "files": {
       "linux": {
         "386": {
