@@ -15,6 +15,7 @@ Selenoid UI configuration algorithm is similar to Selenoid one - it is started e
 |===
 | Command | Meaning
 
+| args | Print Selenoid UI command line arguments
 | cleanup | Removes Selenoid UI traces
 | download | Downloads Selenoid UI binary or container image
 | start | Starts Selenoid UI process or container (implies download)

@@ -34,7 +34,6 @@ const (
 	owner           = "aerokube"
 	selenoidRepo    = "selenoid"
 	selenoidUIRepo  = "selenoid-ui"
-	microsoftEdge   = "MicrosoftEdge"
 )
 
 type Browsers map[string]Browser
@@ -567,6 +566,10 @@ func (d *DriversConfigurator) IsUIRunning() bool {
 	return len(selenoidUIProcesses) > 0
 }
 
+func (d *DriversConfigurator) PrintArgs() error {
+	return runCommand(d.getSelenoidBinaryPath(), []string{"--help"}, []string{})
+}
+
 func (d *DriversConfigurator) Start() error {
 	args := []string{}
 	overrideArgs := strings.Fields(d.Args)
@@ -595,6 +598,10 @@ func contains(haystack []string, needle string) bool {
 	return false
 }
 
+func (d *DriversConfigurator) PrintUIArgs() error {
+	return runCommand(d.getSelenoidUIBinaryPath(), []string{"--help"}, []string{})
+}
+
 func (d *DriversConfigurator) StartUI() error {
 	args := strings.Fields(d.Args)
 	if !contains(args, "-listen") {
@@ -604,7 +611,7 @@ func (d *DriversConfigurator) StartUI() error {
 	return runCommand(d.getSelenoidUIBinaryPath(), args, env)
 }
 
-var killFunc func(os.Process) error = func(p os.Process) error {
+var killFunc = func(p os.Process) error {
 	return p.Kill()
 }
 

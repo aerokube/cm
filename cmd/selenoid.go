@@ -32,6 +32,7 @@ func init() {
 	initFlags()
 
 	selenoidCmd.AddCommand(selenoidDownloadCmd)
+	selenoidCmd.AddCommand(selenoidArgsCmd)
 	selenoidCmd.AddCommand(selenoidConfigureCmd)
 	selenoidCmd.AddCommand(selenoidStartCmd)
 	selenoidCmd.AddCommand(selenoidStopCmd)
@@ -40,6 +41,7 @@ func init() {
 	selenoidCmd.AddCommand(selenoidStatusCmd)
 
 	selenoidUICmd.AddCommand(selenoidDownloadUICmd)
+	selenoidUICmd.AddCommand(selenoidUIArgsCmd)
 	selenoidUICmd.AddCommand(selenoidStartUICmd)
 	selenoidUICmd.AddCommand(selenoidStopUICmd)
 	selenoidUICmd.AddCommand(selenoidUpdateUICmd)
@@ -50,6 +52,7 @@ func init() {
 func initFlags() {
 	for _, c := range []*cobra.Command{
 		selenoidDownloadCmd,
+		selenoidArgsCmd,
 		selenoidConfigureCmd,
 		selenoidStartCmd,
 		selenoidStopCmd,
@@ -57,6 +60,7 @@ func initFlags() {
 		selenoidCleanupCmd,
 		selenoidStatusCmd,
 		selenoidDownloadUICmd,
+		selenoidUIArgsCmd,
 		selenoidStartUICmd,
 		selenoidStopUICmd,
 		selenoidUpdateUICmd,
@@ -67,6 +71,7 @@ func initFlags() {
 	}
 	for _, c := range []*cobra.Command{
 		selenoidDownloadCmd,
+		selenoidArgsCmd,
 		selenoidConfigureCmd,
 		selenoidStartCmd,
 		selenoidStopCmd,
@@ -79,6 +84,7 @@ func initFlags() {
 	}
 	for _, c := range []*cobra.Command{
 		selenoidDownloadUICmd,
+		selenoidUIArgsCmd,
 		selenoidStartUICmd,
 		selenoidStopUICmd,
 		selenoidUpdateUICmd,
@@ -91,10 +97,12 @@ func initFlags() {
 
 	for _, c := range []*cobra.Command{
 		selenoidDownloadCmd,
+		selenoidArgsCmd,
 		selenoidConfigureCmd,
 		selenoidStartCmd,
 		selenoidUpdateCmd,
 		selenoidDownloadUICmd,
+		selenoidUIArgsCmd,
 		selenoidStartUICmd,
 		selenoidUpdateUICmd,
 	} {
@@ -103,10 +111,12 @@ func initFlags() {
 	}
 	for _, c := range []*cobra.Command{
 		selenoidDownloadCmd,
+		selenoidArgsCmd,
 		selenoidConfigureCmd,
 		selenoidStartCmd,
 		selenoidUpdateCmd,
 		selenoidDownloadUICmd,
+		selenoidUIArgsCmd,
 		selenoidStartUICmd,
 		selenoidUpdateUICmd,
 	} {
@@ -128,9 +138,11 @@ func initFlags() {
 	}
 	for _, c := range []*cobra.Command{
 		selenoidDownloadCmd,
+		selenoidArgsCmd,
 		selenoidConfigureCmd,
 		selenoidStartCmd,
 		selenoidDownloadUICmd,
+		selenoidUIArgsCmd,
 		selenoidStartUICmd,
 	} {
 		c.Flags().BoolVarP(&force, "force", "f", false, "force action")

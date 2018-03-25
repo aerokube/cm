@@ -37,7 +37,8 @@ type Lifecycle struct {
 	Logger
 	Forceable
 	Config       *LifecycleConfig
-	statusAware  StatusAware
+	argsAware    ArgsProvider
+	statusAware  StatusProvider
 	downloadable Downloadable
 	configurable Configurable
 	runnable     Runnable
@@ -56,6 +57,7 @@ func NewLifecycle(config *LifecycleConfig) (*Lifecycle, error) {
 		if err != nil {
 			return nil, err
 		}
+		lc.argsAware = dockerCfg
 		lc.statusAware = dockerCfg
 		lc.downloadable = dockerCfg
 		lc.configurable = dockerCfg
@@ -64,6 +66,7 @@ func NewLifecycle(config *LifecycleConfig) (*Lifecycle, error) {
 	} else {
 		lc.Titlef("Docker is not supported - using binaries...")
 		driversCfg := NewDriversConfigurator(config)
+		lc.argsAware = driversCfg
 		lc.statusAware = driversCfg
 		lc.downloadable = driversCfg
 		lc.configurable = driversCfg
@@ -129,6 +132,18 @@ func (l *Lifecycle) Configure() error {
 	})
 }
 
+func (l *Lifecycle) PrintArgs() error {
+	return chain([]func() error{
+		func() error {
+			return l.Download()
+		},
+		func() error {
+			l.Titlef("Printing Selenoid args...")
+			return l.argsAware.PrintArgs()
+		},
+	})
+}
+
 func (l *Lifecycle) Start() error {
 	return chain([]func() error{
 		func() error {
@@ -154,6 +169,18 @@ func (l *Lifecycle) Start() error {
 				l.Titlef("Successfully started Selenoid")
 			}
 			return err
+		},
+	})
+}
+
+func (l *Lifecycle) PrintUIArgs() error {
+	return chain([]func() error{
+		func() error {
+			return l.DownloadUI()
+		},
+		func() error {
+			l.Titlef("Printing Selenoid UI args...")
+			return l.argsAware.PrintUIArgs()
 		},
 	})
 }

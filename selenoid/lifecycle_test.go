@@ -56,6 +56,14 @@ func (ms *MockStrategy) IsUIRunning() bool {
 	return ms.isRunning
 }
 
+func (ms *MockStrategy) PrintArgs() error {
+	return nil
+}
+
+func (ms *MockStrategy) PrintUIArgs() error {
+	return nil
+}
+
 func (ms *MockStrategy) Start() error {
 	return nil
 }
@@ -100,6 +108,7 @@ func TestLifecycle(t *testing.T) {
 	defer lc.Close()
 	lc.Status()
 	AssertThat(t, lc.Download(), Is{nil})
+	AssertThat(t, lc.PrintArgs(), Is{nil})
 	AssertThat(t, lc.Configure(), Is{nil})
 	AssertThat(t, lc.Start(), Is{nil})
 	strategy.isRunning = true
@@ -113,6 +122,7 @@ func createTestLifecycle(strategy MockStrategy) Lifecycle {
 		Logger:       Logger{Quiet: false},
 		Forceable:    Forceable{Force: true},
 		Config:       &LifecycleConfig{},
+		argsAware:    &strategy,
 		statusAware:  &strategy,
 		downloadable: &strategy,
 		configurable: &strategy,
@@ -127,6 +137,7 @@ func TestUILifecycle(t *testing.T) {
 	defer lc.Close()
 	lc.UIStatus()
 	AssertThat(t, lc.DownloadUI(), Is{nil})
+	AssertThat(t, lc.PrintUIArgs(), Is{nil})
 	AssertThat(t, lc.StartUI(), Is{nil})
 	strategy.isRunning = true
 	AssertThat(t, lc.StartUI(), Is{nil})

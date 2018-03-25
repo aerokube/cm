@@ -37,6 +37,7 @@ import (
 	"github.com/aerokube/cm/render/rewriter"
 	dc "github.com/aerokube/util/docker"
 	"github.com/fatih/color"
+	"io"
 	"net/url"
 	. "vbom.ml/util/sortorder"
 )
@@ -585,6 +586,14 @@ func (c *DockerConfigurator) getContainer(name string, port int) *types.Containe
 	return nil
 }
 
+func (c *DockerConfigurator) PrintArgs() error {
+	image := c.getSelenoidImage()
+	if image == nil {
+		return errors.New("Selenoid image is not downloaded: this is probably a bug")
+	}
+	return c.startContainer("", image, 0, 0, []string{}, []string{}, []string{"--help"}, []string{}, true)
+}
+
 func (c *DockerConfigurator) Start() error {
 	image := c.getSelenoidImage()
 	if image == nil {
@@ -622,7 +631,7 @@ func (c *DockerConfigurator) Start() error {
 	if !strings.Contains(c.Env, "OVERRIDE_VIDEO_OUTPUT_DIR") {
 		overrideEnv = append(overrideEnv, fmt.Sprintf("OVERRIDE_VIDEO_OUTPUT_DIR=%s", videoConfigDir))
 	}
-	return c.startContainer(selenoidContainerName, image, c.Port, SelenoidDefaultPort, volumes, []string{}, cmd, overrideEnv)
+	return c.startContainer(selenoidContainerName, image, c.Port, SelenoidDefaultPort, volumes, []string{}, cmd, overrideEnv, false)
 }
 
 func (c *DockerConfigurator) isDockerForWindows() bool {
@@ -675,6 +684,14 @@ func chooseVolumeConfigDir(defaultConfigDir string, elem []string) string {
 	return defaultConfigDir
 }
 
+func (c *DockerConfigurator) PrintUIArgs() error {
+	image := c.getSelenoidUIImage()
+	if image == nil {
+		return errors.New("Selenoid UI image is not downloaded: this is probably a bug")
+	}
+	return c.startContainer("", image, 0, 0, []string{}, []string{}, []string{"--help"}, []string{}, true)
+}
+
 func (c *DockerConfigurator) StartUI() error {
 	image := c.getSelenoidUIImage()
 	if image == nil {
@@ -693,7 +710,7 @@ func (c *DockerConfigurator) StartUI() error {
 	}
 
 	overrideEnv := strings.Fields(c.Env)
-	return c.startContainer(selenoidUIContainerName, image, c.Port, SelenoidUIDefaultPort, []string{}, links, cmd, overrideEnv)
+	return c.startContainer(selenoidUIContainerName, image, c.Port, SelenoidUIDefaultPort, []string{}, links, cmd, overrideEnv, false)
 }
 
 func validateEnviron(envs []string) []string {
@@ -707,7 +724,7 @@ func validateEnviron(envs []string) []string {
 	return validEnv
 }
 
-func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, hostPort int, servicePort int, volumes []string, links []string, cmd []string, envOverride []string) error {
+func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, hostPort int, servicePort int, volumes []string, links []string, cmd []string, envOverride []string, printLogs bool) error {
 	ctx := context.Background()
 	env := validateEnviron(os.Environ())
 	env = append(env, fmt.Sprintf("TZ=%s", time.Local))
@@ -717,34 +734,42 @@ func (c *DockerConfigurator) startContainer(name string, image *types.ImageSumma
 	if !contains(env, dockerApiVersion) {
 		env = append(env, fmt.Sprintf("%s=%s", dockerApiVersion, c.docker.ClientVersion()))
 	}
-	hostPortString := strconv.Itoa(hostPort)
 	servicePortString := strconv.Itoa(servicePort)
 	port, err := nat.NewPort("tcp", servicePortString)
 	if err != nil {
 		return fmt.Errorf("failed to init port: %v", err)
 	}
-	exposedPorts := map[nat.Port]struct{}{port: {}}
-	portBindings := nat.PortMap{}
-	portBindings[port] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: hostPortString}}
 	containerConfig := container.Config{
-		Hostname:     "localhost",
-		Image:        image.RepoTags[0],
-		Env:          env,
-		ExposedPorts: exposedPorts,
+		Hostname: "localhost",
+		Image:    image.RepoTags[0],
+		Env:      env,
+	}
+	if servicePort > 0 {
+		containerConfig.ExposedPorts = map[nat.Port]struct{}{port: {}}
 	}
 	if len(cmd) > 0 {
 		containerConfig.Cmd = strslice.StrSlice(cmd)
 	}
+	hostConfig := container.HostConfig{
+		Binds: volumes,
+		Links: links,
+	}
+	if printLogs {
+		containerConfig.Tty = true
+	} else {
+		hostConfig.RestartPolicy = container.RestartPolicy{
+			Name: "always",
+		}
+	}
+	if hostPort > 0 && servicePort > 0 {
+		hostPortString := strconv.Itoa(hostPort)
+		portBindings := nat.PortMap{}
+		portBindings[port] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: hostPortString}}
+		hostConfig.PortBindings = portBindings
+	}
 	ctr, err := c.docker.ContainerCreate(ctx,
 		&containerConfig,
-		&container.HostConfig{
-			Binds:        volumes,
-			Links:        links,
-			PortBindings: portBindings,
-			RestartPolicy: container.RestartPolicy{
-				Name: "always",
-			},
-		},
+		&hostConfig,
 		&network.NetworkingConfig{}, name)
 	if err != nil {
 		return fmt.Errorf("failed to create container: %v", err)
@@ -753,6 +778,18 @@ func (c *DockerConfigurator) startContainer(name string, image *types.ImageSumma
 	if err != nil {
 		c.removeContainer(ctr.ID)
 		return fmt.Errorf("failed to start container: %v", err)
+	}
+	if printLogs {
+		defer c.removeContainer(ctr.ID)
+		r, err := c.docker.ContainerLogs(ctx, ctr.ID, types.ContainerLogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to read container logs: %v", err)
+		}
+		defer r.Close()
+		io.Copy(os.Stderr, r)
 	}
 	return nil
 }
