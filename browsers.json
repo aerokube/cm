@@ -109,11 +109,11 @@
     "files": {
       "windows": {
         "386": {
-          "url": "http://selenium-release.storage.googleapis.com/3.9/IEDriverServer_Win32_3.9.0.zip",
+          "url": "http://selenium-release.storage.googleapis.com/3.11/IEDriverServer_Win32_3.11.1.zip",
           "filename": "IEDriverServer.exe"
         },
         "amd64": {
-          "url": "http://selenium-release.storage.googleapis.com/3.9/IEDriverServer_x64_3.9.0.zip",
+          "url": "http://selenium-release.storage.googleapis.com/3.11/IEDriverServer_x64_3.11.1.zip",
           "filename": "IEDriverServer.exe"
         }
       }
