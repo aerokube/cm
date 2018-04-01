@@ -64,6 +64,7 @@
 [[constraint]]
   name = "github.com/mattn/go-colorable"
   version = "v0.0.9"
+
 [[constraint]]
   name = "github.com/aerokube/util"
-  revision = "94e53a31e9529f5117aaa93a6a5a5269339e9352"
+  revision = "2fa5cda33a2e16b7639e40386ca232c9f6cf9475"
