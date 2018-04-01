@@ -34,7 +34,7 @@
 [[projects]]
   name = "github.com/aerokube/util"
   packages = [".","docker"]
-  revision = "94e53a31e9529f5117aaa93a6a5a5269339e9352"
+  revision = "2fa5cda33a2e16b7639e40386ca232c9f6cf9475"
 
 [[projects]]
   branch = "master"
@@ -53,9 +53,10 @@
   revision = "277ed486c948042cab91ad367c379524f3b25e18"
 
 [[projects]]
+  branch = "master"
   name = "github.com/docker/docker"
-  packages = ["api","api/types","api/types/blkiodev","api/types/container","api/types/events","api/types/filters","api/types/image","api/types/mount","api/types/network","api/types/registry","api/types/strslice","api/types/swarm","api/types/swarm/runtime","api/types/time","api/types/versions","api/types/volume","client","pkg/homedir","pkg/idtools","pkg/ioutils","pkg/jsonmessage","pkg/longpath","pkg/mount","pkg/stringid","pkg/system","pkg/tarsum","pkg/term","pkg/term/windows","registry","registry/resumable"]
-  revision = "92309e34e42aec3a0e041403bdd3c4fc0dc20269"
+  packages = ["api","api/types","api/types/blkiodev","api/types/container","api/types/events","api/types/filters","api/types/image","api/types/mount","api/types/network","api/types/registry","api/types/strslice","api/types/swarm","api/types/swarm/runtime","api/types/time","api/types/versions","api/types/volume","client","errdefs","pkg/homedir","pkg/idtools","pkg/ioutils","pkg/jsonmessage","pkg/longpath","pkg/mount","pkg/stringid","pkg/system","pkg/tarsum","pkg/term","pkg/term/windows","registry","registry/resumable"]
+  revision = "635f359f8b61887faa9427d9c673be96faf992b5"
 
 [[projects]]
   name = "github.com/docker/docker-credential-helpers"
@@ -242,6 +243,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1e2ed40ebbcd4cc6b2283619e497eff02af8831a6896c67aa17cf28987d95bdd"
+  inputs-digest = "2fde660211e666078c6631449222d34346a268d33f43002e657d6c0c772c89f9"
   solver-name = "gps-cdcl"
   solver-version = 1
