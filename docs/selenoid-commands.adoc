@@ -8,7 +8,7 @@ To simplify this process you launch small script:
 .On Linux and Mac OS
 [source,bash]
 ----
-curl -s aerokube.com/cm/bash | bash \
+curl -s https://aerokube.com/cm/bash | bash \
 && ./cm selenoid start --vnc
 ----
 
