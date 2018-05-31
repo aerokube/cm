@@ -380,6 +380,9 @@ func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string]*
 		"opera":   "selenoid/opera",
 	}
 	if len(requestedBrowsers) > 0 {
+		if _, ok := requestedBrowsers[android]; ok {
+			defaultBrowsers[android] = "selenoid/android"
+		}
 		ret := make(map[string]string)
 		for browserName := range requestedBrowsers {
 			if image, ok := defaultBrowsers[browserName]; ok {
@@ -389,9 +392,6 @@ func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string]*
 			c.Errorf("Unsupported browser: %s", browserName)
 		}
 
-		if _, ok := requestedBrowsers[android]; ok {
-			ret["android"] = "selenoid/android"
-		}
 		return ret
 	}
 	return defaultBrowsers
