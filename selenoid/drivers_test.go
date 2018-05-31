@@ -169,7 +169,7 @@ func TestConfigureDrivers(t *testing.T) {
 		browsersJsonUrl := mockServerUrl(mockDriverServer, "/browsers.json")
 		lcConfig := LifecycleConfig{
 			ConfigDir:       dir,
-			Browsers:        "first,second,safari,fourth",
+			Browsers:        "first;second;safari;fourth",
 			BrowsersJsonUrl: browsersJsonUrl,
 			Download:        true,
 			Quiet:           false,

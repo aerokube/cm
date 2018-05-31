@@ -26,7 +26,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	ver "github.com/hashicorp/go-version"
 	"github.com/heroku/docker-registry-client/registry"
-	colorable "github.com/mattn/go-colorable"
+	"github.com/mattn/go-colorable"
 
 	"net/http"
 	"path/filepath"
@@ -43,6 +43,8 @@ import (
 )
 
 const (
+	semicolon               = ";"
+	colon                   = ":"
 	Latest                  = "latest"
 	firefox                 = "firefox"
 	android                 = "android"
@@ -321,7 +323,7 @@ func (c *DockerConfigurator) Configure() (*SelenoidConfig, error) {
 }
 
 func (c *DockerConfigurator) createConfig() SelenoidConfig {
-	requestedBrowsers := c.parseRequestedBrowsers(c.Browsers)
+	requestedBrowsers := parseRequestedBrowsers(&c.Logger, c.Browsers)
 	browsersToIterate := c.getBrowsersToIterate(requestedBrowsers)
 	browsers := make(map[string]config.Versions)
 	for browserName, image := range browsersToIterate {
@@ -348,46 +350,51 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 	return browsers
 }
 
-func (c *DockerConfigurator) parseRequestedBrowsers(requestedBrowsers string) map[string]*ver.Constraints {
+func parseRequestedBrowsers(logger *Logger, requestedBrowsers string) map[string]*ver.Constraints {
 	ret := make(map[string]*ver.Constraints)
-	for _, section := range strings.Split(requestedBrowsers, comma) {
-		pieces := strings.Split(section, colon)
-		if len(pieces) == 2 {
-			browserName := pieces[0]
-			versionConstraintString := pieces[1]
-			versionConstraint, err := ver.NewConstraint(versionConstraintString)
-			if err != nil {
-				c.Errorf("Invalid version constraint %s: %v - ignoring browser %s...", versionConstraintString, err, browserName)
-				continue
+	if requestedBrowsers != "" {
+		for _, section := range strings.Split(requestedBrowsers, semicolon) {
+			pieces := strings.Split(section, colon)
+			if len(pieces) == 2 {
+				browserName := pieces[0]
+				versionConstraintString := pieces[1]
+				versionConstraint, err := ver.NewConstraint(versionConstraintString)
+				if err != nil {
+					logger.Errorf(`Invalid version constraint %s: %v - ignoring browser "%s"...`, versionConstraintString, err, browserName)
+					continue
+				}
+				ret[browserName] = &versionConstraint
+			} else if len(pieces) == 1 {
+				browserName := pieces[0]
+				ret[browserName] = nil
 			}
-			ret[browserName] = &versionConstraint
-		} else if len(pieces) == 1 {
-			browserName := pieces[0]
-			ret[browserName] = nil
 		}
 	}
 	return ret
 }
 
 func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string]*ver.Constraints) map[string]string {
-	ret := make(map[string]string)
 	defaultBrowsers := map[string]string{
 		"firefox": "selenoid/firefox",
 		"chrome":  "selenoid/chrome",
 		"opera":   "selenoid/opera",
 	}
-	for browserName := range requestedBrowsers {
-		if image, ok := defaultBrowsers[browserName]; ok {
-			ret[browserName] = image
-			continue
+	if len(requestedBrowsers) > 0 {
+		ret := make(map[string]string)
+		for browserName := range requestedBrowsers {
+			if image, ok := defaultBrowsers[browserName]; ok {
+				ret[browserName] = image
+				continue
+			}
+			c.Errorf("Unsupported browser: %s", browserName)
 		}
-		c.Errorf("Unsupported browser: %s", browserName)
-	}
 
-	if _, ok := requestedBrowsers[android]; ok {
-		ret["android"] = "selenoid/android"
+		if _, ok := requestedBrowsers[android]; ok {
+			ret["android"] = "selenoid/android"
+		}
+		return ret
 	}
-	return ret
+	return defaultBrowsers
 }
 
 func (c *DockerConfigurator) fetchImageTags(image string) []string {
