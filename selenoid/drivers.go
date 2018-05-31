@@ -31,6 +31,7 @@ const (
 	zipMagicHeader  = "504b"
 	gzipMagicHeader = "1f8b"
 	comma           = ","
+	colon           = ":"
 	owner           = "aerokube"
 	selenoidRepo    = "selenoid"
 	selenoidUIRepo  = "selenoid-ui"

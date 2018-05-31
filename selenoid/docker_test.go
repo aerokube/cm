@@ -243,21 +243,6 @@ func TestPullImages(t *testing.T) {
 	AssertThat(t, tags[1], EqualTo{"45.0"})
 }
 
-func TestPreProcessImageTags(t *testing.T) {
-	image := "selenoid/firefox"
-	browserName := "firefox"
-	tags := []string{"33.0", "34.0"}
-
-	c, err := NewDockerConfigurator(&LifecycleConfig{
-		RegistryUrl: mockDockerServer.URL,
-		VNC:         true,
-	})
-	AssertThat(t, err, Is{nil})
-	imageToProcess, tagsToProcess := c.preProcessImageTags(image, browserName, tags)
-	AssertThat(t, imageToProcess, EqualTo{"selenoid/vnc"})
-	AssertThat(t, tagsToProcess, EqualTo{[]string{"firefox_33.0", "firefox_34.0"}})
-}
-
 func TestConfigureDocker(t *testing.T) {
 	testConfigure(t, true)
 }
@@ -276,7 +261,7 @@ func testConfigure(t *testing.T, download bool) {
 			Quiet:        false,
 			LastVersions: 2,
 			Tmpfs:        512,
-			Browsers:     "firefox,opera",
+			Browsers:     "firefox:>45.0,opera",
 			Args:         "-limit 42",
 			VNC:          true,
 			Env:          testEnv,
@@ -303,14 +288,7 @@ func testConfigure(t *testing.T, download bool) {
 
 		correctFFBrowsers := make(map[string]*config.Browser)
 		correctFFBrowsers["46.0"] = &config.Browser{
-			Image: "selenoid/vnc:firefox_46.0",
-			Port:  "4444",
-			Path:  "/wd/hub",
-			Tmpfs: tmpfsMap,
-			Env:   []string{testEnv},
-		}
-		correctFFBrowsers["45.0"] = &config.Browser{
-			Image: "selenoid/vnc:firefox_45.0",
+			Image: "selenoid/vnc_firefox:46.0",
 			Port:  "4444",
 			Path:  "/wd/hub",
 			Tmpfs: tmpfsMap,
@@ -328,7 +306,7 @@ func testConfigure(t *testing.T, download bool) {
 
 		correctOperaBrowsers := make(map[string]*config.Browser)
 		correctOperaBrowsers["44.0"] = &config.Browser{
-			Image: "selenoid/vnc:opera_44.0",
+			Image: "selenoid/vnc_opera:44.0",
 			Port:  "4444",
 			Path:  "/",
 			Tmpfs: tmpfsMap,

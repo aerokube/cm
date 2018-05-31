@@ -45,6 +45,7 @@ import (
 const (
 	Latest                  = "latest"
 	firefox                 = "firefox"
+	android                 = "android"
 	opera                   = "opera"
 	tag_1216                = "12.16"
 	selenoidImage           = "aerokube/selenoid"
@@ -158,15 +159,15 @@ func (c *DockerConfigurator) initAuthConfig() (*types.AuthConfig, error) {
 }
 
 func (c *DockerConfigurator) initRegistryClient() error {
-	url := strings.TrimSuffix(c.RegistryUrl, "/")
+	u := strings.TrimSuffix(c.RegistryUrl, "/")
 	username, password := "", ""
 	if c.authConfig != nil {
 		username, password = c.authConfig.Username, c.authConfig.Password
 	}
 	reg := &registry.Registry{
-		URL: url,
+		URL: u,
 		Client: &http.Client{
-			Transport: registry.WrapTransport(http.DefaultTransport, url, username, password),
+			Transport: registry.WrapTransport(http.DefaultTransport, u, username, password),
 		},
 		Logf: func(format string, args ...interface{}) {
 			c.Tracef(format, args...)
@@ -319,32 +320,21 @@ func (c *DockerConfigurator) Configure() (*SelenoidConfig, error) {
 }
 
 func (c *DockerConfigurator) createConfig() SelenoidConfig {
-	supportedBrowsers := c.getSupportedBrowsers()
+	requestedBrowsers := c.parseRequestedBrowsers(c.Browsers)
+	browsersToIterate := c.getBrowsersToIterate(requestedBrowsers)
 	browsers := make(map[string]config.Versions)
-	browsersToIterate := supportedBrowsers
-	if c.Browsers != "" {
-		requestedBrowsers := strings.Split(c.Browsers, comma)
-		if len(requestedBrowsers) > 0 {
-			browsersToIterate = make(map[string]string)
-			for _, rb := range requestedBrowsers {
-				if image, ok := supportedBrowsers[rb]; ok {
-					browsersToIterate[rb] = image
-					continue
-				}
-				c.Errorf("Unsupported browser: %s", rb)
-			}
-		}
-	}
 	for browserName, image := range browsersToIterate {
 		c.Titlef(`Processing browser "%v"...`, color.GreenString(browserName))
 		tags := c.fetchImageTags(image)
-		image, tags = c.preProcessImageTags(image, browserName, tags)
-		pulledTags := tags
+		if c.VNC {
+			c.Pointf("Requested to download VNC images...")
+			image = fmt.Sprintf("selenoid/vnc_%s", browserName)
+		}
+		versionConstraint := requestedBrowsers[browserName]
+		pulledTags := c.filterTags(tags, versionConstraint)
 		fullyQualifiedImage := c.getFullyQualifiedImageRef(image)
 		if c.DownloadNeeded {
-			pulledTags = c.pullImages(fullyQualifiedImage, tags)
-		} else if c.LastVersions > 0 && c.LastVersions <= len(tags) {
-			pulledTags = tags[:c.LastVersions]
+			pulledTags = c.pullImages(fullyQualifiedImage, pulledTags)
 		}
 
 		if len(pulledTags) > 0 {
@@ -357,12 +347,46 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 	return browsers
 }
 
-func (c *DockerConfigurator) getSupportedBrowsers() map[string]string {
-	return map[string]string{
+func (c *DockerConfigurator) parseRequestedBrowsers(requestedBrowsers string) map[string]*ver.Constraints {
+	ret := make(map[string]*ver.Constraints)
+	for _, section := range strings.Split(requestedBrowsers, comma) {
+		pieces := strings.Split(section, colon)
+		if len(pieces) == 2 {
+			browserName := pieces[0]
+			versionConstraintString := pieces[1]
+			versionConstraint, err := ver.NewConstraint(versionConstraintString)
+			if err != nil {
+				c.Errorf("Invalid version constraint %s: %v - ignoring browser %s...", versionConstraintString, err, browserName)
+				continue
+			}
+			ret[browserName] = &versionConstraint
+		} else if len(pieces) == 1 {
+			browserName := pieces[0]
+			ret[browserName] = nil
+		}
+	}
+	return ret
+}
+
+func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string]*ver.Constraints) map[string]string {
+	ret := make(map[string]string)
+	defaultBrowsers := map[string]string{
 		"firefox": "selenoid/firefox",
 		"chrome":  "selenoid/chrome",
 		"opera":   "selenoid/opera",
 	}
+	for browserName := range requestedBrowsers {
+		if image, ok := defaultBrowsers[browserName]; ok {
+			ret[browserName] = image
+			continue
+		}
+		c.Errorf("Unsupported browser: %s", browserName)
+	}
+
+	if _, ok := requestedBrowsers[android]; ok {
+		ret["android"] = "selenoid/android"
+	}
+	return ret
 }
 
 func (c *DockerConfigurator) fetchImageTags(image string) []string {
@@ -379,13 +403,33 @@ func (c *DockerConfigurator) fetchImageTags(image string) []string {
 }
 
 func filterOutLatest(tags []string) []string {
-	ret := []string{}
+	var ret []string
 	for _, tag := range tags {
 		if !strings.HasPrefix(tag, Latest) {
 			ret = append(ret, tag)
 		}
 	}
 	return ret
+}
+
+func (c *DockerConfigurator) filterTags(tags []string, versionConstraint *ver.Constraints) []string {
+	if versionConstraint != nil {
+		var ret []string
+		for _, tag := range tags {
+			version, err := ver.NewVersion(tag)
+			if err != nil {
+				c.Errorf("Skipping tag %s as it does not follow semantic versioning: %v", tag, err)
+				continue
+			}
+			if versionConstraint.Check(version) {
+				ret = append(ret, tag)
+			}
+		}
+		return ret
+	} else if c.LastVersions > 0 && c.LastVersions <= len(tags) {
+		return tags[:c.LastVersions]
+	}
+	return tags
 }
 
 func (c *DockerConfigurator) createVersions(browserName string, image string, tags []string) config.Versions {
@@ -400,7 +444,7 @@ func (c *DockerConfigurator) createVersions(browserName string, image string, ta
 			Port:  "4444",
 			Path:  "/",
 		}
-		if browserName == firefox || (browserName == opera && version == tag_1216) {
+		if browserName == firefox || browserName == android || (browserName == opera && version == tag_1216) {
 			browser.Path = "/wd/hub"
 		}
 		if c.Tmpfs > 0 {
@@ -422,18 +466,14 @@ func imageWithTag(image string, tag string) string {
 }
 
 func (c *DockerConfigurator) pullImages(image string, tags []string) []string {
-	pulledTags := []string{}
+	var pulledTags []string
 	ctx := context.Background()
-loop:
 	for _, tag := range tags {
 		ref := imageWithTag(image, tag)
 		if !c.pullImage(ctx, ref) {
 			continue
 		}
 		pulledTags = append(pulledTags, tag)
-		if c.LastVersions > 0 && len(pulledTags) == c.LastVersions {
-			break loop
-		}
 	}
 	return pulledTags
 }
@@ -448,24 +488,6 @@ func (c *DockerConfigurator) getFullyQualifiedImageRef(ref string) string {
 		return fmt.Sprintf("%s/%s", c.registryHostname, ref)
 	}
 	return ref
-}
-
-func (c *DockerConfigurator) preProcessImageTags(image string, browserName string, tags []string) (string, []string) {
-	imageToProcess := image
-	tagsToProcess := tags
-	if c.VNC {
-		c.Pointf("Requested to download VNC images...")
-		imageToProcess = "selenoid/vnc"
-		tagsToProcess = []string{}
-		for _, tag := range tags {
-			tagsToProcess = append(tagsToProcess, createVNCTag(browserName, tag))
-		}
-	}
-	return imageToProcess, tagsToProcess
-}
-
-func createVNCTag(browserName string, version string) string {
-	return fmt.Sprintf("%s_%s", browserName, version)
 }
 
 func (c *DockerConfigurator) getVersionFromTag(browserName string, tag string) string {
