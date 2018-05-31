@@ -112,7 +112,7 @@ This command does nothing when already downloaded. Use `--force` flag to downloa
 +
 [source,bash]
 ----
-./cm selenoid configure [--browsers firefox,opera] [--last-versions 2] [--tmpfs 128]
+./cm selenoid configure [--browsers firefox:>45.0,opera,android] [--last-versions 2] [--tmpfs 128]
 ----
 +    
 Use `--browsers` to limit browsers to be configured, `--tmpfs` - to add https://en.wikipedia.org/wiki/Tmpfs[Tmpfs] support, `--last-versions` - to limit how many last browser versions to download. If you wish to download all available versions - specify `--last-versions 0`.
