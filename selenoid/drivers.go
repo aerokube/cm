@@ -30,8 +30,6 @@ import (
 const (
 	zipMagicHeader  = "504b"
 	gzipMagicHeader = "1f8b"
-	comma           = ","
-	colon           = ":"
 	owner           = "aerokube"
 	selenoidRepo    = "selenoid"
 	selenoidUIRepo  = "selenoid-ui"
@@ -507,18 +505,18 @@ func outputFile(outputPath string, mode os.FileMode, r io.Reader) error {
 }
 
 func (d *DriversConfigurator) downloadDrivers(browsers *Browsers, configDir string) []downloadedDriver {
-	ret := []downloadedDriver{}
+	var ret []downloadedDriver
 	browsersToIterate := *browsers
 	if d.Browsers != "" {
-		requestedBrowsers := strings.Split(d.Browsers, comma)
+		requestedBrowsers := parseRequestedBrowsers(&d.Logger, d.Browsers)
 		if len(requestedBrowsers) > 0 {
 			browsersToIterate = make(Browsers)
-			for _, rb := range requestedBrowsers {
-				if browser, ok := (*browsers)[rb]; ok {
-					browsersToIterate[rb] = browser
+			for browserName := range requestedBrowsers {
+				if browser, ok := (*browsers)[browserName]; ok {
+					browsersToIterate[browserName] = browser
 					continue
 				}
-				d.Errorf("Unsupported browser: %s", rb)
+				d.Errorf("Unsupported browser: %s", browserName)
 			}
 		}
 	}

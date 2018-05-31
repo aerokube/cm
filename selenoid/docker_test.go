@@ -261,7 +261,7 @@ func testConfigure(t *testing.T, download bool) {
 			Quiet:        false,
 			LastVersions: 2,
 			Tmpfs:        512,
-			Browsers:     "firefox:>45.0,opera",
+			Browsers:     "firefox:>45.0;opera",
 			Args:         "-limit 42",
 			VNC:          true,
 			Env:          testEnv,
