@@ -52,6 +52,7 @@ const (
 	selenoidUIImage         = "aerokube/selenoid-ui"
 	videoRecorderImage      = "selenoid/video-recorder"
 	selenoidContainerName   = "selenoid"
+	ggrUIContainerName      = "ggr-ui"
 	selenoidUIContainerName = "selenoid-ui"
 	overrideHome            = "OVERRIDE_HOME"
 	dockerApiVersion        = "DOCKER_API_VERSION"
@@ -720,15 +721,28 @@ func (c *DockerConfigurator) StartUI() error {
 		return errors.New("Selenoid UI image is not downloaded: this is probably a bug")
 	}
 
-	links := []string{selenoidContainerName}
-
-	cmd := []string{}
+	var cmd, links []string
+	var selenoidUri string
+	for containerName, port := range map[string]int{
+		selenoidContainerName: SelenoidDefaultPort,
+		ggrUIContainerName:    GgrUIDefaultPort,
+	} {
+		if c.getContainer(containerName, port) != nil {
+			selenoidUri = fmt.Sprintf("--selenoid-uri=http://%s:%d", containerName, port)
+			links = []string{containerName}
+			break
+		}
+	}
 	overrideCmd := strings.Fields(c.Args)
 	if len(overrideCmd) > 0 {
 		cmd = overrideCmd
 	}
 	if !contains(cmd, "--selenoid-uri") {
-		cmd = append(cmd, fmt.Sprintf("--selenoid-uri=http://%s:%d", selenoidContainerName, SelenoidDefaultPort))
+		cmd = append(cmd, selenoidUri)
+	}
+
+	if len(links) == 0 {
+		c.Errorf("Neither Selenoid nor Ggr UI is started. Selenoid UI may not work.")
 	}
 
 	overrideEnv := strings.Fields(c.Env)

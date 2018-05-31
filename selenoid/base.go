@@ -119,6 +119,7 @@ type PortAware struct {
 }
 
 const (
+	GgrUIDefaultPort       = 8888
 	SelenoidDefaultPort    = 4444
 	SelenoidUIDefaultPort  = 8080
 	DefaultRegistryUrl     = "https://registry.hub.docker.com"
