@@ -8,23 +8,23 @@
           "filename": "chromedriver"
         },
         "amd64": {
-          "url": "http://chromedriver.storage.googleapis.com/2.39/chromedriver_linux64.zip",
+          "url": "http://chromedriver.storage.googleapis.com/2.40/chromedriver_linux64.zip",
           "filename": "chromedriver"
         }
       },
       "darwin": {
         "amd64": {
-          "url": "http://chromedriver.storage.googleapis.com/2.39/chromedriver_mac64.zip",
+          "url": "http://chromedriver.storage.googleapis.com/2.40/chromedriver_mac64.zip",
           "filename": "chromedriver"
         }
       },
       "windows": {
         "386": {
-          "url": "http://chromedriver.storage.googleapis.com/2.39/chromedriver_win32.zip",
+          "url": "http://chromedriver.storage.googleapis.com/2.40/chromedriver_win32.zip",
           "filename": "chromedriver.exe"
         },
         "amd64": {
-          "url": "http://chromedriver.storage.googleapis.com/2.39/chromedriver_win32.zip",
+          "url": "http://chromedriver.storage.googleapis.com/2.40/chromedriver_win32.zip",
           "filename": "chromedriver.exe"
         }
       }
