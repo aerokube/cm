@@ -588,7 +588,7 @@ func (c *DockerConfigurator) IsRunning() bool {
 }
 
 func (c *DockerConfigurator) getSelenoidContainer() *types.Container {
-	return c.getContainer(selenoidContainerName, c.Port)
+	return c.getContainer(selenoidContainerName)
 }
 
 func (c *DockerConfigurator) IsUIRunning() bool {
@@ -596,22 +596,18 @@ func (c *DockerConfigurator) IsUIRunning() bool {
 }
 
 func (c *DockerConfigurator) getSelenoidUIContainer() *types.Container {
-	return c.getContainer(selenoidUIContainerName, c.Port)
+	return c.getContainer(selenoidUIContainerName)
 }
 
-func (c *DockerConfigurator) getContainer(name string, port int) *types.Container {
+func (c *DockerConfigurator) getContainer(name string) *types.Container {
 	f := filters.NewArgs()
 	f.Add("name", name)
 	containers, err := c.docker.ContainerList(context.Background(), types.ContainerListOptions{Filters: f})
 	if err != nil {
 		return nil
 	}
-	for _, c := range containers {
-		for _, p := range c.Ports {
-			if p.PublicPort == uint16(port) {
-				return &c
-			}
-		}
+	if len(containers) > 0 {
+		return &containers[0]
 	}
 	return nil
 }
@@ -752,14 +748,18 @@ func (c *DockerConfigurator) StartUI() error {
 
 	var cmd, links []string
 	var selenoidUri string
-	for containerName, port := range map[string]int{
-		selenoidContainerName: SelenoidDefaultPort,
-		ggrUIContainerName:    GgrUIDefaultPort,
+containers:
+	for _, containerName := range []string{
+		selenoidContainerName, ggrUIContainerName,
 	} {
-		if c.getContainer(containerName, port) != nil {
-			selenoidUri = fmt.Sprintf("--selenoid-uri=http://%s:%d", containerName, port)
-			links = []string{containerName}
-			break
+		if ctr := c.getContainer(containerName); ctr != nil {
+			for _, p := range ctr.Ports {
+				if p.PublicPort != 0 {
+					selenoidUri = fmt.Sprintf("--selenoid-uri=http://%s:%d", containerName, p.PublicPort)
+					links = []string{containerName}
+					break containers
+				}
+			}
 		}
 	}
 	overrideCmd := strings.Fields(c.Args)
