@@ -588,7 +588,7 @@ func (c *DockerConfigurator) IsRunning() bool {
 }
 
 func (c *DockerConfigurator) getSelenoidContainer() *types.Container {
-	return c.getContainer(selenoidContainerName, c.Port)
+	return c.getContainer(selenoidContainerName)
 }
 
 func (c *DockerConfigurator) IsUIRunning() bool {
@@ -596,22 +596,18 @@ func (c *DockerConfigurator) IsUIRunning() bool {
 }
 
 func (c *DockerConfigurator) getSelenoidUIContainer() *types.Container {
-	return c.getContainer(selenoidUIContainerName, c.Port)
+	return c.getContainer(selenoidUIContainerName)
 }
 
-func (c *DockerConfigurator) getContainer(name string, port int) *types.Container {
+func (c *DockerConfigurator) getContainer(name string) *types.Container {
 	f := filters.NewArgs()
 	f.Add("name", name)
 	containers, err := c.docker.ContainerList(context.Background(), types.ContainerListOptions{Filters: f})
 	if err != nil {
 		return nil
 	}
-	for _, c := range containers {
-		for _, p := range c.Ports {
-			if p.PublicPort == uint16(port) {
-				return &c
-			}
-		}
+	if len(containers) > 0 {
+		return &containers[0]
 	}
 	return nil
 }
@@ -624,18 +620,24 @@ func (c *DockerConfigurator) PrintArgs() error {
 	return c.startContainer("", image, 0, 0, []string{}, []string{}, []string{"--help"}, []string{}, true)
 }
 
+const (
+	videoDirName = "video"
+	logsDirName  = "logs"
+)
+
 func (c *DockerConfigurator) Start() error {
 	image := c.getSelenoidImage()
 	if image == nil {
 		return errors.New("Selenoid image is not downloaded: this is probably a bug")
 	}
 
-	const videoDirName = "video"
 	volumeConfigDir := getVolumeConfigDir(c.ConfigDir, selenoidConfigDirElem)
 	videoConfigDir := getVolumeConfigDir(filepath.Join(c.ConfigDir, videoDirName), append(selenoidConfigDirElem, videoDirName))
+	logsConfigDir := getVolumeConfigDir(filepath.Join(c.ConfigDir, logsDirName), append(selenoidConfigDirElem, logsDirName))
 	volumes := []string{
 		fmt.Sprintf("%s:/etc/selenoid:ro", volumeConfigDir),
 		fmt.Sprintf("%s:/opt/selenoid/video", videoConfigDir),
+		fmt.Sprintf("%s:/opt/selenoid/logs", logsConfigDir),
 	}
 	const dockerSocket = "/var/run/docker.sock"
 	if c.isDockerForWindows() {
@@ -657,6 +659,10 @@ func (c *DockerConfigurator) Start() error {
 		cmd = append(cmd, "-video-output-dir", "/opt/selenoid/video/")
 	}
 
+	if !contains(cmd, "-log-output-dir") && isLogSavingSupported(c.Logger, c.Version) {
+		cmd = append(cmd, "-log-output-dir", "/opt/selenoid/logs/")
+	}
+
 	overrideEnv := strings.Fields(c.Env)
 	if !strings.Contains(c.Env, "OVERRIDE_VIDEO_OUTPUT_DIR") {
 		overrideEnv = append(overrideEnv, fmt.Sprintf("OVERRIDE_VIDEO_OUTPUT_DIR=%s", videoConfigDir))
@@ -674,16 +680,28 @@ func (c *DockerConfigurator) isDockerForWindows() bool {
 }
 
 func isVideoRecordingSupported(logger Logger, version string) bool {
+	return isVersion(version, ">= 1.4.0", func(version string) {
+		logger.Pointf(`Not enabling video feature because specified version "%s" is not semantic`, version)
+	})
+}
+
+func isVersion(version string, condition string, notSemanticVersionCallback func(string)) bool {
 	if version == Latest {
 		return true
 	}
-	constraint, _ := ver.NewConstraint(">= 1.4.0")
+	constraint, _ := ver.NewConstraint(condition)
 	v, err := ver.NewVersion(version)
 	if err != nil {
-		logger.Pointf(`Not enabling video feature because specified version "%s" is not semantic`, version)
+		notSemanticVersionCallback(version)
 		return false
 	}
 	return constraint.Check(v)
+}
+
+func isLogSavingSupported(logger Logger, version string) bool {
+	return isVersion(version, ">= 1.7.0", func(version string) {
+		logger.Pointf(`Not enabling log saving feature because specified version "%s" is not semantic`, version)
+	})
 }
 
 func getVolumeConfigDir(defaultConfigDir string, elem []string) string {
@@ -730,14 +748,18 @@ func (c *DockerConfigurator) StartUI() error {
 
 	var cmd, links []string
 	var selenoidUri string
-	for containerName, port := range map[string]int{
-		selenoidContainerName: SelenoidDefaultPort,
-		ggrUIContainerName:    GgrUIDefaultPort,
+containers:
+	for _, containerName := range []string{
+		selenoidContainerName, ggrUIContainerName,
 	} {
-		if c.getContainer(containerName, port) != nil {
-			selenoidUri = fmt.Sprintf("--selenoid-uri=http://%s:%d", containerName, port)
-			links = []string{containerName}
-			break
+		if ctr := c.getContainer(containerName); ctr != nil {
+			for _, p := range ctr.Ports {
+				if p.PublicPort != 0 {
+					selenoidUri = fmt.Sprintf("--selenoid-uri=http://%s:%d", containerName, p.PublicPort)
+					links = []string{containerName}
+					break containers
+				}
+			}
 		}
 	}
 	overrideCmd := strings.Fields(c.Args)

@@ -323,6 +323,7 @@ func TestStartStopContainer(t *testing.T) {
 	c, err := NewDockerConfigurator(&LifecycleConfig{
 		RegistryUrl: mockDockerServer.URL,
 		Port:        SelenoidDefaultPort,
+		Version:     Latest,
 	})
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, c.IsRunning(), Is{true})

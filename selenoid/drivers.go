@@ -584,6 +584,11 @@ func (d *DriversConfigurator) Start() error {
 	if !contains(args, "-disable-docker") {
 		args = append(args, "-disable-docker")
 	}
+	if !contains(args, "-log-output-dir") && isLogSavingSupported(d.Logger, d.Version) {
+		logsConfigDir := getVolumeConfigDir(filepath.Join(d.ConfigDir, logsDirName), append(selenoidConfigDirElem, logsDirName))
+		args = append(args, "-log-output-dir", logsConfigDir)
+	}
+
 	env := strings.Fields(d.Env)
 	return runCommand(d.getSelenoidBinaryPath(), args, env)
 }
