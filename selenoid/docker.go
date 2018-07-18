@@ -624,18 +624,24 @@ func (c *DockerConfigurator) PrintArgs() error {
 	return c.startContainer("", image, 0, 0, []string{}, []string{}, []string{"--help"}, []string{}, true)
 }
 
+const (
+	videoDirName = "video"
+	logsDirName  = "logs"
+)
+
 func (c *DockerConfigurator) Start() error {
 	image := c.getSelenoidImage()
 	if image == nil {
 		return errors.New("Selenoid image is not downloaded: this is probably a bug")
 	}
 
-	const videoDirName = "video"
 	volumeConfigDir := getVolumeConfigDir(c.ConfigDir, selenoidConfigDirElem)
 	videoConfigDir := getVolumeConfigDir(filepath.Join(c.ConfigDir, videoDirName), append(selenoidConfigDirElem, videoDirName))
+	logsConfigDir := getVolumeConfigDir(filepath.Join(c.ConfigDir, logsDirName), append(selenoidConfigDirElem, logsDirName))
 	volumes := []string{
 		fmt.Sprintf("%s:/etc/selenoid:ro", volumeConfigDir),
 		fmt.Sprintf("%s:/opt/selenoid/video", videoConfigDir),
+		fmt.Sprintf("%s:/opt/selenoid/logs", logsConfigDir),
 	}
 	const dockerSocket = "/var/run/docker.sock"
 	if c.isDockerForWindows() {
@@ -657,6 +663,10 @@ func (c *DockerConfigurator) Start() error {
 		cmd = append(cmd, "-video-output-dir", "/opt/selenoid/video/")
 	}
 
+	if !contains(cmd, "-log-output-dir") && isLogSavingSupported(c.Logger, c.Version) {
+		cmd = append(cmd, "-log-output-dir", "/opt/selenoid/logs/")
+	}
+
 	overrideEnv := strings.Fields(c.Env)
 	if !strings.Contains(c.Env, "OVERRIDE_VIDEO_OUTPUT_DIR") {
 		overrideEnv = append(overrideEnv, fmt.Sprintf("OVERRIDE_VIDEO_OUTPUT_DIR=%s", videoConfigDir))
@@ -674,16 +684,28 @@ func (c *DockerConfigurator) isDockerForWindows() bool {
 }
 
 func isVideoRecordingSupported(logger Logger, version string) bool {
+	return isVersion(version, ">= 1.4.0", func(version string) {
+		logger.Pointf(`Not enabling video feature because specified version "%s" is not semantic`, version)
+	})
+}
+
+func isVersion(version string, condition string, notSemanticVersionCallback func(string)) bool {
 	if version == Latest {
 		return true
 	}
-	constraint, _ := ver.NewConstraint(">= 1.4.0")
+	constraint, _ := ver.NewConstraint(condition)
 	v, err := ver.NewVersion(version)
 	if err != nil {
-		logger.Pointf(`Not enabling video feature because specified version "%s" is not semantic`, version)
+		notSemanticVersionCallback(version)
 		return false
 	}
 	return constraint.Check(v)
+}
+
+func isLogSavingSupported(logger Logger, version string) bool {
+	return isVersion(version, ">= 1.7.0", func(version string) {
+		logger.Pointf(`Not enabling log saving feature because specified version "%s" is not semantic`, version)
+	})
 }
 
 func getVolumeConfigDir(defaultConfigDir string, elem []string) string {
