@@ -6,6 +6,8 @@
 
 Configuration manager is used to automate installation of Aerokube products.
 
+![term](docs/img/cm.svg)
+
 ## Complete Guide & Build Instructions
 
 Complete reference guide (including building instructions) can be found at: http://aerokube.com/cm/latest/
