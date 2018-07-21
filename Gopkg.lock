@@ -34,7 +34,7 @@
 [[projects]]
   name = "github.com/aerokube/util"
   packages = [".","docker"]
-  revision = "2fa5cda33a2e16b7639e40386ca232c9f6cf9475"
+  revision = "78436541227f568704800278e78f52274fa3bfce"
 
 [[projects]]
   branch = "master"
@@ -53,10 +53,9 @@
   revision = "277ed486c948042cab91ad367c379524f3b25e18"
 
 [[projects]]
-  branch = "master"
   name = "github.com/docker/docker"
   packages = ["api","api/types","api/types/blkiodev","api/types/container","api/types/events","api/types/filters","api/types/image","api/types/mount","api/types/network","api/types/registry","api/types/strslice","api/types/swarm","api/types/swarm/runtime","api/types/time","api/types/versions","api/types/volume","client","errdefs","pkg/homedir","pkg/idtools","pkg/ioutils","pkg/jsonmessage","pkg/longpath","pkg/mount","pkg/stringid","pkg/system","pkg/tarsum","pkg/term","pkg/term/windows","registry","registry/resumable"]
-  revision = "635f359f8b61887faa9427d9c673be96faf992b5"
+  revision = "1ef1cc8388165b2b848f9b3f53ec91c87de09f63"
 
 [[projects]]
   name = "github.com/docker/docker-credential-helpers"
@@ -243,6 +242,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2fde660211e666078c6631449222d34346a268d33f43002e657d6c0c772c89f9"
+  inputs-digest = "0f7d29e0971574f2ea0ea5003e83739f79706ef99227f40d17992257958cc87f"
   solver-name = "gps-cdcl"
   solver-version = 1
