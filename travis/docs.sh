@@ -23,8 +23,8 @@ echo "Removing existing files"
 mkdir -p ${TRAVIS_BUILD_DIR}/docs/output/${TAGNAME}
 rm -rf ${TRAVIS_BUILD_DIR}/docs/output/${TAGNAME}/*
 
-#echo "Copying images"
-#cp -R ${TRAVIS_BUILD_DIR}/docs/img ${TRAVIS_BUILD_DIR}/docs/output/${TAGNAME}/img
+echo "Copying images"
+cp -R ${TRAVIS_BUILD_DIR}/docs/img ${TRAVIS_BUILD_DIR}/docs/output/${TAGNAME}/img
 echo "Copying files to root"
 cp -Rv ${TRAVIS_BUILD_DIR}/docs/files/* ${TRAVIS_BUILD_DIR}/docs/output
 
