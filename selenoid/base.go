@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
-	colorable "github.com/mattn/go-colorable"
+	"github.com/mattn/go-colorable"
 )
 
 type StatusProvider interface {
@@ -118,8 +118,11 @@ type PortAware struct {
 	Port int
 }
 
+type UserNSAware struct {
+	UserNS string
+}
+
 const (
-	GgrUIDefaultPort       = 8888
 	SelenoidDefaultPort    = 4444
 	SelenoidUIDefaultPort  = 8080
 	DefaultRegistryUrl     = "https://registry.hub.docker.com"
