@@ -72,6 +72,7 @@ type DockerConfigurator struct {
 	EnvAware
 	BrowserEnvAware
 	PortAware
+	UserNSAware
 	LastVersions     int
 	Pull             bool
 	RegistryUrl      string
@@ -94,6 +95,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		EnvAware:               EnvAware{Env: config.Env},
 		BrowserEnvAware:        BrowserEnvAware{BrowserEnv: config.BrowserEnv},
 		PortAware:              PortAware{Port: config.Port},
+		UserNSAware:            UserNSAware{UserNS: config.UserNS},
 		RegistryUrl:            config.RegistryUrl,
 		LastVersions:           config.LastVersions,
 		Tmpfs:                  config.Tmpfs,
@@ -617,7 +619,12 @@ func (c *DockerConfigurator) PrintArgs() error {
 	if image == nil {
 		return errors.New("Selenoid image is not downloaded: this is probably a bug")
 	}
-	return c.startContainer("", image, 0, 0, []string{}, []string{}, []string{"--help"}, []string{}, true)
+	cfg := &containerConfig{
+		Image:     image,
+		Cmd:       []string{"--help"},
+		PrintLogs: true,
+	}
+	return c.startContainer(cfg)
 }
 
 const (
@@ -667,7 +674,17 @@ func (c *DockerConfigurator) Start() error {
 	if !strings.Contains(c.Env, "OVERRIDE_VIDEO_OUTPUT_DIR") {
 		overrideEnv = append(overrideEnv, fmt.Sprintf("OVERRIDE_VIDEO_OUTPUT_DIR=%s", videoConfigDir))
 	}
-	return c.startContainer(selenoidContainerName, image, c.Port, SelenoidDefaultPort, volumes, []string{}, cmd, overrideEnv, false)
+	cfg := &containerConfig{
+		Name:        selenoidContainerName,
+		Image:       image,
+		HostPort:    c.Port,
+		ServicePort: SelenoidDefaultPort,
+		Volumes:     volumes,
+		Cmd:         cmd,
+		OverrideEnv: overrideEnv,
+		UserNS:      c.UserNS,
+	}
+	return c.startContainer(cfg)
 }
 
 func (c *DockerConfigurator) isDockerForWindows() bool {
@@ -737,7 +754,12 @@ func (c *DockerConfigurator) PrintUIArgs() error {
 	if image == nil {
 		return errors.New("Selenoid UI image is not downloaded: this is probably a bug")
 	}
-	return c.startContainer("", image, 0, 0, []string{}, []string{}, []string{"--help"}, []string{}, true)
+	cfg := &containerConfig{
+		Image:     image,
+		Cmd:       []string{"--help"},
+		PrintLogs: true,
+	}
+	return c.startContainer(cfg)
 }
 
 func (c *DockerConfigurator) StartUI() error {
@@ -775,7 +797,17 @@ containers:
 	}
 
 	overrideEnv := strings.Fields(c.Env)
-	return c.startContainer(selenoidUIContainerName, image, c.Port, SelenoidUIDefaultPort, []string{}, links, cmd, overrideEnv, false)
+	cfg := &containerConfig{
+		Name:        selenoidUIContainerName,
+		Image:       image,
+		HostPort:    c.Port,
+		ServicePort: SelenoidUIDefaultPort,
+		Links:       links,
+		Cmd:         cmd,
+		OverrideEnv: overrideEnv,
+		UserNS:      c.UserNS,
+	}
+	return c.startContainer(cfg)
 }
 
 func validateEnviron(envs []string) []string {
@@ -789,45 +821,65 @@ func validateEnviron(envs []string) []string {
 	return validEnv
 }
 
-func (c *DockerConfigurator) startContainer(name string, image *types.ImageSummary, hostPort int, servicePort int, volumes []string, links []string, cmd []string, envOverride []string, printLogs bool) error {
+type containerConfig struct {
+	Name        string
+	Image       *types.ImageSummary
+	HostPort    int
+	ServicePort int
+	Volumes     []string
+	Links       []string
+	Cmd         []string
+	OverrideEnv []string
+	UserNS      string
+	PrintLogs   bool
+}
+
+func (c *DockerConfigurator) startContainer(cfg *containerConfig) error {
 	ctx := context.Background()
 	env := validateEnviron(os.Environ())
 	env = append(env, fmt.Sprintf("TZ=%s", time.Local))
-	if len(envOverride) > 0 {
-		env = envOverride
+	if len(cfg.OverrideEnv) > 0 {
+		env = cfg.OverrideEnv
 	}
 	if !contains(env, dockerApiVersion) {
 		env = append(env, fmt.Sprintf("%s=%s", dockerApiVersion, c.docker.ClientVersion()))
 	}
-	servicePortString := strconv.Itoa(servicePort)
+	servicePortString := strconv.Itoa(cfg.ServicePort)
 	port, err := nat.NewPort("tcp", servicePortString)
 	if err != nil {
 		return fmt.Errorf("failed to init port: %v", err)
 	}
 	containerConfig := container.Config{
 		Hostname: "localhost",
-		Image:    image.RepoTags[0],
+		Image:    cfg.Image.RepoTags[0],
 		Env:      env,
 	}
-	if servicePort > 0 {
+	if cfg.ServicePort > 0 {
 		containerConfig.ExposedPorts = map[nat.Port]struct{}{port: {}}
 	}
-	if len(cmd) > 0 {
-		containerConfig.Cmd = strslice.StrSlice(cmd)
+	if len(cfg.Cmd) > 0 {
+		containerConfig.Cmd = strslice.StrSlice(cfg.Cmd)
 	}
 	hostConfig := container.HostConfig{
-		Binds: volumes,
-		Links: links,
+		Binds: cfg.Volumes,
+		Links: cfg.Links,
 	}
-	if printLogs {
+	if cfg.UserNS != "" {
+		mode := container.UsernsMode(cfg.UserNS)
+		if !mode.Valid() {
+			return fmt.Errorf("invalid userns value: %s", cfg.UserNS)
+		}
+		hostConfig.UsernsMode = mode
+	}
+	if cfg.PrintLogs {
 		containerConfig.Tty = true
 	} else {
 		hostConfig.RestartPolicy = container.RestartPolicy{
 			Name: "always",
 		}
 	}
-	if hostPort > 0 && servicePort > 0 {
-		hostPortString := strconv.Itoa(hostPort)
+	if cfg.HostPort > 0 && cfg.ServicePort > 0 {
+		hostPortString := strconv.Itoa(cfg.HostPort)
 		portBindings := nat.PortMap{}
 		portBindings[port] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: hostPortString}}
 		hostConfig.PortBindings = portBindings
@@ -835,7 +887,7 @@ func (c *DockerConfigurator) startContainer(name string, image *types.ImageSumma
 	ctr, err := c.docker.ContainerCreate(ctx,
 		&containerConfig,
 		&hostConfig,
-		&network.NetworkingConfig{}, name)
+		&network.NetworkingConfig{}, cfg.Name)
 	if err != nil {
 		return fmt.Errorf("failed to create container: %v", err)
 	}
@@ -844,7 +896,7 @@ func (c *DockerConfigurator) startContainer(name string, image *types.ImageSumma
 		c.removeContainer(ctr.ID)
 		return fmt.Errorf("failed to start container: %v", err)
 	}
-	if printLogs {
+	if cfg.PrintLogs {
 		defer c.removeContainer(ctr.ID)
 		r, err := c.docker.ContainerLogs(ctx, ctr.ID, types.ContainerLogsOptions{
 			ShowStdout: true,

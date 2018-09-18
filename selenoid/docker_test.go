@@ -324,6 +324,7 @@ func TestStartStopContainer(t *testing.T) {
 		RegistryUrl: mockDockerServer.URL,
 		Port:        SelenoidDefaultPort,
 		Version:     Latest,
+		UserNS:      "host",
 	})
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, c.IsRunning(), Is{true})

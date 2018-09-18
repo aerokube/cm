@@ -26,6 +26,7 @@ var (
 	browserEnv      string
 	port            uint16
 	uiPort          uint16
+	userNS          string
 )
 
 func init() {
@@ -155,6 +156,7 @@ func initFlags() {
 	} {
 		c.Flags().StringVarP(&args, "args", "g", "", "additional service arguments (e.g. \"-limit 5\")")
 		c.Flags().StringVarP(&env, "env", "e", "", "override service environment variables (e.g. \"KEY1=value1 KEY2=value2\")")
+		c.Flags().StringVarP(&userNS, "userns", "", "", "override user namespace, similarly to \"docker run --userns host ...\" (Docker only)")
 	}
 }
 
@@ -174,6 +176,7 @@ func createLifecycle(configDir string, port uint16) (*selenoid.Lifecycle, error)
 		RegistryUrl:  registry,
 		Tmpfs:        tmpfs,
 		VNC:          vnc,
+		UserNS:       userNS,
 
 		BrowsersJsonUrl: browsersJSONUrl,
 		OS:              operatingSystem,
