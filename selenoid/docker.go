@@ -603,7 +603,7 @@ func (c *DockerConfigurator) getSelenoidUIContainer() *types.Container {
 
 func (c *DockerConfigurator) getContainer(name string) *types.Container {
 	f := filters.NewArgs()
-	f.Add("name", name)
+	f.Add("name", fmt.Sprintf("^/%s$", name))
 	containers, err := c.docker.ContainerList(context.Background(), types.ContainerListOptions{Filters: f})
 	if err != nil {
 		return nil
