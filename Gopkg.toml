@@ -31,7 +31,7 @@
 
 [[override]]
   name = "github.com/docker/cli"
-  revision = "fab4762941664751423f51dda0f3f8b644eb69a3"
+  revision = "608b6632b05840a5cd9c6ad837d1fa1118444d41"
 
 [[constraint]]
   revision = "ebfec748347a9af6793c723f8859afcd906860fb"
@@ -67,4 +67,4 @@
 
 [[constraint]]
   name = "github.com/aerokube/util"
-  revision = "78436541227f568704800278e78f52274fa3bfce"
+  branch = "master"
