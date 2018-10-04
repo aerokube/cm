@@ -52,7 +52,7 @@ const (
 	tag_1216                = "12.16"
 	selenoidImage           = "aerokube/selenoid"
 	selenoidUIImage         = "aerokube/selenoid-ui"
-	videoRecorderImage      = "selenoid/video-recorder"
+	videoRecorderImage      = "selenoid/video-recorder:latest-release"
 	selenoidContainerName   = "selenoid"
 	ggrUIContainerName      = "ggr-ui"
 	selenoidUIContainerName = "selenoid-ui"
