@@ -663,7 +663,7 @@ func (c *DockerConfigurator) Start() error {
 		cmd = append(cmd, "-conf", "/etc/selenoid/browsers.json")
 	}
 	if !contains(cmd, "-video-output-dir") && isVideoRecordingSupported(c.Logger, c.Version) {
-		cmd = append(cmd, "-video-output-dir", "/opt/selenoid/video/")
+		cmd = append(cmd, "-video-output-dir", "/opt/selenoid/video/", "-video-recorder-image", videoRecorderImage)
 	}
 
 	if !contains(cmd, "-log-output-dir") && isLogSavingSupported(c.Logger, c.Version) {
