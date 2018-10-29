@@ -644,16 +644,16 @@ func (c *DockerConfigurator) Start() error {
 	videoConfigDir := getVolumeConfigDir(filepath.Join(c.ConfigDir, videoDirName), append(selenoidConfigDirElem, videoDirName))
 	logsConfigDir := getVolumeConfigDir(filepath.Join(c.ConfigDir, logsDirName), append(selenoidConfigDirElem, logsDirName))
 	volumes := []string{
-		fmt.Sprintf("%s:/etc/selenoid:ro", volumeConfigDir),
-		fmt.Sprintf("%s:/opt/selenoid/video", videoConfigDir),
-		fmt.Sprintf("%s:/opt/selenoid/logs", logsConfigDir),
+		fmt.Sprintf("%s:/etc/selenoid:ro,Z", volumeConfigDir),
+		fmt.Sprintf("%s:/opt/selenoid/video:Z", videoConfigDir),
+		fmt.Sprintf("%s:/opt/selenoid/logs:Z", logsConfigDir),
 	}
 	const dockerSocket = "/var/run/docker.sock"
 	if c.isDockerForWindows() {
 		//With two slashes. See https://stackoverflow.com/questions/36765138/bind-to-docker-socket-on-windows
 		volumes = append(volumes, fmt.Sprintf("/%s:%s", dockerSocket, dockerSocket))
 	} else if fileExists(dockerSocket) {
-		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
+		volumes = append(volumes, fmt.Sprintf("%s:%s:Z", dockerSocket, dockerSocket))
 	}
 
 	cmd := []string{}
