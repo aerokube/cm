@@ -73,6 +73,7 @@ type DockerConfigurator struct {
 	BrowserEnvAware
 	PortAware
 	UserNSAware
+	LogsAware
 	LastVersions     int
 	Pull             bool
 	RegistryUrl      string
@@ -96,6 +97,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		BrowserEnvAware:        BrowserEnvAware{BrowserEnv: config.BrowserEnv},
 		PortAware:              PortAware{Port: config.Port},
 		UserNSAware:            UserNSAware{UserNS: config.UserNS},
+		LogsAware:              LogsAware{DisableLogs: config.DisableLogs},
 		RegistryUrl:            config.RegistryUrl,
 		LastVersions:           config.LastVersions,
 		Tmpfs:                  config.Tmpfs,
@@ -666,7 +668,7 @@ func (c *DockerConfigurator) Start() error {
 		cmd = append(cmd, "-video-output-dir", "/opt/selenoid/video/", "-video-recorder-image", videoRecorderImage)
 	}
 
-	if !contains(cmd, "-log-output-dir") && isLogSavingSupported(c.Logger, c.Version) {
+	if !c.DisableLogs && !contains(cmd, "-log-output-dir") && isLogSavingSupported(c.Logger, c.Version) {
 		cmd = append(cmd, "-log-output-dir", "/opt/selenoid/logs/")
 	}
 

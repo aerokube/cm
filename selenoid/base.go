@@ -122,6 +122,10 @@ type UserNSAware struct {
 	UserNS string
 }
 
+type LogsAware struct {
+	DisableLogs bool
+}
+
 const (
 	SelenoidDefaultPort    = 4444
 	SelenoidUIDefaultPort  = 8080
