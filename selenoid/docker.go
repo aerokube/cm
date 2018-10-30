@@ -73,6 +73,7 @@ type DockerConfigurator struct {
 	BrowserEnvAware
 	PortAware
 	UserNSAware
+	LogsAware
 	LastVersions     int
 	Pull             bool
 	RegistryUrl      string
@@ -96,6 +97,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		BrowserEnvAware:        BrowserEnvAware{BrowserEnv: config.BrowserEnv},
 		PortAware:              PortAware{Port: config.Port},
 		UserNSAware:            UserNSAware{UserNS: config.UserNS},
+		LogsAware:              LogsAware{DisableLogs: config.DisableLogs},
 		RegistryUrl:            config.RegistryUrl,
 		LastVersions:           config.LastVersions,
 		Tmpfs:                  config.Tmpfs,
@@ -642,16 +644,16 @@ func (c *DockerConfigurator) Start() error {
 	videoConfigDir := getVolumeConfigDir(filepath.Join(c.ConfigDir, videoDirName), append(selenoidConfigDirElem, videoDirName))
 	logsConfigDir := getVolumeConfigDir(filepath.Join(c.ConfigDir, logsDirName), append(selenoidConfigDirElem, logsDirName))
 	volumes := []string{
-		fmt.Sprintf("%s:/etc/selenoid:ro", volumeConfigDir),
-		fmt.Sprintf("%s:/opt/selenoid/video", videoConfigDir),
-		fmt.Sprintf("%s:/opt/selenoid/logs", logsConfigDir),
+		fmt.Sprintf("%s:/etc/selenoid:ro,Z", volumeConfigDir),
+		fmt.Sprintf("%s:/opt/selenoid/video:Z", videoConfigDir),
+		fmt.Sprintf("%s:/opt/selenoid/logs:Z", logsConfigDir),
 	}
 	const dockerSocket = "/var/run/docker.sock"
 	if c.isDockerForWindows() {
 		//With two slashes. See https://stackoverflow.com/questions/36765138/bind-to-docker-socket-on-windows
 		volumes = append(volumes, fmt.Sprintf("/%s:%s", dockerSocket, dockerSocket))
 	} else if fileExists(dockerSocket) {
-		volumes = append(volumes, fmt.Sprintf("%s:%s", dockerSocket, dockerSocket))
+		volumes = append(volumes, fmt.Sprintf("%s:%s:Z", dockerSocket, dockerSocket))
 	}
 
 	cmd := []string{}
@@ -666,7 +668,7 @@ func (c *DockerConfigurator) Start() error {
 		cmd = append(cmd, "-video-output-dir", "/opt/selenoid/video/", "-video-recorder-image", videoRecorderImage)
 	}
 
-	if !contains(cmd, "-log-output-dir") && isLogSavingSupported(c.Logger, c.Version) {
+	if !c.DisableLogs && !contains(cmd, "-log-output-dir") && isLogSavingSupported(c.Logger, c.Version) {
 		cmd = append(cmd, "-log-output-dir", "/opt/selenoid/logs/")
 	}
 

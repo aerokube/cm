@@ -66,6 +66,7 @@ type DriversConfigurator struct {
 	BrowserEnvAware
 	PortAware
 	RequestedBrowsersAware
+	LogsAware
 	Browsers        string
 	BrowsersJsonUrl string
 
@@ -85,6 +86,7 @@ func NewDriversConfigurator(config *LifecycleConfig) *DriversConfigurator {
 		PortAware:              PortAware{Port: config.Port},
 		DownloadAware:          DownloadAware{DownloadNeeded: config.Download},
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
+		LogsAware:              LogsAware{DisableLogs: config.DisableLogs},
 		BrowsersJsonUrl:        config.BrowsersJsonUrl,
 		Browsers:               config.Browsers,
 		GithubBaseUrl:          config.GithubBaseUrl,
@@ -584,7 +586,7 @@ func (d *DriversConfigurator) Start() error {
 	if !contains(args, "-disable-docker") {
 		args = append(args, "-disable-docker")
 	}
-	if !contains(args, "-log-output-dir") && isLogSavingSupported(d.Logger, d.Version) {
+	if !d.DisableLogs && !contains(args, "-log-output-dir") && isLogSavingSupported(d.Logger, d.Version) {
 		logsConfigDir := getVolumeConfigDir(filepath.Join(d.ConfigDir, logsDirName), append(selenoidConfigDirElem, logsDirName))
 		args = append(args, "-log-output-dir", logsConfigDir)
 	}

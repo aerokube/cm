@@ -27,6 +27,7 @@ var (
 	port            uint16
 	uiPort          uint16
 	userNS          string
+	disableLogs     bool
 )
 
 func init() {
@@ -157,20 +158,22 @@ func initFlags() {
 		c.Flags().StringVarP(&args, "args", "g", "", "additional service arguments (e.g. \"-limit 5\")")
 		c.Flags().StringVarP(&env, "env", "e", "", "override service environment variables (e.g. \"KEY1=value1 KEY2=value2\")")
 		c.Flags().StringVarP(&userNS, "userns", "", "", "override user namespace, similarly to \"docker run --userns host ...\" (Docker only)")
+		c.Flags().BoolVarP(&disableLogs, "disable-logs", "", false, "start with log saving feature disabled")
 	}
 }
 
 func createLifecycle(configDir string, port uint16) (*selenoid.Lifecycle, error) {
 	config := selenoid.LifecycleConfig{
-		Quiet:      quiet,
-		Force:      force,
-		ConfigDir:  configDir,
-		Browsers:   browsers,
-		BrowserEnv: browserEnv,
-		Download:   !skipDownload,
-		Args:       args,
-		Env:        env,
-		Port:       int(port),
+		Quiet:       quiet,
+		Force:       force,
+		ConfigDir:   configDir,
+		Browsers:    browsers,
+		BrowserEnv:  browserEnv,
+		Download:    !skipDownload,
+		Args:        args,
+		Env:         env,
+		Port:        int(port),
+		DisableLogs: disableLogs,
 
 		LastVersions: lastVersions,
 		RegistryUrl:  registry,

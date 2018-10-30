@@ -9,16 +9,17 @@ import (
 )
 
 type LifecycleConfig struct {
-	Quiet      bool
-	Force      bool
-	ConfigDir  string
-	Browsers   string
-	BrowserEnv string
-	Download   bool
-	Args       string
-	Env        string
-	Version    string
-	Port       int
+	Quiet       bool
+	Force       bool
+	ConfigDir   string
+	Browsers    string
+	BrowserEnv  string
+	Download    bool
+	Args        string
+	Env         string
+	Version     string
+	Port        int
+	DisableLogs bool
 
 	// Docker specific
 	LastVersions int
