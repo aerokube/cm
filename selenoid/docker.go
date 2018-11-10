@@ -117,10 +117,6 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 	} else {
 		c.authConfig = authConfig
 	}
-	err = c.initRegistryClient()
-	if err != nil {
-		return nil, fmt.Errorf("new configurator: %v", err)
-	}
 	return c, nil
 }
 
@@ -165,7 +161,11 @@ func (c *DockerConfigurator) initAuthConfig() (*types.AuthConfig, error) {
 	return nil, nil
 }
 
-func (c *DockerConfigurator) initRegistryClient() error {
+func (c *DockerConfigurator) getRegistryClient() *registry.Registry {
+	if c.reg != nil {
+		return c.reg
+	}
+
 	u := strings.TrimSuffix(c.RegistryUrl, "/")
 	username, password := "", ""
 	if c.authConfig != nil {
@@ -182,11 +182,12 @@ func (c *DockerConfigurator) initRegistryClient() error {
 	}
 
 	if err := reg.Ping(); err != nil {
-		return fmt.Errorf("Docker Registry is not available: %v", err)
+		c.Errorf("Docker Registry is not available: %v", err)
+		return nil
 	}
 
 	c.reg = reg
-	return nil
+	return reg
 }
 
 func (c *DockerConfigurator) Close() error {
@@ -403,9 +404,14 @@ func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string]*
 
 func (c *DockerConfigurator) fetchImageTags(image string) []string {
 	c.Pointf(`Fetching tags for image %v`, color.BlueString(image))
-	tags, err := c.reg.Tags(image)
+	reg := c.getRegistryClient()
+	if reg == nil {
+		c.Errorf(`Docker registry client not initialized`)
+		return nil
+	}
+	tags, err := reg.Tags(image)
 	if err != nil {
-		c.Errorf(`Failed to fetch tags for image "%s"`, image)
+		c.Errorf(`Failed to fetch tags for image "%s": %v`, image, err)
 		return nil
 	}
 	tagsWithoutLatest := filterOutLatest(tags)

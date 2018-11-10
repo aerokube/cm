@@ -242,7 +242,7 @@ func (l *Lifecycle) StopUI() error {
 }
 
 func isDockerAvailable() bool {
-	cl, err := client.NewEnvClient()
+	cl, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return false
 	}
