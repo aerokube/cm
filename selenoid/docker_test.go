@@ -477,3 +477,22 @@ func TestValidEnviron(t *testing.T) {
 	AssertThat(t, validateEnviron([]string{"=::=::"}), EqualTo{[]string{}})
 	AssertThat(t, validateEnviron([]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1", "=::=::"}), EqualTo{[]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1"}})
 }
+
+func TestParseRequestedBrowsers(t *testing.T) {
+	output := parseRequestedBrowsers(&Logger{}, "firefox:>45.0,51.0;opera; android:7.1;firefox:<50.0")
+	AssertThat(t, len(output), EqualTo{3})
+
+	ff, ok := output["firefox"]
+	AssertThat(t, ok, Is{true})
+	AssertThat(t, ff, Not{nil})
+	AssertThat(t, len(ff), EqualTo{2})
+
+	opera, ok := output["opera"]
+	AssertThat(t, ok, Is{true})
+	AssertThat(t, len(opera), EqualTo{0})
+
+	android, ok := output["android"]
+	AssertThat(t, ok, Is{true})
+	AssertThat(t, android, Not{nil})
+	AssertThat(t, len(android), EqualTo{1})
+}
