@@ -538,6 +538,7 @@ table.CodeRay td.code>pre{padding:0}
 <li><a href="#_configuring_selenoid">2. Configuring Selenoid</a>
 <ul class="sectlevel3">
 <li><a href="#_example_commands">2.1. Example Commands</a></li>
+<li><a href="#_downloading_only_some_browser_versions">2.2. Downloading Only Some Browser Versions</a></li>
 </ul>
 </li>
 <li><a href="#_starting_selenoid_ui">3. Starting Selenoid UI</a>
@@ -825,6 +826,30 @@ directory using <code>--config-dir</code> flag. To download images with VNC serv
 </ul>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_downloading_only_some_browser_versions"><a class="anchor" href="#_downloading_only_some_browser_versions"></a>2.2. Downloading Only Some Browser Versions</h4>
+<div class="paragraph">
+<p>By default CM downloads browser images corresponding to 2 last versions of Firefox, Chrome and Opera. To download concrete browser versions - use <code>--browsers</code> flag as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">Download concrete versions of Firefox and Chrome</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid start --browsers 'firefox:51.0;firefox:55.0;chrome:66.0'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Download a range of Firefox versions and 3 last Opera versions</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid start --browsers 'firefox:&gt;51.0,&lt;=55.0;opera' --last-versions 3</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Download Android image (not downloaded by default because of image size)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">./cm selenoid start --browsers 'android:6.0'</code></pre>
+</div>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_starting_selenoid_ui"><a class="anchor" href="#_starting_selenoid_ui"></a>3. Starting Selenoid UI</h3>
@@ -1002,7 +1027,7 @@ $ docker build -t cm:latest .</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version latest<br>
-Last updated 2018-12-20 06:53:05 UTC
+Last updated 2018-12-20 08:20:21 UTC
 </div>
 </div>
 <!-- Yandex.Metrika counter -->
