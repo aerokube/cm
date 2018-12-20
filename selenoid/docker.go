@@ -355,30 +355,32 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 	return browsers
 }
 
-func parseRequestedBrowsers(logger *Logger, requestedBrowsers string) map[string]*ver.Constraints {
-	ret := make(map[string]*ver.Constraints)
+func parseRequestedBrowsers(logger *Logger, requestedBrowsers string) map[string][]ver.Constraints {
+	ret := make(map[string][]ver.Constraints)
 	if requestedBrowsers != "" {
 		for _, section := range strings.Split(requestedBrowsers, semicolon) {
 			pieces := strings.Split(section, colon)
-			if len(pieces) == 2 {
-				browserName := pieces[0]
-				versionConstraintString := pieces[1]
-				versionConstraint, err := ver.NewConstraint(versionConstraintString)
-				if err != nil {
-					logger.Errorf(`Invalid version constraint %s: %v - ignoring browser "%s"...`, versionConstraintString, err, browserName)
-					continue
+			if len(pieces) >= 1 {
+				browserName := strings.TrimSpace(pieces[0])
+				if _, ok := ret[browserName]; !ok {
+					ret[browserName] = []ver.Constraints{}
 				}
-				ret[browserName] = &versionConstraint
-			} else if len(pieces) == 1 {
-				browserName := pieces[0]
-				ret[browserName] = nil
+				if len(pieces) == 2 {
+					versionConstraintString := strings.TrimSpace(pieces[1])
+					versionConstraint, err := ver.NewConstraint(versionConstraintString)
+					if err != nil {
+						logger.Errorf(`Invalid version constraint %s: %v - ignoring browser "%s"...`, versionConstraintString, err, browserName)
+						continue
+					}
+					ret[browserName] = append(ret[browserName], versionConstraint)
+				}
 			}
 		}
 	}
 	return ret
 }
 
-func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string]*ver.Constraints) map[string]string {
+func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string][]ver.Constraints) map[string]string {
 	defaultBrowsers := map[string]string{
 		"firefox": "selenoid/firefox",
 		"chrome":  "selenoid/chrome",
@@ -430,8 +432,8 @@ func filterOutLatest(tags []string) []string {
 	return ret
 }
 
-func (c *DockerConfigurator) filterTags(tags []string, versionConstraint *ver.Constraints) []string {
-	if versionConstraint != nil {
+func (c *DockerConfigurator) filterTags(tags []string, versionConstraints []ver.Constraints) []string {
+	if len(versionConstraints) > 0 {
 		var ret []string
 		for _, tag := range tags {
 			version, err := ver.NewVersion(tag)
@@ -439,8 +441,10 @@ func (c *DockerConfigurator) filterTags(tags []string, versionConstraint *ver.Co
 				c.Errorf("Skipping tag %s as it does not follow semantic versioning: %v", tag, err)
 				continue
 			}
-			if versionConstraint.Check(version) {
-				ret = append(ret, tag)
+			for _, vc := range versionConstraints {
+				if vc.Check(version) {
+					ret = append(ret, tag)
+				}
 			}
 		}
 		return ret

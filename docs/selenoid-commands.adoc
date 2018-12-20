@@ -161,3 +161,25 @@ An alternative to downloading `cm` manually is using Docker container:
 ----
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root -e OVERRIDE_HOME=${HOME} aerokube/cm:latest-release selenoid start
 ----
+
+=== Downloading Only Some Browser Versions
+
+By default CM downloads browser images corresponding to 2 last versions of Firefox, Chrome and Opera. To download concrete browser versions - use `--browsers` flag as follows:
+
+.Download concrete versions of Firefox and Chrome
+[source,bash]
+----
+./cm selenoid start --browsers 'firefox:51.0;firefox:55.0;chrome:66.0'
+----
+
+.Download a range of Firefox versions and 3 last Opera versions
+[source,bash]
+----
+./cm selenoid start --browsers 'firefox:>51.0,<=55.0;opera' --last-versions 3
+----
+
+.Download Android image (not downloaded by default because of image size)
+[source,bash]
+----
+./cm selenoid start --browsers 'android:6.0'
+----
