@@ -1,6 +1,6 @@
 {
   "chrome": {
-    "command": "%s --whitelisted-ips='' --verbose",
+    "command": "%s --whitelisted-ips= --verbose",
     "files": {
       "linux": {
         "amd64": {
@@ -26,7 +26,7 @@
       }
     }
   },
-  
+
   "firefox": {
     "command": "%s --host 127.0.0.1 --log debug",
     "files": {
@@ -58,7 +58,7 @@
       }
     }
   },
-  
+
   "opera": {
     "command": "%s --whitelisted-ips='' --verbose",
     "files": {
@@ -87,7 +87,7 @@
 
     }
   },
-  
+
   "safari": {
     "command": "%s",
     "files": {
@@ -115,7 +115,7 @@
       }
     }
   },
-  
+
   "MicrosoftEdge": {
     "command": "%s --host=127.0.0.1 --verbose",
     "files": {
