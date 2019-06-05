@@ -88,6 +88,12 @@ func mux() http.Handler {
 			fmt.Fprintln(w, `{"name":"opera", "tags": ["44.0", "latest"]}`)
 		},
 	))
+	mux.HandleFunc("/v2/selenoid/yandex/tags/list", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Content-Type", "application/json")
+			fmt.Fprintln(w, `{"name":"yandex", "tags": ["19.4.2.698", "latest"]}`)
+		},
+	))
 
 	//Docker API mock
 	mux.HandleFunc("/v1.29/version", http.HandlerFunc(
@@ -261,7 +267,7 @@ func testConfigure(t *testing.T, download bool) {
 			Quiet:        false,
 			LastVersions: 2,
 			Tmpfs:        512,
-			Browsers:     "firefox:>45.0;opera",
+			Browsers:     "firefox:>45.0;opera;yandex",
 			Args:         "-limit 42",
 			VNC:          true,
 			Env:          testEnv,
@@ -277,7 +283,7 @@ func testConfigure(t *testing.T, download bool) {
 		AssertThat(t, cfgPointer, Is{Not{nil}})
 
 		cfg := *cfgPointer
-		AssertThat(t, len(cfg), EqualTo{2})
+		AssertThat(t, len(cfg), EqualTo{3})
 
 		firefoxVersions, hasFirefoxKey := cfg["firefox"]
 		AssertThat(t, hasFirefoxKey, Is{true})
@@ -315,6 +321,24 @@ func testConfigure(t *testing.T, download bool) {
 		AssertThat(t, operaVersions, EqualTo{config.Versions{
 			Default:  "44.0",
 			Versions: correctOperaBrowsers,
+		}})
+
+		yandexVersions, hasYandexKey := cfg["yandex"]
+		AssertThat(t, hasYandexKey, Is{true})
+		AssertThat(t, yandexVersions, Is{Not{nil}})
+		AssertThat(t, yandexVersions.Default, EqualTo{"19.4.2.698"})
+
+		correctYandexBrowsers := make(map[string]*config.Browser)
+		correctYandexBrowsers["19.4.2.698"] = &config.Browser{
+			Image: "selenoid/vnc_yandex:19.4.2.698",
+			Port:  "4444",
+			Path:  "/",
+			Tmpfs: tmpfsMap,
+			Env:   []string{testEnv},
+		}
+		AssertThat(t, yandexVersions, EqualTo{config.Versions{
+			Default:  "19.4.2.698",
+			Versions: correctYandexBrowsers,
 		}})
 	})
 }
@@ -479,8 +503,8 @@ func TestValidEnviron(t *testing.T) {
 }
 
 func TestParseRequestedBrowsers(t *testing.T) {
-	output := parseRequestedBrowsers(&Logger{}, "firefox:>45.0,51.0;opera; android:7.1;firefox:<50.0")
-	AssertThat(t, len(output), EqualTo{3})
+	output := parseRequestedBrowsers(&Logger{}, "firefox:>45.0,51.0;opera; android:7.1;firefox:<50.0;yandex")
+	AssertThat(t, len(output), EqualTo{4})
 
 	ff, ok := output["firefox"]
 	AssertThat(t, ok, Is{true})
@@ -490,6 +514,10 @@ func TestParseRequestedBrowsers(t *testing.T) {
 	opera, ok := output["opera"]
 	AssertThat(t, ok, Is{true})
 	AssertThat(t, len(opera), EqualTo{0})
+
+	yandex, ok := output["yandex"]
+	AssertThat(t, ok, Is{true})
+	AssertThat(t, len(yandex), EqualTo{0})
 
 	android, ok := output["android"]
 	AssertThat(t, ok, Is{true})

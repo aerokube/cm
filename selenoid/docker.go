@@ -49,6 +49,7 @@ const (
 	firefox                 = "firefox"
 	android                 = "android"
 	opera                   = "opera"
+	yandex                  = "yandex"
 	tag_1216                = "12.16"
 	selenoidImage           = "aerokube/selenoid"
 	selenoidUIImage         = "aerokube/selenoid-ui"
@@ -336,7 +337,11 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 		tags := c.fetchImageTags(image)
 		if c.VNC {
 			c.Pointf("Requested to download VNC images...")
-			image = fmt.Sprintf("selenoid/vnc_%s", browserName)
+			if browserName == yandex {
+				image = fmt.Sprintf("zarrom/vnc_%s", browserName)
+			} else {
+				image = fmt.Sprintf("selenoid/vnc_%s", browserName)
+			}
 		}
 		versionConstraint := requestedBrowsers[browserName]
 		pulledTags := c.filterTags(tags, versionConstraint)
@@ -389,6 +394,9 @@ func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string][
 	if len(requestedBrowsers) > 0 {
 		if _, ok := requestedBrowsers[android]; ok {
 			defaultBrowsers[android] = "selenoid/android"
+		}
+		if _, ok := requestedBrowsers[yandex]; ok {
+			defaultBrowsers[yandex] = "zarrom/yandex"
 		}
 		ret := make(map[string]string)
 		for browserName := range requestedBrowsers {
