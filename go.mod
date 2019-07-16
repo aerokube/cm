@@ -1,15 +1,16 @@
 module github.com/aerokube/cm
 
 require (
+	github.com/Microsoft/hcsshim v0.8.6 // indirect
 	github.com/aandryashin/matchers v0.0.0-20161126170413-435295ea180e
 	github.com/aerokube/selenoid v0.0.0-20171028174040-28a032c1afe5
-	github.com/aerokube/util v0.0.0-20181109152531-929c045711cf
+	github.com/aerokube/util v0.0.0-20190701120823-161c21b50f69
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
 	github.com/containerd/continuity v0.0.0-20171215195539-b2b946a77f59 // indirect
 	github.com/docker/cli v0.0.0-20181003080632-608b6632b058
-	github.com/docker/docker v0.7.3-0.20181109141713-1e7c43dfae3f
+	github.com/docker/docker v0.7.3-0.20190629173937-e105a74c5419
 	github.com/docker/docker-credential-helpers v0.6.0 // indirect
-	github.com/docker/go-connections v0.3.0
+	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-metrics v0.0.0-20180209012529-399ea8c73916 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/fatih/color v1.5.0
@@ -31,8 +32,6 @@ require (
 	github.com/spf13/cobra v0.0.1
 	github.com/spf13/pflag v1.0.0 // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
-	golang.org/x/net v0.0.0-20180906233101-161cd47e91fd // indirect
-	golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.18
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4
 )
