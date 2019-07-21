@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/docker/go-units"
 	"io/ioutil"
 	"log"
 	"sort"
@@ -77,6 +78,7 @@ type DockerConfigurator struct {
 	LastVersions     int
 	Pull             bool
 	RegistryUrl      string
+	ShmSize          int
 	Tmpfs            int
 	VNC              bool
 	docker           *client.Client
@@ -100,6 +102,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		LogsAware:              LogsAware{DisableLogs: config.DisableLogs},
 		RegistryUrl:            config.RegistryUrl,
 		LastVersions:           config.LastVersions,
+		ShmSize:                config.ShmSize,
 		Tmpfs:                  config.Tmpfs,
 		VNC:                    config.VNC,
 	}
@@ -473,6 +476,9 @@ func (c *DockerConfigurator) createVersions(browserName string, image string, ta
 			tmpfs := make(map[string]string)
 			tmpfs["/tmp"] = fmt.Sprintf("size=%dm", c.Tmpfs)
 			browser.Tmpfs = tmpfs
+		}
+		if c.ShmSize > 0 {
+			browser.ShmSize, _ = units.RAMInBytes(fmt.Sprintf("%dm", c.ShmSize))
 		}
 		browserEnv := strings.Fields(c.BrowserEnv)
 		if len(browserEnv) > 0 {

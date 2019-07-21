@@ -11,10 +11,12 @@ import (
 var (
 	lastVersions    int
 	tmpfs           int
+	shmSize         int
 	operatingSystem string
 	arch            string
 	version         string
 	browsers        string
+	useDrivers      bool
 	browsersJSONUrl string
 	configDir       string
 	uiConfigDir     string
@@ -132,9 +134,11 @@ func initFlags() {
 	} {
 		c.Flags().StringVarP(&browsers, "browsers", "b", "", "semicolon separated list of browser names to process")
 		c.Flags().StringVarP(&browserEnv, "browser-env", "w", "", "override container or driver environment variables (e.g. \"KEY1=value1 KEY2=value2\")")
+		c.Flags().BoolVarP(&useDrivers, "use-drivers", "d", false, "use drivers mode instead of Docker")
 		c.Flags().StringVarP(&browsersJSONUrl, "browsers-json", "j", selenoid.DefaultBrowsersJsonURL, "browsers JSON data URL (in most cases never need to be set manually)")
 		c.Flags().BoolVarP(&skipDownload, "no-download", "n", false, "only output config file without downloading images or drivers")
 		c.Flags().IntVarP(&lastVersions, "last-versions", "l", 2, "process only last N versions (Docker only)")
+		c.Flags().IntVarP(&shmSize, "shm-size", "z", 0, "add shmSize sized in megabytes (Docker only)")
 		c.Flags().IntVarP(&tmpfs, "tmpfs", "t", 0, "add tmpfs volume sized in megabytes (Docker only)")
 		c.Flags().BoolVarP(&vnc, "vnc", "s", false, "download containers with VNC support (Docker only)")
 	}
@@ -167,6 +171,7 @@ func createLifecycle(configDir string, port uint16) (*selenoid.Lifecycle, error)
 		Quiet:       quiet,
 		Force:       force,
 		ConfigDir:   configDir,
+		UseDrivers:  useDrivers,
 		Browsers:    browsers,
 		BrowserEnv:  browserEnv,
 		Download:    !skipDownload,
@@ -177,6 +182,7 @@ func createLifecycle(configDir string, port uint16) (*selenoid.Lifecycle, error)
 
 		LastVersions: lastVersions,
 		RegistryUrl:  registry,
+		ShmSize:      shmSize,
 		Tmpfs:        tmpfs,
 		VNC:          vnc,
 		UserNS:       userNS,

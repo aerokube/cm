@@ -2,6 +2,7 @@ package selenoid
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/docker/docker/client"
 	"github.com/fatih/color"
@@ -24,11 +25,13 @@ type LifecycleConfig struct {
 	// Docker specific
 	LastVersions int
 	RegistryUrl  string
+	ShmSize      int
 	Tmpfs        int
 	VNC          bool
 	UserNS       string
 
 	// Drivers specific
+	UseDrivers      bool
 	BrowsersJsonUrl string
 	GithubBaseUrl   string
 	OS              string
@@ -53,20 +56,8 @@ func NewLifecycle(config *LifecycleConfig) (*Lifecycle, error) {
 		Forceable: Forceable{Force: config.Force},
 		Config:    config,
 	}
-	if isDockerAvailable() {
-		lc.Titlef("Using %v", color.BlueString("Docker"))
-		dockerCfg, err := NewDockerConfigurator(config)
-		if err != nil {
-			return nil, err
-		}
-		lc.argsAware = dockerCfg
-		lc.statusAware = dockerCfg
-		lc.downloadable = dockerCfg
-		lc.configurable = dockerCfg
-		lc.runnable = dockerCfg
-		lc.closer = dockerCfg
-	} else {
-		lc.Titlef("Docker is not supported - using binaries...")
+	if config.UseDrivers {
+		lc.Titlef("Using driver binaries...")
 		driversCfg := NewDriversConfigurator(config)
 		lc.argsAware = driversCfg
 		lc.statusAware = driversCfg
@@ -74,7 +65,22 @@ func NewLifecycle(config *LifecycleConfig) (*Lifecycle, error) {
 		lc.configurable = driversCfg
 		lc.runnable = driversCfg
 		lc.closer = driversCfg
+		return &lc, nil
 	}
+	if !isDockerAvailable() {
+		return nil, errors.New("can not access Docker: make sure you have Docker installed and current user has access permissions")
+	}
+	lc.Titlef("Using %v", color.BlueString("Docker"))
+	dockerCfg, err := NewDockerConfigurator(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Docker support: %v", err)
+	}
+	lc.argsAware = dockerCfg
+	lc.statusAware = dockerCfg
+	lc.downloadable = dockerCfg
+	lc.configurable = dockerCfg
+	lc.runnable = dockerCfg
+	lc.closer = dockerCfg
 	return &lc, nil
 }
 
