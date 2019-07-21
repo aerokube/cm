@@ -25,6 +25,7 @@ type LifecycleConfig struct {
 	// Docker specific
 	LastVersions int
 	RegistryUrl  string
+	ShmSize      int
 	Tmpfs        int
 	VNC          bool
 	UserNS       string

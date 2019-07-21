@@ -261,6 +261,7 @@ func testConfigure(t *testing.T, download bool) {
 			Quiet:        false,
 			LastVersions: 2,
 			Tmpfs:        512,
+			ShmSize:      256,
 			Browsers:     "firefox:>45.0;opera",
 			Args:         "-limit 42",
 			VNC:          true,
@@ -288,11 +289,12 @@ func testConfigure(t *testing.T, download bool) {
 
 		correctFFBrowsers := make(map[string]*config.Browser)
 		correctFFBrowsers["46.0"] = &config.Browser{
-			Image: "selenoid/vnc_firefox:46.0",
-			Port:  "4444",
-			Path:  "/wd/hub",
-			Tmpfs: tmpfsMap,
-			Env:   []string{testEnv},
+			Image:   "selenoid/vnc_firefox:46.0",
+			Port:    "4444",
+			Path:    "/wd/hub",
+			Tmpfs:   tmpfsMap,
+			ShmSize: 268435456,
+			Env:     []string{testEnv},
 		}
 		AssertThat(t, firefoxVersions, EqualTo{config.Versions{
 			Default:  "46.0",
@@ -306,11 +308,12 @@ func testConfigure(t *testing.T, download bool) {
 
 		correctOperaBrowsers := make(map[string]*config.Browser)
 		correctOperaBrowsers["44.0"] = &config.Browser{
-			Image: "selenoid/vnc_opera:44.0",
-			Port:  "4444",
-			Path:  "/",
-			Tmpfs: tmpfsMap,
-			Env:   []string{testEnv},
+			Image:   "selenoid/vnc_opera:44.0",
+			Port:    "4444",
+			Path:    "/",
+			Tmpfs:   tmpfsMap,
+			ShmSize: 268435456,
+			Env:     []string{testEnv},
 		}
 		AssertThat(t, operaVersions, EqualTo{config.Versions{
 			Default:  "44.0",
