@@ -72,6 +72,7 @@ func initFlags() {
 		selenoidUIStatusCmd,
 	} {
 		c.Flags().BoolVarP(&quiet, "quiet", "q", false, "suppress output")
+		c.Flags().BoolVarP(&useDrivers, "use-drivers", "d", false, "use drivers mode instead of Docker")
 	}
 	for _, c := range []*cobra.Command{
 		selenoidDownloadCmd,
@@ -134,7 +135,6 @@ func initFlags() {
 	} {
 		c.Flags().StringVarP(&browsers, "browsers", "b", "", "semicolon separated list of browser names to process")
 		c.Flags().StringVarP(&browserEnv, "browser-env", "w", "", "override container or driver environment variables (e.g. \"KEY1=value1 KEY2=value2\")")
-		c.Flags().BoolVarP(&useDrivers, "use-drivers", "d", false, "use drivers mode instead of Docker")
 		c.Flags().StringVarP(&browsersJSONUrl, "browsers-json", "j", selenoid.DefaultBrowsersJsonURL, "browsers JSON data URL (in most cases never need to be set manually)")
 		c.Flags().BoolVarP(&skipDownload, "no-download", "n", false, "only output config file without downloading images or drivers")
 		c.Flags().IntVarP(&lastVersions, "last-versions", "l", 2, "process only last N versions (Docker only)")
