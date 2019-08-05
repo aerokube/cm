@@ -665,7 +665,7 @@ func (c *DockerConfigurator) Start() error {
 		fmt.Sprintf("%s:/opt/selenoid/logs:Z", logsConfigDir),
 	}
 	const dockerSocket = "/var/run/docker.sock"
-	if c.isDockerForWindows() {
+	if isWindows() {
 		//With two slashes. See https://stackoverflow.com/questions/36765138/bind-to-docker-socket-on-windows
 		volumes = append(volumes, fmt.Sprintf("/%s:%s", dockerSocket, dockerSocket))
 	} else if fileExists(dockerSocket) {
@@ -705,15 +705,6 @@ func (c *DockerConfigurator) Start() error {
 	return c.startContainer(cfg)
 }
 
-func (c *DockerConfigurator) isDockerForWindows() bool {
-	info, err := c.docker.Info(context.Background())
-	if err != nil {
-		c.Pointf("Failed to determine whether this is Docker for Windows: %v", err)
-		return false
-	}
-	return strings.Contains(info.OSType, "linux") && strings.Contains(strings.ToLower(info.OperatingSystem), "windows")
-}
-
 func isVideoRecordingSupported(logger Logger, version string) bool {
 	return isVersion(version, ">= 1.4.0", func(version string) {
 		logger.Pointf(`Not enabling video feature because specified version "%s" is not semantic`, version)
@@ -739,9 +730,13 @@ func isLogSavingSupported(logger Logger, version string) bool {
 	})
 }
 
+func isWindows() bool {
+	return runtime.GOOS == "windows"
+}
+
 func getVolumeConfigDir(defaultConfigDir string, elem []string) string {
 	configDir := chooseVolumeConfigDir(defaultConfigDir, elem)
-	if runtime.GOOS == "windows" { //A bit ugly, but conditional compilation is even worse
+	if isWindows() { //A bit ugly, but conditional compilation is even worse
 		return postProcessPath(configDir)
 	}
 	return configDir
