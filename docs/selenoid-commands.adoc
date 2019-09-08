@@ -12,7 +12,14 @@ curl -s https://aerokube.com/cm/bash | bash \
 && ./cm selenoid start --vnc
 ----
 
-**On Windows** - just download the latest binary with your browser from https://github.com/aerokube/cm/releases/latest[releases page] for windows (386 and amd64 binaries available).
+.On Windows
+[source,powershell]
+----
+> Invoke-Expression (New-Object System.Net.WebClient).DownloadString("https://aerokube.com/cm/posh")
+> ./cm.exe selenoid start --vnc
+----
+
+or just download the latest binary with your browser from https://github.com/aerokube/cm/releases/latest[releases page] for windows (386 and amd64 binaries available).
 Then if you have https://en.wikipedia.org/wiki/PowerShell[Powershell] type:
 
 [source,powershell]
@@ -76,7 +83,7 @@ To launch command:
 
 Supported commands are:
 
-.Commands to configure and run Selenoid 
+.Commands to configure and run Selenoid
 |===
 | Command | Meaning
 
@@ -114,7 +121,7 @@ This command does nothing when already downloaded. Use `--force` flag to downloa
 ----
 ./cm selenoid configure [--browsers firefox:>45.0;opera:53.0;android] [--last-versions 2] [--tmpfs 128]
 ----
-+    
++
 Use `--browsers` to limit browsers to be configured, `--tmpfs` - to add https://en.wikipedia.org/wiki/Tmpfs[Tmpfs] support, `--last-versions` - to limit how many last browser versions to download. If you wish to download all available versions - specify `--last-versions 0`.
 
 
@@ -124,7 +131,7 @@ Use `--browsers` to limit browsers to be configured, `--tmpfs` - to add https://
 ----
 ./cm selenoid start
 ----
-+    
++
 By default Selenoid data is stored in `~/.aerokube/selenoid` but you can specify another
 directory using `--config-dir` flag. To download images with VNC server (to see live browser screen) use `--vnc` flag:
 +
