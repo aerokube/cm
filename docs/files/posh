@@ -1,0 +1,53 @@
+# Apache License Version 2.0, January 2004
+# https://github.com/aerokube/cm/blob/master/LICENSE
+
+$hello = "
+█████╗ ███████╗██████╗  ██████╗ ██╗  ██╗██╗   ██╗██████╗ ███████╗     ██████╗███╗   ███╗
+██╔══██╗██╔════╝██╔══██╗██╔═══██╗██║ ██╔╝██║   ██║██╔══██╗██╔════╝    ██╔════╝████╗ ████║
+███████║█████╗  ██████╔╝██║   ██║█████╔╝ ██║   ██║██████╔╝█████╗      ██║     ██╔████╔██║
+██╔══██║██╔══╝  ██╔══██╗██║   ██║██╔═██╗ ██║   ██║██╔══██╗██╔══╝      ██║     ██║╚██╔╝██║
+██║  ██║███████╗██║  ██║╚██████╔╝██║  ██╗╚██████╔╝██████╔╝███████╗    ╚██████╗██║ ╚═╝ ██║
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝     ╚═════╝╚═╝     ╚═╝
+"
+
+if ($env:PROCESSOR_ARCHITECTURE -eq "AMD64") {
+    $platform = "windows_amd64"
+}
+else {
+    $platform = "windows_386"
+}
+
+Write-Host -ForegroundColor Gray $hello;
+
+$json = (Invoke-WebRequest -UseBasicParsing "https://api.github.com/repos/aerokube/cm/releases/latest").Content | ConvertFrom-Json
+
+ForEach ($asset in $json.assets) {
+    $url = $asset.browser_download_url
+    if ($url -match $platform) {
+        $latest_binary_url = $url
+    }
+}
+
+if ([string]::IsNullOrEmpty($latest_binary_url)) {
+    Write-Error "Сan't find URL for latest release!"
+}
+
+Invoke-WebRequest -Uri $latest_binary_url -OutFile ".\cm.exe"
+
+Write-Host -ForegroundColor Green "
+SUCCESSFULLY DOWNLOADED!
+"
+
+.\cm version
+
+Write-Host -NoNewline "
+Now you can run "
+Write-Host -NoNewline -ForegroundColor Cyan "Selenoid"
+Write-Host -NoNewline " with "
+Write-Host -NoNewline -ForegroundColor Cyan "cm"
+Write-Host ":"
+Write-Host -ForegroundColor Cyan "    ./cm selenoid start --vnc"
+Write-Host "
+To get instant help just type:
+"
+Write-Host -ForegroundColor Cyan "    ./cm --help"
