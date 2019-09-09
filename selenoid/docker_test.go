@@ -274,7 +274,7 @@ func testConfigure(t *testing.T, download bool) {
 		c, err := NewDockerConfigurator(&lcConfig)
 		AssertThat(t, err, Is{nil})
 		defer c.Close()
-		c.registryHostname = ""
+		c.registryHost = ""
 		AssertThat(t, c.IsConfigured(), Is{false})
 		cfgPointer, err := (*c).Configure()
 		AssertThat(t, err, Is{nil})
@@ -353,7 +353,7 @@ func TestSyncWithConfig(t *testing.T) {
 		c, err := NewDockerConfigurator(&lcConfig)
 		AssertThat(t, err, Is{nil})
 		defer c.Close()
-		c.registryHostname = ""
+		c.registryHost = ""
 		AssertThat(t, c.IsConfigured(), Is{false})
 		cfgPointer, err := (*c).Configure()
 		AssertThat(t, err, Is{nil})
@@ -406,7 +406,7 @@ func TestDownload(t *testing.T) {
 		Version:     Latest,
 	})
 	AssertThat(t, err, Is{nil})
-	c.registryHostname = ""
+	c.registryHost = ""
 	AssertThat(t, c.IsDownloaded(), Is{true})
 	ref, err := c.Download()
 	AssertThat(t, ref, Not{nil})
@@ -425,7 +425,7 @@ func TestDownloadUI(t *testing.T) {
 	})
 	setImageName(selenoidUIImage)
 	AssertThat(t, err, Is{nil})
-	c.registryHostname = ""
+	c.registryHost = ""
 	AssertThat(t, c.IsUIDownloaded(), Is{true})
 	ref, err := c.DownloadUI()
 	AssertThat(t, ref, Not{nil})

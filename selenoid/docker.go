@@ -75,17 +75,17 @@ type DockerConfigurator struct {
 	PortAware
 	UserNSAware
 	LogsAware
-	LastVersions     int
-	Pull             bool
-	RegistryUrl      string
-	BrowsersJson     string
-	ShmSize          int
-	Tmpfs            int
-	VNC              bool
-	docker           *client.Client
-	reg              *registry.Registry
-	authConfig       *types.AuthConfig
-	registryHostname string
+	LastVersions int
+	Pull         bool
+	RegistryUrl  string
+	BrowsersJson string
+	ShmSize      int
+	Tmpfs        int
+	VNC          bool
+	docker       *client.Client
+	reg          *registry.Registry
+	authConfig   *types.AuthConfig
+	registryHost string
 }
 
 func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error) {
@@ -154,12 +154,12 @@ func (c *DockerConfigurator) initAuthConfig() (*types.AuthConfig, error) {
 		return nil, err
 	}
 
-	registryHostname := u.Hostname()
+	registryHost := u.Host
 	if c.RegistryUrl != DefaultRegistryUrl {
-		c.registryHostname = registryHostname
+		c.registryHost = registryHost
 	}
-	if cfg, ok := configFile.AuthConfigs[registryHostname]; ok {
-		c.Titlef(`Loaded authentication data for "%s"`, registryHostname)
+	if cfg, ok := configFile.AuthConfigs[registryHost]; ok {
+		c.Titlef(`Loaded authentication data for "%s"`, registryHost)
 		return &cfg, nil
 	}
 
@@ -547,8 +547,8 @@ func (c *DockerConfigurator) pullVideoRecorderImage() {
 }
 
 func (c *DockerConfigurator) getFullyQualifiedImageRef(ref string) string {
-	if c.registryHostname != "" {
-		return fmt.Sprintf("%s/%s", c.registryHostname, ref)
+	if c.registryHost != "" {
+		return fmt.Sprintf("%s/%s", c.registryHost, ref)
 	}
 	return ref
 }
