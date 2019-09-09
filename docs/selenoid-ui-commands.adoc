@@ -31,7 +31,7 @@ To see supported flags for each command append `--help`:
 === Example Commands
 These commands just repeat similar commands for Selenoid so we give no comments here:
 
-    $ ./cm selenoid-ui download [--version 1.2.1] [--force]
+    $ ./cm selenoid-ui download --version 1.2.1 --force
     $ ./cm selenoid-ui start
     $ ./cm selenoid-ui start --port 8081
     $ ./cm selenoid-ui start --args "--period 100ms"
