@@ -67,8 +67,8 @@ type DriversConfigurator struct {
 	PortAware
 	RequestedBrowsersAware
 	LogsAware
-	Browsers        string
-	BrowsersJsonUrl string
+	Browsers       string
+	DriversInfoUrl string
 
 	GithubBaseUrl string
 	OS            string
@@ -87,7 +87,7 @@ func NewDriversConfigurator(config *LifecycleConfig) *DriversConfigurator {
 		DownloadAware:          DownloadAware{DownloadNeeded: config.Download},
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
 		LogsAware:              LogsAware{DisableLogs: config.DisableLogs},
-		BrowsersJsonUrl:        config.BrowsersJsonUrl,
+		DriversInfoUrl:         config.DriversInfoUrl,
 		Browsers:               config.Browsers,
 		GithubBaseUrl:          config.GithubBaseUrl,
 		OS:                     config.OS,
@@ -309,7 +309,7 @@ func (d *DriversConfigurator) generateConfig(downloadedDrivers []downloadedDrive
 }
 
 func (d *DriversConfigurator) loadAvailableBrowsers() (*Browsers, error) {
-	jsonUrl := d.BrowsersJsonUrl
+	jsonUrl := d.DriversInfoUrl
 	d.Titlef("Downloading browser data from: %s", color.BlueString(jsonUrl))
 	data, err := downloadFile(jsonUrl)
 	if err != nil {
