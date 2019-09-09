@@ -6,12 +6,12 @@ This section describes supported ways of automatic https://github.com/aerokube/s
 To quickly run Selenoid UI type:
 
     $ ./cm selenoid-ui start
-    
+
 ====
 
 Selenoid UI configuration algorithm is similar to Selenoid one - it is started either in Docker container if you have Docker installed or as a standalone binary otherwise. Supported commands are:
 
-.Commands to run Selenoid UI 
+.Commands to run Selenoid UI
 |===
 | Command | Meaning
 
@@ -35,5 +35,4 @@ These commands just repeat similar commands for Selenoid so we give no comments 
     $ ./cm selenoid-ui start
     $ ./cm selenoid-ui start --port 8081
     $ ./cm selenoid-ui start --args "--period 100ms"
-    # docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root aerokube/cm:latest-release selenoid-ui start
-    
+
