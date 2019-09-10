@@ -27,16 +27,6 @@ Then if you have https://en.wikipedia.org/wiki/PowerShell[Powershell] type:
 > ./cm.exe selenoid start --vnc
 ----
 
-[NOTE]
-====
-If you have https://docs.docker.com/engine/installation/[Docker] installed you can also use this one-liner:
-[source,bash,subs="attributes+"]
-# docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  \
-    -v ${HOME}:/root                                            \
-    -e OVERRIDE_HOME=${HOME}                                    \
-    aerokube/cm:latest-release selenoid start --vnc --tmpfs 128
-====
-
 [WARNING]
 ====
 If you are working behind proxy you should set environment variables `HTTP_PROXY`, `HTTPS_PROXY` or `NO_PROXY`
@@ -109,7 +99,7 @@ To see supported flags for each command append `--help`:
 +
 [source,bash]
 ----
-./cm selenoid download [--version 1.2.1] [--force]
+./cm selenoid download --version 1.2.1 --force
 ----
 +
 This command does nothing when already downloaded. Use `--force` flag to download again.
@@ -119,7 +109,7 @@ This command does nothing when already downloaded. Use `--force` flag to downloa
 +
 [source,bash]
 ----
-./cm selenoid configure [--browsers firefox:>45.0;opera:53.0;android] [--last-versions 2] [--tmpfs 128]
+./cm selenoid configure --browsers firefox:>45.0;opera:53.0;android --last-versions 2 --tmpfs 128
 ----
 +
 Use `--browsers` to limit browsers to be configured, `--tmpfs` - to add https://en.wikipedia.org/wiki/Tmpfs[Tmpfs] support, `--last-versions` - to limit how many last browser versions to download. If you wish to download all available versions - specify `--last-versions 0`.
@@ -160,13 +150,6 @@ To download images from private registry - log in with `docker login` command an
 ----
 docker login my-registry.example.com # Specify user name and password
 ./cm selenoid start --registry https://my-registry.example.com
-----
-+
-An alternative to downloading `cm` manually is using Docker container:
-+
-[source,bash]
-----
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${HOME}:/root -e OVERRIDE_HOME=${HOME} aerokube/cm:latest-release selenoid start
 ----
 
 === Downloading Only Some Browser Versions

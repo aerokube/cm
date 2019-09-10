@@ -75,16 +75,17 @@ type DockerConfigurator struct {
 	PortAware
 	UserNSAware
 	LogsAware
-	LastVersions     int
-	Pull             bool
-	RegistryUrl      string
-	ShmSize          int
-	Tmpfs            int
-	VNC              bool
-	docker           *client.Client
-	reg              *registry.Registry
-	authConfig       *types.AuthConfig
-	registryHostname string
+	LastVersions int
+	Pull         bool
+	RegistryUrl  string
+	BrowsersJson string
+	ShmSize      int
+	Tmpfs        int
+	VNC          bool
+	docker       *client.Client
+	reg          *registry.Registry
+	authConfig   *types.AuthConfig
+	registryHost string
 }
 
 func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error) {
@@ -101,6 +102,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		UserNSAware:            UserNSAware{UserNS: config.UserNS},
 		LogsAware:              LogsAware{DisableLogs: config.DisableLogs},
 		RegistryUrl:            config.RegistryUrl,
+		BrowsersJson:           config.BrowsersJson,
 		LastVersions:           config.LastVersions,
 		ShmSize:                config.ShmSize,
 		Tmpfs:                  config.Tmpfs,
@@ -152,12 +154,12 @@ func (c *DockerConfigurator) initAuthConfig() (*types.AuthConfig, error) {
 		return nil, err
 	}
 
-	registryHostname := u.Hostname()
+	registryHost := u.Host
 	if c.RegistryUrl != DefaultRegistryUrl {
-		c.registryHostname = registryHostname
+		c.registryHost = registryHost
 	}
-	if cfg, ok := configFile.AuthConfigs[registryHostname]; ok {
-		c.Titlef(`Loaded authentication data for "%s"`, registryHostname)
+	if cfg, ok := configFile.AuthConfigs[registryHost]; ok {
+		c.Titlef(`Loaded authentication data for "%s"`, registryHost)
 		return &cfg, nil
 	}
 
@@ -318,6 +320,10 @@ func (c *DockerConfigurator) IsConfigured() bool {
 }
 
 func (c *DockerConfigurator) Configure() (*SelenoidConfig, error) {
+	if c.BrowsersJson != "" {
+		return c.syncWithConfig()
+	}
+
 	cfg := c.createConfig()
 	data, err := json.MarshalIndent(cfg, "", "    ")
 	if err != nil {
@@ -326,6 +332,35 @@ func (c *DockerConfigurator) Configure() (*SelenoidConfig, error) {
 	err = c.createConfigDir()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create output directory: %v", err)
+	}
+	return &cfg, ioutil.WriteFile(getSelenoidConfigPath(c.ConfigDir), data, 0644)
+}
+
+func (c *DockerConfigurator) syncWithConfig() (*SelenoidConfig, error) {
+	c.Titlef(`Requested to sync browsers.json from "%v"...`, color.GreenString(c.BrowsersJson))
+	data, err := ioutil.ReadFile(c.BrowsersJson)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read browsers.json from %s: %v", c.BrowsersJson, err)
+	}
+	var cfg SelenoidConfig
+	err = json.Unmarshal(data, &cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse browsers.json from %s: %v", c.BrowsersJson, err)
+	}
+	if c.DownloadNeeded {
+		for _, versions := range cfg {
+			for _, version := range versions.Versions {
+				if ref, ok := version.Image.(string); ok {
+					ctx := context.Background()
+					if !c.pullImage(ctx, ref) {
+						return nil, fmt.Errorf("failed to pull image %s from browsers.json file %s", ref, c.BrowsersJson)
+					}
+				} else {
+					c.Pointf("Skipping non-Docker image specification: %v", version.Image)
+				}
+			}
+		}
+		c.pullVideoRecorderImage()
 	}
 	return &cfg, ioutil.WriteFile(getSelenoidConfigPath(c.ConfigDir), data, 0644)
 }
@@ -512,8 +547,8 @@ func (c *DockerConfigurator) pullVideoRecorderImage() {
 }
 
 func (c *DockerConfigurator) getFullyQualifiedImageRef(ref string) string {
-	if c.registryHostname != "" {
-		return fmt.Sprintf("%s/%s", c.registryHostname, ref)
+	if c.registryHost != "" {
+		return fmt.Sprintf("%s/%s", c.registryHost, ref)
 	}
 	return ref
 }

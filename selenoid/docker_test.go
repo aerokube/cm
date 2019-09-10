@@ -1,14 +1,17 @@
 package selenoid
 
 import (
+	"encoding/json"
 	"fmt"
 	. "github.com/aandryashin/matchers"
 	"github.com/aerokube/selenoid/config"
 	"github.com/aerokube/util"
 	"github.com/docker/docker/api/types"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -271,7 +274,7 @@ func testConfigure(t *testing.T, download bool) {
 		c, err := NewDockerConfigurator(&lcConfig)
 		AssertThat(t, err, Is{nil})
 		defer c.Close()
-		c.registryHostname = ""
+		c.registryHost = ""
 		AssertThat(t, c.IsConfigured(), Is{false})
 		cfgPointer, err := (*c).Configure()
 		AssertThat(t, err, Is{nil})
@@ -322,6 +325,46 @@ func testConfigure(t *testing.T, download bool) {
 	})
 }
 
+func TestSyncWithConfig(t *testing.T) {
+	withTmpDir(t, "test-sync-with-config", func(t *testing.T, dir string) {
+
+		initialCfg := SelenoidConfig{
+			"firefox": {
+				Versions: map[string]*config.Browser{
+					"46.0": {
+						Image: "selenoid/vnc_firefox:46.0",
+						Port:  "4444",
+					},
+				},
+			},
+		}
+
+		initialCfgFile := filepath.Join(dir, "initial-browsers.json")
+		data, _ := json.Marshal(initialCfg)
+		ioutil.WriteFile(initialCfgFile, data, 0644)
+
+		lcConfig := LifecycleConfig{
+			ConfigDir:    dir,
+			RegistryUrl:  mockDockerServer.URL,
+			BrowsersJson: initialCfgFile,
+			Download:     true,
+			Quiet:        false,
+		}
+		c, err := NewDockerConfigurator(&lcConfig)
+		AssertThat(t, err, Is{nil})
+		defer c.Close()
+		c.registryHost = ""
+		AssertThat(t, c.IsConfigured(), Is{false})
+		cfgPointer, err := (*c).Configure()
+		AssertThat(t, err, Is{nil})
+		AssertThat(t, cfgPointer, Is{Not{nil}})
+
+		cfg := *cfgPointer
+		AssertThat(t, cfg, EqualTo{initialCfg})
+	})
+
+}
+
 func TestStartStopContainer(t *testing.T) {
 	c, err := NewDockerConfigurator(&LifecycleConfig{
 		RegistryUrl: mockDockerServer.URL,
@@ -363,7 +406,7 @@ func TestDownload(t *testing.T) {
 		Version:     Latest,
 	})
 	AssertThat(t, err, Is{nil})
-	c.registryHostname = ""
+	c.registryHost = ""
 	AssertThat(t, c.IsDownloaded(), Is{true})
 	ref, err := c.Download()
 	AssertThat(t, ref, Not{nil})
@@ -382,7 +425,7 @@ func TestDownloadUI(t *testing.T) {
 	})
 	setImageName(selenoidUIImage)
 	AssertThat(t, err, Is{nil})
-	c.registryHostname = ""
+	c.registryHost = ""
 	AssertThat(t, c.IsUIDownloaded(), Is{true})
 	ref, err := c.DownloadUI()
 	AssertThat(t, ref, Not{nil})

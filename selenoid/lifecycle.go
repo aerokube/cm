@@ -25,17 +25,18 @@ type LifecycleConfig struct {
 	// Docker specific
 	LastVersions int
 	RegistryUrl  string
+	BrowsersJson string
 	ShmSize      int
 	Tmpfs        int
 	VNC          bool
 	UserNS       string
 
 	// Drivers specific
-	UseDrivers      bool
-	BrowsersJsonUrl string
-	GithubBaseUrl   string
-	OS              string
-	Arch            string
+	UseDrivers     bool
+	DriversInfoUrl string
+	GithubBaseUrl  string
+	OS             string
+	Arch           string
 }
 
 type Lifecycle struct {

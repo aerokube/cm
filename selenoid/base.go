@@ -127,10 +127,10 @@ type LogsAware struct {
 }
 
 const (
-	SelenoidDefaultPort    = 4444
-	SelenoidUIDefaultPort  = 8080
-	DefaultRegistryUrl     = "https://registry.hub.docker.com"
-	DefaultBrowsersJsonURL = "https://raw.githubusercontent.com/aerokube/cm/master/browsers.json"
+	SelenoidDefaultPort   = 4444
+	SelenoidUIDefaultPort = 8080
+	DefaultRegistryUrl    = "https://registry.hub.docker.com"
+	DefaultDriversInfoURL = "https://raw.githubusercontent.com/aerokube/cm/master/browsers.json"
 )
 
 func getHomeDir() string {

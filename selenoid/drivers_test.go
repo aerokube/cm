@@ -166,16 +166,16 @@ func TestAllUrlsAreValid(t *testing.T) {
 func TestConfigureDrivers(t *testing.T) {
 
 	withTmpDir(t, "test-download", func(t *testing.T, dir string) {
-		browsersJsonUrl := mockServerUrl(mockDriverServer, "/browsers.json")
+		driversInfoUrl := mockServerUrl(mockDriverServer, "/browsers.json")
 		lcConfig := LifecycleConfig{
-			ConfigDir:       dir,
-			Browsers:        "first;second;safari;fourth",
-			BrowsersJsonUrl: browsersJsonUrl,
-			Download:        true,
-			Quiet:           false,
-			Args:            "-limit 42",
-			Env:             testEnv,
-			BrowserEnv:      testEnv,
+			ConfigDir:      dir,
+			Browsers:       "first;second;safari;fourth",
+			DriversInfoUrl: driversInfoUrl,
+			Download:       true,
+			Quiet:          false,
+			Args:           "-limit 42",
+			Env:            testEnv,
+			BrowserEnv:     testEnv,
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
 		AssertThat(t, configurator.IsConfigured(), Is{false})
