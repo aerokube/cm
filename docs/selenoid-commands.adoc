@@ -33,8 +33,6 @@ If you are working behind proxy you should set environment variables `HTTP_PROXY
 described in https://docs.docker.com/engine/admin/systemd/#runtime-directory-and-storage-driver[Docker documentation]:
 [source,bash,subs="attributes+"]
 $ HTTP_PROXY=http://proxy.example.com:80/ ./cm selenoid start
-+
-When running `cm` in container - pass variable via `-e` flag of the `docker` command. These variables work because `cm` is using the same client as `docker` command.
 ====
 
 
@@ -54,10 +52,10 @@ To quickly configure and run Selenoid with defaults type:
 
 Selenoid can be configured in two ways:
 
-* Using https://docker.com/[Docker] containers.
-* Using standalone binaries - when Docker is not installed.
+* Using https://docker.com/[Docker] containers (default)
+* Using standalone binaries (when `--use-drivers` is added)
 
-Which mode to use is detected automatically by trying to access Docker API. To view the list of available commands:
+To view the list of available commands:
 
 [source,bash]
 ----
@@ -172,4 +170,16 @@ By default CM downloads browser images corresponding to 2 last versions of Firef
 [source,bash]
 ----
 ./cm selenoid start --browsers 'android:6.0'
+----
+
+=== Using Existing Configuration File
+
+In some cases you may want to configure Selenoid to use an existing `browsers.json` configuration file. This is mainly needed to always use the same browser versions instead of downloading latest versions. To achieve this:
+
+. Prepare a desired `browsers.json` configuration file
+. Launch `cm` with `--browsers-json` flag:
++
+[source,bash]
+----
+./cm selenoid start --browsers-json /path/to/browsers.json
 ----

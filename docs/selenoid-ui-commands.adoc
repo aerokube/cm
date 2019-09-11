@@ -9,7 +9,7 @@ To quickly run Selenoid UI type:
 
 ====
 
-Selenoid UI configuration algorithm is similar to Selenoid one - it is started either in Docker container if you have Docker installed or as a standalone binary otherwise. Supported commands are:
+Selenoid UI configuration algorithm is similar to Selenoid one - it can be started either in Docker container if you have Docker installed or as a standalone binary otherwise. Supported commands are:
 
 .Commands to run Selenoid UI
 |===

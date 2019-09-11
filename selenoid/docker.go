@@ -337,7 +337,7 @@ func (c *DockerConfigurator) Configure() (*SelenoidConfig, error) {
 }
 
 func (c *DockerConfigurator) syncWithConfig() (*SelenoidConfig, error) {
-	c.Titlef(`Requested to sync browsers.json from "%v"...`, color.GreenString(c.BrowsersJson))
+	c.Titlef(`Requested to sync configuration from "%v"...`, color.GreenString(c.BrowsersJson))
 	data, err := ioutil.ReadFile(c.BrowsersJson)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read browsers.json from %s: %v", c.BrowsersJson, err)
