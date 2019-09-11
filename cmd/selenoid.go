@@ -17,7 +17,7 @@ var (
 	version         string
 	browsers        string
 	useDrivers      bool
-	browsersJSON    string
+	browsersJson    string
 	driversInfoUrl  string
 	configDir       string
 	uiConfigDir     string
@@ -136,7 +136,7 @@ func initFlags() {
 	} {
 		c.Flags().StringVarP(&browsers, "browsers", "b", "", "semicolon separated list of browser names to process")
 		c.Flags().StringVarP(&browserEnv, "browser-env", "w", "", "override container or driver environment variables (e.g. \"KEY1=value1 KEY2=value2\")")
-		c.Flags().StringVarP(&browsersJSON, "browsers-json", "j", "", "browsers JSON file to sync with")
+		c.Flags().StringVarP(&browsersJson, "browsers-json", "j", "", "browsers JSON file to sync with")
 		c.Flags().StringVarP(&driversInfoUrl, "drivers-info", "", selenoid.DefaultDriversInfoURL, "drivers info JSON data URL (in most cases never need to be set manually)")
 		c.Flags().BoolVarP(&skipDownload, "no-download", "n", false, "only output config file without downloading images or drivers")
 		c.Flags().IntVarP(&lastVersions, "last-versions", "l", 2, "process only last N versions (Docker only)")
@@ -184,6 +184,7 @@ func createLifecycle(configDir string, port uint16) (*selenoid.Lifecycle, error)
 
 		LastVersions: lastVersions,
 		RegistryUrl:  registry,
+		BrowsersJson: browsersJson,
 		ShmSize:      shmSize,
 		Tmpfs:        tmpfs,
 		VNC:          vnc,
