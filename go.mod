@@ -1,6 +1,7 @@
 module github.com/aerokube/cm
 
 require (
+	github.com/Masterminds/semver/v3 v3.0.1
 	github.com/Microsoft/hcsshim v0.8.6 // indirect
 	github.com/aandryashin/matchers v0.0.0-20161126170413-435295ea180e
 	github.com/aerokube/selenoid v0.0.0-20171028174040-28a032c1afe5
@@ -17,7 +18,6 @@ require (
 	github.com/fatih/color v1.5.0
 	github.com/google/go-github v0.0.0-20170519031903-ebfec748347a
 	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
-	github.com/hashicorp/go-version v0.0.0-20171129150820-4fe82ae3040f
 	github.com/heroku/docker-registry-client v0.0.0-20171019183014-fd2fe8034968
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.0.9
