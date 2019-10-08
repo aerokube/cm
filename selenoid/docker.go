@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/aerokube/selenoid/config"
 	authconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/docker/api/types"
@@ -25,7 +26,6 @@ import (
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	ver "github.com/hashicorp/go-version"
 	"github.com/heroku/docker-registry-client/registry"
 	"github.com/mattn/go-colorable"
 
@@ -393,19 +393,20 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 	return browsers
 }
 
-func parseRequestedBrowsers(logger *Logger, requestedBrowsers string) map[string][]ver.Constraints {
-	ret := make(map[string][]ver.Constraints)
+func parseRequestedBrowsers(logger *Logger, requestedBrowsers string) map[string][]*semver.Constraints {
+	ret := make(map[string][]*semver.Constraints)
 	if requestedBrowsers != "" {
 		for _, section := range strings.Split(requestedBrowsers, semicolon) {
 			pieces := strings.Split(section, colon)
 			if len(pieces) >= 1 {
 				browserName := strings.TrimSpace(pieces[0])
 				if _, ok := ret[browserName]; !ok {
-					ret[browserName] = []ver.Constraints{}
+					ret[browserName] = []*semver.Constraints{}
 				}
 				if len(pieces) == 2 {
 					versionConstraintString := strings.TrimSpace(pieces[1])
-					versionConstraint, err := ver.NewConstraint(versionConstraintString)
+
+					versionConstraint, err := semver.NewConstraint(versionConstraintString)
 					if err != nil {
 						logger.Errorf(`Invalid version constraint %s: %v - ignoring browser "%s"...`, versionConstraintString, err, browserName)
 						continue
@@ -418,7 +419,7 @@ func parseRequestedBrowsers(logger *Logger, requestedBrowsers string) map[string
 	return ret
 }
 
-func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string][]ver.Constraints) map[string]string {
+func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string][]*semver.Constraints) map[string]string {
 	defaultBrowsers := map[string]string{
 		"firefox": "selenoid/firefox",
 		"chrome":  "selenoid/chrome",
@@ -470,11 +471,11 @@ func filterOutLatest(tags []string) []string {
 	return ret
 }
 
-func (c *DockerConfigurator) filterTags(tags []string, versionConstraints []ver.Constraints) []string {
+func (c *DockerConfigurator) filterTags(tags []string, versionConstraints []*semver.Constraints) []string {
 	if len(versionConstraints) > 0 {
 		var ret []string
 		for _, tag := range tags {
-			version, err := ver.NewVersion(tag)
+			version, err := semver.NewVersion(tag)
 			if err != nil {
 				c.Errorf("Skipping tag %s as it does not follow semantic versioning: %v", tag, err)
 				continue
@@ -750,8 +751,8 @@ func isVersion(version string, condition string, notSemanticVersionCallback func
 	if version == Latest {
 		return true
 	}
-	constraint, _ := ver.NewConstraint(condition)
-	v, err := ver.NewVersion(version)
+	constraint, _ := semver.NewConstraint(condition)
+	v, err := semver.NewVersion(version)
 	if err != nil {
 		notSemanticVersionCallback(version)
 		return false
