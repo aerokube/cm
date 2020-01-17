@@ -67,7 +67,6 @@ type DriversConfigurator struct {
 	PortAware
 	RequestedBrowsersAware
 	LogsAware
-	Browsers       string
 	DriversInfoUrl string
 
 	GithubBaseUrl string
@@ -88,7 +87,6 @@ func NewDriversConfigurator(config *LifecycleConfig) *DriversConfigurator {
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
 		LogsAware:              LogsAware{DisableLogs: config.DisableLogs},
 		DriversInfoUrl:         config.DriversInfoUrl,
-		Browsers:               config.Browsers,
 		GithubBaseUrl:          config.GithubBaseUrl,
 		OS:                     config.OS,
 		Arch:                   config.Arch,
