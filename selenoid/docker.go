@@ -686,6 +686,7 @@ func (c *DockerConfigurator) PrintArgs() error {
 const (
 	videoDirName = "video"
 	logsDirName  = "logs"
+	networkName  = "selenoid"
 )
 
 func (c *DockerConfigurator) Start() error {
@@ -725,6 +726,9 @@ func (c *DockerConfigurator) Start() error {
 	if !c.DisableLogs && !contains(cmd, "-log-output-dir") && isLogSavingSupported(c.Logger, c.Version) {
 		cmd = append(cmd, "-log-output-dir", "/opt/selenoid/logs/")
 	}
+	if !contains(cmd, "-container-network") {
+		cmd = append(cmd, "-container-network", networkName)
+	}
 
 	overrideEnv := strings.Fields(c.Env)
 	if !strings.Contains(c.Env, "OVERRIDE_VIDEO_OUTPUT_DIR") {
@@ -736,6 +740,7 @@ func (c *DockerConfigurator) Start() error {
 		HostPort:    c.Port,
 		ServicePort: SelenoidDefaultPort,
 		Volumes:     volumes,
+		Network:     networkName,
 		Cmd:         cmd,
 		OverrideEnv: overrideEnv,
 		UserNS:      c.UserNS,
@@ -819,7 +824,7 @@ func (c *DockerConfigurator) StartUI() error {
 		return errors.New("Selenoid UI image is not downloaded: this is probably a bug")
 	}
 
-	var cmd, links []string
+	var cmd, candidates []string
 	var selenoidUri string
 containers:
 	for _, containerName := range []string{
@@ -829,7 +834,7 @@ containers:
 			for _, p := range ctr.Ports {
 				if p.PublicPort != 0 {
 					selenoidUri = fmt.Sprintf("--selenoid-uri=http://%s:%d", containerName, p.PublicPort)
-					links = []string{containerName}
+					candidates = []string{containerName}
 					break containers
 				}
 			}
@@ -843,7 +848,7 @@ containers:
 		cmd = append(cmd, selenoidUri)
 	}
 
-	if len(links) == 0 {
+	if len(candidates) == 0 {
 		c.Errorf("Neither Selenoid nor Ggr UI is started. Selenoid UI may not work.")
 	}
 
@@ -853,7 +858,7 @@ containers:
 		Image:       image,
 		HostPort:    c.Port,
 		ServicePort: SelenoidUIDefaultPort,
-		Links:       links,
+		Network:     networkName,
 		Cmd:         cmd,
 		OverrideEnv: overrideEnv,
 		UserNS:      c.UserNS,
@@ -878,7 +883,7 @@ type containerConfig struct {
 	HostPort    int
 	ServicePort int
 	Volumes     []string
-	Links       []string
+	Network     string
 	Cmd         []string
 	OverrideEnv []string
 	UserNS      string
@@ -900,6 +905,11 @@ func (c *DockerConfigurator) startContainer(cfg *containerConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to init port: %v", err)
 	}
+
+	err = c.createNetworkIfNeeded(cfg.Network)
+	if err != nil {
+		return fmt.Errorf("failed to configure container network: %v", err)
+	}
 	containerConfig := container.Config{
 		Hostname: "localhost",
 		Image:    cfg.Image.RepoTags[0],
@@ -912,8 +922,8 @@ func (c *DockerConfigurator) startContainer(cfg *containerConfig) error {
 		containerConfig.Cmd = strslice.StrSlice(cfg.Cmd)
 	}
 	hostConfig := container.HostConfig{
-		Binds: cfg.Volumes,
-		Links: cfg.Links,
+		Binds:       cfg.Volumes,
+		NetworkMode: networkName,
 	}
 	if cfg.UserNS != "" {
 		mode := container.UsernsMode(cfg.UserNS)
@@ -958,6 +968,18 @@ func (c *DockerConfigurator) startContainer(cfg *containerConfig) error {
 		}
 		defer r.Close()
 		io.Copy(os.Stderr, r)
+	}
+	return nil
+}
+
+func (c *DockerConfigurator) createNetworkIfNeeded(networkName string) error {
+	ctx := context.Background()
+	_, err := c.docker.NetworkInspect(ctx, networkName, types.NetworkInspectOptions{})
+	if err != nil {
+		_, err = c.docker.NetworkCreate(ctx, networkName, types.NetworkCreate{CheckDuplicate: true})
+		if err != nil {
+			return fmt.Errorf("failed to create custom network %s: %v", networkName, err)
+		}
 	}
 	return nil
 }

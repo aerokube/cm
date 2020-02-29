@@ -144,6 +144,47 @@ func mux() http.Handler {
 			w.Write([]byte(output))
 		},
 	))
+	mux.HandleFunc("/v1.29/networks/selenoid", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`
+              [{
+                "Name": "selenoid",
+                "Id": "39d591dabe313ed90b599e6d6515301e879c088b449a260cc02981bd25b52a6f",
+                "Created": "2020-02-29T14:41:12.960257Z",
+                "Scope": "local",
+                "Driver": "bridge",
+                "EnableIPv6": false,
+                "IPAM": {
+                  "Driver": "default",
+                  "Options": {},
+                  "Config": [
+                    {
+                      "Subnet": "172.18.0.0/16",
+                      "Gateway": "172.18.0.1"
+                    }
+                  ]
+                },
+                "Internal": false,
+                "Attachable": false,
+                "Ingress": false,
+                "ConfigFrom": {
+                  "Network": ""
+                },
+                "ConfigOnly": false,
+                "Containers": {},
+                "Options": {},
+                "Labels": {}
+              }]`))
+		},
+	))
+	mux.HandleFunc("/v1.29/networks/create", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusCreated)
+			output := `{"id": "39d591dabe31", "warnings": []}`
+			w.Write([]byte(output))
+		},
+	))
 	mux.HandleFunc("/v1.29/containers/create", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusCreated)
