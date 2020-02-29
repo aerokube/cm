@@ -272,10 +272,12 @@ func findMatchingImage(images []types.ImageSummary, name string, version string)
 		const colon = ":"
 		for _, tag := range img.RepoTags {
 			nameAndVersion := strings.Split(tag, colon)
-			imageName := nameAndVersion[0]
-			imageVersion := nameAndVersion[1]
-			if strings.HasSuffix(imageName, name) && (version == "" || version == Latest || version == imageVersion) {
-				return &img
+			if len(nameAndVersion) >= 2 {
+				imageVersion := nameAndVersion[len(nameAndVersion)-1]
+				imageName := strings.TrimSuffix(tag, colon+imageVersion)
+				if strings.HasSuffix(imageName, name) && (version == "" || version == Latest || version == imageVersion) {
+					return &img
+				}
 			}
 		}
 	}

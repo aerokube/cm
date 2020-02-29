@@ -274,7 +274,6 @@ func testConfigure(t *testing.T, download bool) {
 		c, err := NewDockerConfigurator(&lcConfig)
 		AssertThat(t, err, Is{nil})
 		defer c.Close()
-		c.registryHost = ""
 		AssertThat(t, c.IsConfigured(), Is{false})
 		cfgPointer, err := (*c).Configure()
 		AssertThat(t, err, Is{nil})
@@ -292,7 +291,7 @@ func testConfigure(t *testing.T, download bool) {
 
 		correctFFBrowsers := make(map[string]*config.Browser)
 		correctFFBrowsers["46.0"] = &config.Browser{
-			Image:   "selenoid/vnc_firefox:46.0",
+			Image:   c.getFullyQualifiedImageRef("selenoid/vnc_firefox:46.0"),
 			Port:    "4444",
 			Path:    "/wd/hub",
 			Tmpfs:   tmpfsMap,
@@ -311,7 +310,7 @@ func testConfigure(t *testing.T, download bool) {
 
 		correctOperaBrowsers := make(map[string]*config.Browser)
 		correctOperaBrowsers["44.0"] = &config.Browser{
-			Image:   "selenoid/vnc_opera:44.0",
+			Image:   c.getFullyQualifiedImageRef("selenoid/vnc_opera:44.0"),
 			Port:    "4444",
 			Path:    "/",
 			Tmpfs:   tmpfsMap,
@@ -353,7 +352,6 @@ func TestSyncWithConfig(t *testing.T) {
 		c, err := NewDockerConfigurator(&lcConfig)
 		AssertThat(t, err, Is{nil})
 		defer c.Close()
-		c.registryHost = ""
 		AssertThat(t, c.IsConfigured(), Is{false})
 		cfgPointer, err := (*c).Configure()
 		AssertThat(t, err, Is{nil})
@@ -406,7 +404,6 @@ func TestDownload(t *testing.T) {
 		Version:     Latest,
 	})
 	AssertThat(t, err, Is{nil})
-	c.registryHost = ""
 	AssertThat(t, c.IsDownloaded(), Is{true})
 	ref, err := c.Download()
 	AssertThat(t, ref, Not{nil})
@@ -425,7 +422,6 @@ func TestDownloadUI(t *testing.T) {
 	})
 	setImageName(selenoidUIImage)
 	AssertThat(t, err, Is{nil})
-	c.registryHost = ""
 	AssertThat(t, c.IsUIDownloaded(), Is{true})
 	ref, err := c.DownloadUI()
 	AssertThat(t, ref, Not{nil})
@@ -461,6 +457,11 @@ func TestFindMatchingImage(t *testing.T) {
 			RepoTags: []string{"aerokube/selenoid:1.4.3"},
 			Created:  300,
 		}
+		selenoid120CustomRegistry = types.ImageSummary{
+			ID:       "4",
+			RepoTags: []string{"my-registry.com:443/aerokube/selenoid:1.2.0"},
+			Created:  100,
+		}
 	)
 	images := []types.ImageSummary{
 		selenoid141,
@@ -470,6 +471,7 @@ func TestFindMatchingImage(t *testing.T) {
 			Created:  200, //Intentionally using small timestamps
 		},
 		selenoid143,
+		selenoid120CustomRegistry,
 	}
 
 	AssertThat(t, findMatchingImage(images, "unknown-image-name", Latest) == nil, Is{true})
@@ -486,6 +488,14 @@ func TestFindMatchingImage(t *testing.T) {
 	foundSelenoidLatest := findMatchingImage(images, "aerokube/selenoid", Latest)
 	AssertThat(t, foundSelenoidLatest, Not{nil})
 	AssertThat(t, *foundSelenoidLatest, EqualTo{selenoid143})
+
+	foundSelenoidCustomRegistry := findMatchingImage(images, "my-registry.com:443/aerokube/selenoid", "1.2.0")
+	AssertThat(t, foundSelenoidCustomRegistry, Not{nil})
+	AssertThat(t, *foundSelenoidCustomRegistry, EqualTo{selenoid120CustomRegistry})
+
+	foundSelenoidWithoutRegistry := findMatchingImage(images, "aerokube/selenoid", "1.2.0")
+	AssertThat(t, foundSelenoidWithoutRegistry, Not{nil})
+	AssertThat(t, *foundSelenoidWithoutRegistry, EqualTo{selenoid120CustomRegistry})
 }
 
 func TestIsVideoRecordingSupported(t *testing.T) {
