@@ -445,7 +445,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="details">
 <span id="author" class="author">Alexander Andryashin, Ivan Krutov, Kirill Merkushev and the Aerokube community</span><br>
 <span id="revnumber">version latest,</span>
-<span id="revdate">2020-03-01</span>
+<span id="revdate">2020-07-07</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -864,16 +864,16 @@ $ ./cm selenoid-ui start --args "--period 100ms"</pre>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Install <a href="https://golang.org/doc/install">Golang</a></p>
+<p>Install <a href="https://golang.org/doc/install">Golang</a> 1.12 and above.</p>
 </li>
 <li>
 <p>Setup <code>$GOPATH</code> <a href="https://github.com/golang/go/wiki/GOPATH">properly</a></p>
 </li>
 <li>
-<p>Get cm source:</p>
+<p>Clone cm source:</p>
 <div class="literalblock">
 <div class="content">
-<pre>$ go get -d github.com/aerokube/cm</pre>
+<pre>$ git clone https://github.com/aerokube/cm.git</pre>
 </div>
 </div>
 </li>
@@ -881,15 +881,7 @@ $ ./cm selenoid-ui start --args "--period 100ms"</pre>
 <p>Go to project directory:</p>
 <div class="literalblock">
 <div class="content">
-<pre>$ cd $GOPATH/src/github.com/aerokube/cm</pre>
-</div>
-</div>
-</li>
-<li>
-<p>Checkout dependencies:</p>
-<div class="literalblock">
-<div class="content">
-<pre>$ go get -u github.com/golang/dep/cmd/dep &amp;&amp; dep ensure</pre>
+<pre>$ cd cm</pre>
 </div>
 </div>
 </li>
@@ -899,6 +891,9 @@ $ ./cm selenoid-ui start --args "--period 100ms"</pre>
 <div class="content">
 <pre>$ go build</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This will also fetch build dependencies.</p>
 </div>
 </li>
 <li>
@@ -937,7 +932,7 @@ $ docker build -t cm:latest .</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version latest<br>
-Last updated 2020-03-01 14:23:24 UTC
+Last updated 2020-07-07 17:33:11 UTC
 </div>
 </div>
 <style>
