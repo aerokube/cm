@@ -1,23 +1,21 @@
 == Contributing & Development
 To build cm:
 
-. Install https://golang.org/doc/install[Golang]
+. Install https://golang.org/doc/install[Golang] 1.12 and above.
 . Setup `$GOPATH` https://github.com/golang/go/wiki/GOPATH[properly]
-. Get cm source:
+. Clone cm source:
 
-    $ go get -d github.com/aerokube/cm
+    $ git clone https://github.com/aerokube/cm.git
 
 . Go to project directory:
 
-    $ cd $GOPATH/src/github.com/aerokube/cm
-
-. Checkout dependencies:
-
-    $ go get -u github.com/golang/dep/cmd/dep && dep ensure
+    $ cd cm
 
 . Build source:
 
     $ go build
++
+This will also fetch build dependencies.
 
 . Run cm:
 
