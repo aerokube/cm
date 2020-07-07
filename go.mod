@@ -1,5 +1,7 @@
 module github.com/aerokube/cm
 
+go 1.14
+
 require (
 	github.com/Masterminds/semver/v3 v3.0.1
 	github.com/Microsoft/hcsshim v0.8.6 // indirect
