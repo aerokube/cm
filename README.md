@@ -1,4 +1,4 @@
-# Configuration Manager (aka Centimeter)
+# Configuration Manager
 [![Build Status](https://github.com/aerokube/cm/workflows/build/badge.svg)](https://github.com/aerokube/cm/actions?query=workflow%3Abuild)
 [![Coverage](https://codecov.io/github/aerokube/cm/coverage.svg)](https://codecov.io/gh/aerokube/cm)
 [![Release](https://img.shields.io/github/release/aerokube/cm.svg)](https://github.com/aerokube/cm/releases/latest)
