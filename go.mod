@@ -1,6 +1,6 @@
 module github.com/aerokube/cm
 
-go 1.14
+go 1.15
 
 require (
 	github.com/Masterminds/semver/v3 v3.0.1
