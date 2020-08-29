@@ -4,23 +4,23 @@
     "files": {
       "linux": {
         "amd64": {
-          "url": "http://chromedriver.storage.googleapis.com/84.0.4147.30/chromedriver_linux64.zip",
+          "url": "http://chromedriver.storage.googleapis.com/85.0.4183.87/chromedriver_linux64.zip",
           "filename": "chromedriver"
         }
       },
       "darwin": {
         "amd64": {
-          "url": "http://chromedriver.storage.googleapis.com/84.0.4147.30/chromedriver_mac64.zip",
+          "url": "http://chromedriver.storage.googleapis.com/85.0.4183.87/chromedriver_mac64.zip",
           "filename": "chromedriver"
         }
       },
       "windows": {
         "386": {
-          "url": "http://chromedriver.storage.googleapis.com/84.0.4147.30/chromedriver_win32.zip",
+          "url": "http://chromedriver.storage.googleapis.com/85.0.4183.87/chromedriver_win32.zip",
           "filename": "chromedriver.exe"
         },
         "amd64": {
-          "url": "http://chromedriver.storage.googleapis.com/84.0.4147.30/chromedriver_win32.zip",
+          "url": "http://chromedriver.storage.googleapis.com/85.0.4183.87/chromedriver_win32.zip",
           "filename": "chromedriver.exe"
         }
       }
@@ -64,23 +64,23 @@
     "files": {
       "linux": {
         "amd64": {
-          "url": "https://github.com/operasoftware/operachromiumdriver/releases/download/v.83.0.4103.97/operadriver_linux64.zip",
+          "url": "https://github.com/operasoftware/operachromiumdriver/releases/download/v.84.0.4147.89/operadriver_linux64.zip",
           "filename": "operadriver_linux64/operadriver"
         }
       },
       "darwin": {
         "amd64": {
-          "url": "https://github.com/operasoftware/operachromiumdriver/releases/download/v.83.0.4103.97/operadriver_mac64.zip",
+          "url": "https://github.com/operasoftware/operachromiumdriver/releases/download/v.84.0.4147.89/operadriver_mac64.zip",
           "filename": "operadriver_mac64/operadriver"
         }
       },
       "windows": {
         "386": {
-          "url": "https://github.com/operasoftware/operachromiumdriver/releases/download/v.83.0.4103.97/operadriver_win32.zip",
+          "url": "https://github.com/operasoftware/operachromiumdriver/releases/download/v.84.0.4147.89/operadriver_win32.zip",
           "filename": "operadriver_win32/operadriver.exe"
         },
         "amd64": {
-          "url": "https://github.com/operasoftware/operachromiumdriver/releases/download/v.83.0.4103.97/operadriver_win64.zip",
+          "url": "https://github.com/operasoftware/operachromiumdriver/releases/download/v.84.0.4147.89/operadriver_win64.zip",
           "filename": "operadriver_win64/operadriver.exe"
         }
       }
