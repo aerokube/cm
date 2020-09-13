@@ -40,7 +40,7 @@ import (
 	"github.com/fatih/color"
 	"io"
 	"net/url"
-	. "vbom.ml/util/sortorder"
+	. "github.com/fvbommel/sortorder"
 )
 
 const (

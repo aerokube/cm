@@ -18,6 +18,7 @@ require (
 	github.com/docker/go-units v0.4.0
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/fatih/color v1.5.0
+	github.com/fvbommel/sortorder v1.0.1
 	github.com/google/go-github v0.0.0-20170519031903-ebfec748347a
 	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
 	github.com/heroku/docker-registry-client v0.0.0-20171019183014-fd2fe8034968
@@ -34,7 +35,5 @@ require (
 	github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d // indirect
 	github.com/spf13/cobra v0.0.1
 	github.com/spf13/pflag v1.0.0 // indirect
-	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.18
-	vbom.ml/util v0.0.0-20170409195630-256737ac55c4
 )
