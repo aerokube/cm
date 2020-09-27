@@ -3,25 +3,15 @@
 This guide will show how to start Selenoid in a fastest way with help of Configuration Manager.
 First, you need to download latest release binary from https://github.com/aerokube/cm/releases/latest[GitHub releases] for your platform (linux/darwin/windows).
 
-To simplify this process you launch small script:
+Having a binary launch one command:
 
 .On Linux and Mac OS
 [source,bash]
 ----
-curl -s https://aerokube.com/cm/bash | bash \
-&& ./cm selenoid start --vnc
+$ ./cm selenoid start --vnc
 ----
 
 .On Windows
-[source,powershell]
-----
-> Invoke-Expression (New-Object System.Net.WebClient).DownloadString("https://aerokube.com/cm/posh")
-> ./cm.exe selenoid start --vnc
-----
-
-or just download the latest binary with your browser from https://github.com/aerokube/cm/releases/latest[releases page] for windows (386 and amd64 binaries available).
-Then if you have https://en.wikipedia.org/wiki/PowerShell[Powershell] type:
-
 [source,powershell]
 ----
 > ./cm.exe selenoid start --vnc
