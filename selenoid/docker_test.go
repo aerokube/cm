@@ -92,6 +92,20 @@ func mux() http.Handler {
 		},
 	))
 
+	mux.HandleFunc("/v2/selenoid/android/tags/list", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Content-Type", "application/json")
+			fmt.Fprintln(w, `{"name":"android", "tags": ["10.0"]}`)
+		},
+	))
+
+	mux.HandleFunc("/v2/browsers/edge/tags/list", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Content-Type", "application/json")
+			fmt.Fprintln(w, `{"name":"edge", "tags": ["88.0"]}`)
+		},
+	))
+
 	//Docker API mock
 	mux.HandleFunc("/v1.29/version", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
@@ -306,7 +320,7 @@ func testConfigure(t *testing.T, download bool) {
 			LastVersions: 2,
 			Tmpfs:        512,
 			ShmSize:      256,
-			Browsers:     "firefox:>45.0;opera",
+			Browsers:     "firefox:>45.0;opera;android;MicrosoftEdge",
 			Args:         "-limit 42",
 			VNC:          true,
 			Env:          testEnv,
@@ -321,7 +335,7 @@ func testConfigure(t *testing.T, download bool) {
 		AssertThat(t, cfgPointer, Is{Not{nil}})
 
 		cfg := *cfgPointer
-		AssertThat(t, len(cfg), EqualTo{2})
+		AssertThat(t, len(cfg), EqualTo{4})
 
 		firefoxVersions, hasFirefoxKey := cfg["firefox"]
 		AssertThat(t, hasFirefoxKey, Is{true})
@@ -332,7 +346,7 @@ func testConfigure(t *testing.T, download bool) {
 
 		correctFFBrowsers := make(map[string]*config.Browser)
 		correctFFBrowsers["46.0"] = &config.Browser{
-			Image:   c.getFullyQualifiedImageRef("selenoid/vnc_firefox:46.0"),
+			Image:   c.getFullyQualifiedImageRef("selenoid/firefox:46.0"),
 			Port:    "4444",
 			Path:    "/wd/hub",
 			Tmpfs:   tmpfsMap,
@@ -351,7 +365,7 @@ func testConfigure(t *testing.T, download bool) {
 
 		correctOperaBrowsers := make(map[string]*config.Browser)
 		correctOperaBrowsers["44.0"] = &config.Browser{
-			Image:   c.getFullyQualifiedImageRef("selenoid/vnc_opera:44.0"),
+			Image:   c.getFullyQualifiedImageRef("selenoid/opera:44.0"),
 			Port:    "4444",
 			Path:    "/",
 			Tmpfs:   tmpfsMap,
@@ -362,6 +376,43 @@ func testConfigure(t *testing.T, download bool) {
 			Default:  "44.0",
 			Versions: correctOperaBrowsers,
 		}})
+
+		androidVersions, hasAndroidKey := cfg["android"]
+		AssertThat(t, hasAndroidKey, Is{true})
+		AssertThat(t, androidVersions, Is{Not{nil}})
+
+		correctAndroidBrowsers := make(map[string]*config.Browser)
+		correctAndroidBrowsers["10.0"] = &config.Browser{
+			Image:   c.getFullyQualifiedImageRef("selenoid/android:10.0"),
+			Port:    "4444",
+			Path:    "/wd/hub",
+			Tmpfs:   tmpfsMap,
+			ShmSize: 268435456,
+			Env:     []string{testEnv},
+		}
+		AssertThat(t, androidVersions, EqualTo{config.Versions{
+			Default:  "10.0",
+			Versions: correctAndroidBrowsers,
+		}})
+
+		edgeVersions, hasEdgeKey := cfg["MicrosoftEdge"]
+		AssertThat(t, hasEdgeKey, Is{true})
+		AssertThat(t, edgeVersions, Is{Not{nil}})
+
+		correctEdgeBrowsers := make(map[string]*config.Browser)
+		correctEdgeBrowsers["88.0"] = &config.Browser{
+			Image:   c.getFullyQualifiedImageRef("browsers/edge:88.0"),
+			Port:    "4444",
+			Path:    "/",
+			Tmpfs:   tmpfsMap,
+			ShmSize: 268435456,
+			Env:     []string{testEnv},
+		}
+		AssertThat(t, edgeVersions, EqualTo{config.Versions{
+			Default:  "88.0",
+			Versions: correctEdgeBrowsers,
+		}})
+
 	})
 }
 
