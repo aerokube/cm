@@ -38,9 +38,9 @@ import (
 	"github.com/aerokube/cm/render/rewriter"
 	dc "github.com/aerokube/util/docker"
 	"github.com/fatih/color"
+	. "github.com/fvbommel/sortorder"
 	"io"
 	"net/url"
-	. "github.com/fvbommel/sortorder"
 )
 
 const (
@@ -49,6 +49,7 @@ const (
 	Latest                  = "latest"
 	firefox                 = "firefox"
 	android                 = "android"
+	edge                    = "MicrosoftEdge"
 	opera                   = "opera"
 	tag_1216                = "12.16"
 	selenoidImage           = "aerokube/selenoid"
@@ -375,8 +376,7 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 		c.Titlef(`Processing browser "%v"...`, color.GreenString(browserName))
 		tags := c.fetchImageTags(image)
 		if c.VNC {
-			c.Pointf("Requested to download VNC images...")
-			image = fmt.Sprintf("selenoid/vnc_%s", browserName)
+			c.Pointf("Requested to download VNC images but this feature is now deprecated as all images contain VNC.")
 		}
 		versionConstraint := requestedBrowsers[browserName]
 		pulledTags := c.filterTags(tags, versionConstraint)
@@ -430,6 +430,9 @@ func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string][
 	if len(requestedBrowsers) > 0 {
 		if _, ok := requestedBrowsers[android]; ok {
 			defaultBrowsers[android] = "selenoid/android"
+		}
+		if _, ok := requestedBrowsers[edge]; ok {
+			defaultBrowsers[edge] = "browsers/edge"
 		}
 		ret := make(map[string]string)
 		for browserName := range requestedBrowsers {
@@ -497,11 +500,11 @@ func (c *DockerConfigurator) filterTags(tags []string, versionConstraints []*sem
 
 func (c *DockerConfigurator) createVersions(browserName string, image string, tags []string) config.Versions {
 	versions := config.Versions{
-		Default:  c.getVersionFromTag(browserName, tags[0]),
+		Default:  tags[0],
 		Versions: make(map[string]*config.Browser),
 	}
 	for _, tag := range tags {
-		version := c.getVersionFromTag(browserName, tag)
+		version := tag
 		browser := &config.Browser{
 			Image: imageWithTag(image, tag),
 			Port:  "4444",
@@ -554,13 +557,6 @@ func (c *DockerConfigurator) getFullyQualifiedImageRef(ref string) string {
 		return fmt.Sprintf("%s/%s", c.registryHost, ref)
 	}
 	return ref
-}
-
-func (c *DockerConfigurator) getVersionFromTag(browserName string, tag string) string {
-	if c.VNC {
-		return strings.TrimPrefix(tag, browserName+"_")
-	}
-	return tag
 }
 
 // JSONMessage defines a message struct from docker.
