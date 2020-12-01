@@ -1,16 +1,17 @@
 == Quick Start Guide
 
-This guide will show how to start Selenoid in a fastest way with help of Configuration Manager.
-First, you need to download latest release binary from https://github.com/aerokube/cm/releases/latest[GitHub releases] for your platform (linux/darwin/windows).
+To start Selenoid:
 
-Having a binary launch one command:
+. Download the latest release binary from https://github.com/aerokube/cm/releases/latest[GitHub releases] for your platform (linux/darwin/windows).
 
+. Having the binary launch one command:
++
 .On Linux and Mac OS
 [source,bash]
 ----
 $ ./cm selenoid start --vnc
 ----
-
++
 .On Windows
 [source,powershell]
 ----
