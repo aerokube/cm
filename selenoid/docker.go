@@ -76,6 +76,7 @@ type DockerConfigurator struct {
 	PortAware
 	UserNSAware
 	LogsAware
+	GracefulAware
 	LastVersions int
 	Pull         bool
 	RegistryUrl  string
@@ -102,6 +103,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 		PortAware:              PortAware{Port: config.Port},
 		UserNSAware:            UserNSAware{UserNS: config.UserNS},
 		LogsAware:              LogsAware{DisableLogs: config.DisableLogs},
+		GracefulAware:          GracefulAware{Graceful: config.Graceful, GracefulTimeout: config.GracefulTimeout},
 		RegistryUrl:            config.RegistryUrl,
 		BrowsersJson:           config.BrowsersJson,
 		LastVersions:           config.LastVersions,
@@ -981,7 +983,15 @@ func (c *DockerConfigurator) createNetworkIfNeeded(networkName string) error {
 }
 
 func (c *DockerConfigurator) removeContainer(id string) error {
-	return c.docker.ContainerRemove(context.Background(), id, types.ContainerRemoveOptions{RemoveVolumes: true, Force: true})
+	ctx := context.Background()
+	if c.Graceful {
+		err := c.docker.ContainerStop(ctx, id, &c.GracefulTimeout)
+		if err == nil {
+			return c.docker.ContainerRemove(ctx, id, types.ContainerRemoveOptions{RemoveVolumes: true})
+		}
+		return err
+	}
+	return c.docker.ContainerRemove(ctx, id, types.ContainerRemoveOptions{RemoveVolumes: true, Force: true})
 }
 
 func (c *DockerConfigurator) Stop() error {

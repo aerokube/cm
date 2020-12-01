@@ -16,6 +16,7 @@ import (
 	"reflect"
 	"runtime"
 	"testing"
+	"time"
 )
 
 const (
@@ -32,7 +33,7 @@ var (
 
 func init() {
 	mockDriverServer = httptest.NewServer(driversMux())
-	killFunc = func(_ os.Process) error { return nil }
+	killFunc = func(_ *os.Process, _ bool, _ time.Duration) error { return nil }
 }
 
 func driversMux() http.Handler {
