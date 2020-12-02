@@ -25,6 +25,8 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"syscall"
+	"time"
 )
 
 const (
@@ -67,6 +69,7 @@ type DriversConfigurator struct {
 	PortAware
 	RequestedBrowsersAware
 	LogsAware
+	GracefulAware
 	DriversInfoUrl string
 
 	GithubBaseUrl string
@@ -86,6 +89,7 @@ func NewDriversConfigurator(config *LifecycleConfig) *DriversConfigurator {
 		DownloadAware:          DownloadAware{DownloadNeeded: config.Download},
 		RequestedBrowsersAware: RequestedBrowsersAware{Browsers: config.Browsers},
 		LogsAware:              LogsAware{DisableLogs: config.DisableLogs},
+		GracefulAware:          GracefulAware{Graceful: config.Graceful, GracefulTimeout: config.GracefulTimeout},
 		DriversInfoUrl:         config.DriversInfoUrl,
 		GithubBaseUrl:          config.GithubBaseUrl,
 		OS:                     config.OS,
@@ -615,21 +619,41 @@ func (d *DriversConfigurator) StartUI() error {
 	return runCommand(d.getSelenoidUIBinaryPath(), args, env)
 }
 
-var killFunc = func(p os.Process) error {
-	return p.Kill()
+var killFunc = func(p *os.Process, graceful bool, gracefulTimeout time.Duration) error {
+	if isWindows() || !graceful {
+		return p.Kill()
+	}
+	err := p.Signal(syscall.SIGTERM)
+	if err != nil {
+		return fmt.Errorf("failed to send signal: %v", err)
+	}
+	exitCode := make(chan int)
+	go func() {
+		ps, _ := p.Wait()
+		exitCode <- ps.ExitCode()
+	}()
+	select {
+	case <-time.After(gracefulTimeout):
+		return p.Kill()
+	case code := <-exitCode:
+		if code != 0 {
+			return fmt.Errorf("process exited with code %d", code)
+		}
+		return nil
+	}
 }
 
 func (d *DriversConfigurator) Stop() error {
-	return killAllProcesses(findSelenoidProcesses())
+	return d.killAllProcesses(findSelenoidProcesses())
 }
 
 func (d *DriversConfigurator) StopUI() error {
-	return killAllProcesses(findSelenoidUIProcesses())
+	return d.killAllProcesses(findSelenoidUIProcesses())
 }
 
-func killAllProcesses(processes []os.Process) error {
+func (d *DriversConfigurator) killAllProcesses(processes []*os.Process) error {
 	for _, p := range processes {
-		err := killFunc(p)
+		err := killFunc(p, d.Graceful, d.GracefulTimeout)
 		if err != nil {
 			return err
 		}
@@ -642,23 +666,23 @@ func (d *DriversConfigurator) Close() error {
 	return nil
 }
 
-func findSelenoidProcesses() []os.Process {
+func findSelenoidProcesses() []*os.Process {
 	return findProcesses("selenoid")
 }
 
-func findSelenoidUIProcesses() []os.Process {
+func findSelenoidUIProcesses() []*os.Process {
 	return findProcesses("selenoid-ui")
 }
 
-func findProcesses(regex string) []os.Process {
-	ret := []os.Process{}
+func findProcesses(regex string) []*os.Process {
+	var ret []*os.Process
 	processes, _ := ps.Processes()
 	for _, process := range processes {
 		matched, _ := regexp.MatchString(regex, process.Executable())
 		if matched {
 			p, err := os.FindProcess(process.Pid())
 			if err == nil {
-				ret = append(ret, *p)
+				ret = append(ret, p)
 			}
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/mattn/go-colorable"
@@ -88,6 +89,11 @@ func (c *ConfigDirAware) createConfigDir() error {
 
 type Forceable struct {
 	Force bool
+}
+
+type GracefulAware struct {
+	Graceful        bool
+	GracefulTimeout time.Duration
 }
 
 type VersionAware struct {

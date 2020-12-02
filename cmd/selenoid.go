@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"runtime"
+	"time"
 )
 
 var (
@@ -24,6 +25,8 @@ var (
 	skipDownload    bool
 	vnc             bool
 	force           bool
+	graceful        bool
+	gracefulTimeout time.Duration
 	args            string
 	env             string
 	browserEnv      string
@@ -156,6 +159,13 @@ func initFlags() {
 		c.Flags().BoolVarP(&force, "force", "f", false, "force action")
 	}
 	for _, c := range []*cobra.Command{
+		selenoidStopCmd,
+		selenoidStopUICmd,
+	} {
+		c.Flags().BoolVarP(&graceful, "graceful", "", false, "do action gracefully (e.g. gracefully stop Selenoid)")
+		c.Flags().DurationVarP(&gracefulTimeout, "graceful-timeout", "", 30*time.Second, "graceful timeout value (how much time to wait for graceful action execution)")
+	}
+	for _, c := range []*cobra.Command{
 		selenoidStartCmd,
 		selenoidUpdateCmd,
 		selenoidStartUICmd,
@@ -170,17 +180,19 @@ func initFlags() {
 
 func createLifecycle(configDir string, port uint16) (*selenoid.Lifecycle, error) {
 	config := selenoid.LifecycleConfig{
-		Quiet:       quiet,
-		Force:       force,
-		ConfigDir:   configDir,
-		UseDrivers:  useDrivers,
-		Browsers:    browsers,
-		BrowserEnv:  browserEnv,
-		Download:    !skipDownload,
-		Args:        args,
-		Env:         env,
-		Port:        int(port),
-		DisableLogs: disableLogs,
+		Quiet:           quiet,
+		Force:           force,
+		Graceful:        graceful,
+		GracefulTimeout: gracefulTimeout,
+		ConfigDir:       configDir,
+		UseDrivers:      useDrivers,
+		Browsers:        browsers,
+		BrowserEnv:      browserEnv,
+		Download:        !skipDownload,
+		Args:            args,
+		Env:             env,
+		Port:            int(port),
+		DisableLogs:     disableLogs,
 
 		LastVersions: lastVersions,
 		RegistryUrl:  registry,
