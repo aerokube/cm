@@ -325,6 +325,10 @@ func (c *DockerConfigurator) IsConfigured() bool {
 }
 
 func (c *DockerConfigurator) Configure() (*SelenoidConfig, error) {
+	err := c.createConfigDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create output directory: %v", err)
+	}
 	if c.BrowsersJson != "" {
 		return c.syncWithConfig()
 	}
@@ -333,10 +337,6 @@ func (c *DockerConfigurator) Configure() (*SelenoidConfig, error) {
 	data, err := json.MarshalIndent(cfg, "", "    ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal json: %v", err)
-	}
-	err = c.createConfigDir()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create output directory: %v", err)
 	}
 	return &cfg, ioutil.WriteFile(getSelenoidConfigPath(c.ConfigDir), data, 0644)
 }
