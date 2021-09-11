@@ -9,11 +9,13 @@
 :icons: font
 :source-highlighter: coderay
 :docinfo: shared
+:title: CM - A tool to automate installation of Aerokube products
+:description: CM allows you to install Selenoid and related products with a single command in minutes.
 :favicon: img/favicon.png
 
 This reference covers version: _{revnumber}_.
 
-Configuration manager is a small application used to automatically configure http://aerokube.com[Aerokube] products.
+Configuration manager is a small application used to automatically configure https://aerokube.com[Aerokube] products.
 
 include::selenoid-commands.adoc[leveloffset=+1]
 include::selenoid-ui-commands.adoc[leveloffset=+1]

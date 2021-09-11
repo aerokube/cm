@@ -5,7 +5,10 @@ This section describes supported ways of automatic https://github.com/aerokube/s
 ====
 To quickly run Selenoid UI type:
 
-    $ ./cm selenoid-ui start
+[source,bash]
+----
+$ ./cm selenoid-ui start
+----
 
 ====
 
