@@ -5,9 +5,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.16">
+<meta name="description" content="CM allows you to install Selenoid and related products with a single command in minutes.">
 <meta name="author" content="Alexander Andryashin, Ivan Krutov, Kirill Merkushev and the Aerokube community">
 <link rel="icon" type="image/png" href="img/favicon.png">
-<title>Configuration Manager</title>
+<title>CM - A tool to automate installation of Aerokube products</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -546,7 +547,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <div class="details">
 <span id="author" class="author">Alexander Andryashin, Ivan Krutov, Kirill Merkushev and the Aerokube community</span><br>
 <span id="revnumber">version latest,</span>
-<span id="revdate">2021-08-07</span>
+<span id="revdate">2021-09-11</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -575,7 +576,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <p>This reference covers version: <em>latest</em>.</p>
 </div>
 <div class="paragraph">
-<p>Configuration manager is a small application used to automatically configure <a href="http://aerokube.com">Aerokube</a> products.</p>
+<p>Configuration manager is a small application used to automatically configure <a href="https://aerokube.com">Aerokube</a> products.</p>
 </div>
 </div>
 </div>
@@ -596,6 +597,25 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">$ ./cm selenoid start --vnc</code></pre>
 </div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Running this command with <code>sudo</code> can lead to broken installation. Recommended way is running Selenoid as regular user. On Linux to have permissions to access Docker you may need to add your user to <code>docker</code> group:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">$ sudo usermod -aG docker $USER</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="listingblock">
 <div class="title">On Windows</div>
@@ -870,9 +890,9 @@ directory using <code>--config-dir</code> flag. To download images with VNC serv
 <div class="paragraph">
 <p>To quickly run Selenoid UI type:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ ./cm selenoid-ui start</pre>
+<pre class="CodeRay highlight"><code data-lang="bash">$ ./cm selenoid-ui start</code></pre>
 </div>
 </div>
 </td>
@@ -1025,7 +1045,7 @@ $ docker build -t cm:latest .</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version latest<br>
-Last updated 2021-08-07 04:47:21 UTC
+Last updated 2021-09-11 11:10:48 UTC
 </div>
 </div>
 <!-- Global site tag (gtag.js) - Google Analytics -->
