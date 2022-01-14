@@ -1,6 +1,6 @@
 {
   "chrome": {
-    "command": "%s --whitelisted-ips= --verbose",
+    "command": "%s --allowed-ips='' --verbose",
     "files": {
       "linux": {
         "amd64": {
@@ -60,7 +60,7 @@
   },
 
   "opera": {
-    "command": "%s --whitelisted-ips='' --verbose",
+    "command": "%s --allowed-ips='' --verbose",
     "files": {
       "linux": {
         "amd64": {
@@ -117,16 +117,32 @@
   },
 
   "MicrosoftEdge": {
-    "command": "%s --host=127.0.0.1 --verbose",
+    "command": "%s --allowed-ips='' --verbose",
     "files": {
+      "linux": {
+        "amd64": {
+          "url": "https://msedgewebdriverstorage.blob.core.windows.net/edgewebdriver/97.0.1072.8/edgedriver_linux64.zip",
+          "filename": "msedgedriver"
+        }
+      },
+      "darwin": {
+        "amd64": {
+          "url": "https://msedgewebdriverstorage.blob.core.windows.net/edgewebdriver/97.0.1072.8/edgedriver_mac64.zip",
+          "filename": "msedgedriver"
+        },
+        "arm64": {
+          "url": "https://msedgewebdriverstorage.blob.core.windows.net/edgewebdriver/97.0.1072.8/edgedriver_arm64.zip",
+          "filename": "msedgedriver"
+        }
+      },
       "windows": {
         "386": {
-          "url": "",
-          "filename": "C:\\Windows\\System32\\MicrosoftWebDriver.exe"
+          "url": "https://msedgewebdriverstorage.blob.core.windows.net/edgewebdriver/97.0.1072.8/edgedriver_win32.zip",
+          "filename": "msedgedriver.exe"
         },
         "amd64": {
-          "url": "",
-          "filename": "C:\\Windows\\System32\\MicrosoftWebDriver.exe"
+          "url": "https://msedgewebdriverstorage.blob.core.windows.net/edgewebdriver/97.0.1072.8/edgedriver_win64.zip",
+          "filename": "msedgedriver.exe"
         }
       }
     }
