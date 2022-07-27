@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/docker/docker/api"
 	"github.com/docker/go-units"
 	"io/ioutil"
 	"log"
@@ -37,7 +38,6 @@ import (
 
 	"encoding/base64"
 	"github.com/aerokube/cm/render/rewriter"
-	dc "github.com/aerokube/util/docker"
 	"github.com/fatih/color"
 	. "github.com/fvbommel/sortorder"
 	"io"
@@ -129,8 +129,58 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 	return c, nil
 }
 
+func createCompatibleDockerClient(onVersionSpecified, onVersionDetermined, onUsingDefaultVersion func(string)) (*client.Client, error) {
+	dockerApiVersionEnv := os.Getenv(dockerApiVersion)
+	if dockerApiVersionEnv != "" {
+		onVersionSpecified(dockerApiVersionEnv)
+	} else {
+		maxMajorVersion, maxMinorVersion := parseVersion(api.DefaultVersion)
+		minMajorVersion, minMinorVersion := parseVersion(api.MinVersion)
+		for majorVersion := maxMajorVersion; majorVersion >= minMajorVersion; majorVersion-- {
+			for minorVersion := maxMinorVersion; minorVersion >= minMinorVersion; minorVersion-- {
+				apiVersion := fmt.Sprintf("%d.%d", majorVersion, minorVersion)
+				_ = os.Setenv(dockerApiVersion, apiVersion)
+				docker, err := client.NewClientWithOpts(client.FromEnv)
+				if err != nil {
+					return nil, err
+				}
+				if isDockerAPIVersionCorrect(docker) {
+					onVersionDetermined(apiVersion)
+					return docker, nil
+				}
+				_ = docker.Close()
+			}
+		}
+		onUsingDefaultVersion(api.DefaultVersion)
+	}
+	return client.NewClientWithOpts(client.FromEnv)
+}
+
+func parseVersion(ver string) (int, int) {
+	const point = "."
+	pieces := strings.Split(ver, point)
+	major, err := strconv.Atoi(pieces[0])
+	if err != nil {
+		return 0, 0
+	}
+	minor, err := strconv.Atoi(pieces[1])
+	if err != nil {
+		return 0, 0
+	}
+	return major, minor
+}
+
+func isDockerAPIVersionCorrect(docker *client.Client) bool {
+	ctx := context.Background()
+	apiInfo, err := docker.ServerVersion(ctx)
+	if err != nil {
+		return false
+	}
+	return apiInfo.APIVersion == docker.ClientVersion()
+}
+
 func (c *DockerConfigurator) initDockerClient() error {
-	docker, err := dc.CreateCompatibleDockerClient(
+	docker, err := createCompatibleDockerClient(
 		func(specifiedApiVersion string) {
 			c.Pointf("Using Docker API version: %s", specifiedApiVersion)
 		},

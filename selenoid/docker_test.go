@@ -5,7 +5,6 @@ import (
 	"fmt"
 	. "github.com/aandryashin/matchers"
 	"github.com/aerokube/selenoid/config"
-	"github.com/aerokube/util"
 	"github.com/docker/docker/api/types"
 	"io/ioutil"
 	"net/http"
@@ -27,7 +26,7 @@ func init() {
 	resetContainerName()
 	resetPort()
 	mockDockerServer = httptest.NewServer(mux())
-	os.Setenv("DOCKER_HOST", "tcp://"+util.HostPort(mockDockerServer.URL))
+	os.Setenv("DOCKER_HOST", "tcp://"+hostPort(mockDockerServer.URL))
 }
 
 func setImageName(name string) {
