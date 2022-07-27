@@ -19,6 +19,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/aerokube/selenoid/config"
 	authconfig "github.com/docker/cli/cli/config"
+	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -86,7 +87,7 @@ type DockerConfigurator struct {
 	VNC          bool
 	docker       *client.Client
 	reg          *registry.Registry
-	authConfig   *types.AuthConfig
+	authConfig   *configtypes.AuthConfig
 	registryHost string
 }
 
@@ -147,7 +148,7 @@ func (c *DockerConfigurator) initDockerClient() error {
 	return nil
 }
 
-func (c *DockerConfigurator) initAuthConfig() (*types.AuthConfig, error) {
+func (c *DockerConfigurator) initAuthConfig() (*configtypes.AuthConfig, error) {
 	configFile, err := authconfig.Load("")
 	if err != nil {
 		return nil, err
@@ -948,7 +949,7 @@ func (c *DockerConfigurator) startContainer(cfg *containerConfig) error {
 	ctr, err := c.docker.ContainerCreate(ctx,
 		&containerConfig,
 		&hostConfig,
-		&network.NetworkingConfig{}, cfg.Name)
+		&network.NetworkingConfig{}, nil, cfg.Name)
 	if err != nil {
 		return fmt.Errorf("failed to create container: %v", err)
 	}

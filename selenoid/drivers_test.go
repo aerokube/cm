@@ -339,7 +339,7 @@ func TestDownloadSpecificRelease(t *testing.T) {
 func testDownloadRelease(t *testing.T, desiredVersion string, expectedFileContents string) {
 	withTmpDir(t, "downloader", func(t *testing.T, dir string) {
 		lcConfig := LifecycleConfig{
-			GithubBaseUrl: mockDriverServer.URL,
+			GithubBaseUrl: mockDriverServer.URL + "/",
 			ConfigDir:     dir,
 			OS:            runtime.GOOS,
 			Arch:          runtime.GOARCH,
