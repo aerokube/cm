@@ -6,7 +6,6 @@ require (
 	github.com/Masterminds/semver/v3 v3.0.1
 	github.com/aandryashin/matchers v0.0.0-20161126170413-435295ea180e
 	github.com/aerokube/selenoid v0.0.0-20220701113004-fbf82d85faee
-	github.com/aerokube/util v0.0.0-20200816065139-4ca0222e7686
 	github.com/docker/cli v20.10.17+incompatible
 	github.com/docker/docker v20.10.17+incompatible
 	github.com/docker/go-connections v0.4.0
@@ -34,6 +33,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.2 // indirect
+	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -41,4 +41,5 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/net v0.0.0-20220726230323-06994584191e // indirect
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
+	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 )
