@@ -6,7 +6,6 @@ import (
 	. "github.com/aandryashin/matchers"
 	"github.com/aerokube/selenoid/config"
 	"github.com/docker/docker/api/types"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -431,7 +430,7 @@ func TestSyncWithConfig(t *testing.T) {
 
 		initialCfgFile := filepath.Join(dir, "initial-browsers.json")
 		data, _ := json.Marshal(initialCfg)
-		ioutil.WriteFile(initialCfgFile, data, 0644)
+		os.WriteFile(initialCfgFile, data, 0644)
 
 		lcConfig := LifecycleConfig{
 			ConfigDir:    dir,

@@ -6,7 +6,6 @@ import (
 	. "github.com/aandryashin/matchers"
 	"github.com/aerokube/selenoid/config"
 	"github.com/google/go-github/github"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -276,7 +275,7 @@ func testUnpack(t *testing.T, data []byte, fileName string, fn func([]byte, stri
 }
 
 func readFile(t *testing.T, fileName string) []byte {
-	data, err := ioutil.ReadFile(fileName)
+	data, err := os.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -299,7 +298,7 @@ func mockServerUrl(mockServer *httptest.Server, relativeUrl string) string {
 }
 
 func withTmpDir(t *testing.T, prefix string, fn func(*testing.T, string)) {
-	dir, err := ioutil.TempDir("", prefix)
+	dir, err := os.MkdirTemp("", prefix)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -365,7 +364,7 @@ func checkContentsEqual(t *testing.T, outputPath string, expectedFileContents st
 	if !fileExists(outputPath) {
 		t.Fatalf("release was not downloaded to %s: file does not exist\n", outputPath)
 	}
-	data, err := ioutil.ReadFile(outputPath)
+	data, err := os.ReadFile(outputPath)
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, string(data), EqualTo{expectedFileContents})
 
@@ -418,7 +417,7 @@ func TestWrongBaseUrl(t *testing.T) {
 	})
 }
 
-//Based on https://npf.io/2015/06/testing-exec-command/
+// Based on https://npf.io/2015/06/testing-exec-command/
 func TestStartStopProcess(t *testing.T) {
 	execCommand = fakeExecCommand
 	defer func() {

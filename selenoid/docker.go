@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/docker/docker/api"
 	"github.com/docker/go-units"
-	"io/ioutil"
 	"log"
 	"sort"
 
@@ -114,7 +113,7 @@ func NewDockerConfigurator(config *LifecycleConfig) (*DockerConfigurator, error)
 	}
 	if c.Quiet {
 		log.SetFlags(0)
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 	}
 	err := c.initDockerClient()
 	if err != nil {
@@ -389,12 +388,12 @@ func (c *DockerConfigurator) Configure() (*SelenoidConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal json: %v", err)
 	}
-	return &cfg, ioutil.WriteFile(getSelenoidConfigPath(c.ConfigDir), data, 0644)
+	return &cfg, os.WriteFile(getSelenoidConfigPath(c.ConfigDir), data, 0644)
 }
 
 func (c *DockerConfigurator) syncWithConfig() (*SelenoidConfig, error) {
 	c.Titlef(`Requested to sync configuration from "%v"...`, color.GreenString(c.BrowsersJson))
-	data, err := ioutil.ReadFile(c.BrowsersJson)
+	data, err := os.ReadFile(c.BrowsersJson)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read browsers.json from %s: %v", c.BrowsersJson, err)
 	}
@@ -418,7 +417,7 @@ func (c *DockerConfigurator) syncWithConfig() (*SelenoidConfig, error) {
 		}
 		c.pullVideoRecorderImage()
 	}
-	return &cfg, ioutil.WriteFile(getSelenoidConfigPath(c.ConfigDir), data, 0644)
+	return &cfg, os.WriteFile(getSelenoidConfigPath(c.ConfigDir), data, 0644)
 }
 
 func (c *DockerConfigurator) createConfig() SelenoidConfig {

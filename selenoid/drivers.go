@@ -16,7 +16,6 @@ import (
 	"github.com/mitchellh/go-ps"
 	"gopkg.in/cheggaaa/pb.v1"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -285,7 +284,7 @@ func (d *DriversConfigurator) Configure() (*SelenoidConfig, error) {
 	if err != nil {
 		return &cfg, fmt.Errorf("failed to marshal json: %v", err)
 	}
-	return &cfg, ioutil.WriteFile(getSelenoidConfigPath(d.ConfigDir), data, 0644)
+	return &cfg, os.WriteFile(getSelenoidConfigPath(d.ConfigDir), data, 0644)
 }
 
 func (d *DriversConfigurator) generateConfig(downloadedDrivers []downloadedDriver) SelenoidConfig {
@@ -406,7 +405,7 @@ func extractFile(data []byte, filename string, outputDir string) (string, error)
 		return untar(data, filename, outputDir)
 	} else {
 		outputPath := filepath.Join(outputDir, filename)
-		err := ioutil.WriteFile(outputPath, data, os.ModePerm)
+		err := os.WriteFile(outputPath, data, os.ModePerm)
 		if err != nil {
 			return "", fmt.Errorf("failed to save file %s: %v", outputPath, err)
 		}
