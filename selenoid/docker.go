@@ -1037,7 +1037,8 @@ func (c *DockerConfigurator) createNetworkIfNeeded(networkName string) error {
 func (c *DockerConfigurator) removeContainer(id string) error {
 	ctx := context.Background()
 	if c.Graceful {
-		err := c.docker.ContainerStop(ctx, id, &c.GracefulTimeout)
+		timeout := int(c.GracefulTimeout.Milliseconds() / 1000)
+		err := c.docker.ContainerStop(ctx, id, container.StopOptions{Timeout: &timeout})
 		if err == nil {
 			return c.docker.ContainerRemove(ctx, id, types.ContainerRemoveOptions{RemoveVolumes: true})
 		}
