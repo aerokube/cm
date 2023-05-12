@@ -7,7 +7,7 @@ require (
 	github.com/aandryashin/matchers v0.0.0-20161126170413-435295ea180e
 	github.com/aerokube/selenoid v0.0.0-20220701113004-fbf82d85faee
 	github.com/docker/cli v23.0.1+incompatible
-	github.com/docker/docker v23.0.1+incompatible
+	github.com/docker/docker v23.0.3+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.5.0
 	github.com/fatih/color v1.14.1
