@@ -158,10 +158,18 @@ var (
 	selenoidUIConfigDirElem = []string{".aerokube", "selenoid-ui"}
 )
 
+func getBaseDir() string {
+	var dir = os.Getenv("AEROKUBE_CONFIG_DIR")
+	if len(dir) == 0 {
+		dir = getHomeDir()
+	}
+	return dir
+}
+
 func GetSelenoidConfigDir() string {
-	return joinPaths(getHomeDir(), selenoidConfigDirElem)
+	return joinPaths(getBaseDir(), selenoidConfigDirElem)
 }
 
 func GetSelenoidUIConfigDir() string {
-	return joinPaths(getHomeDir(), selenoidUIConfigDirElem)
+	return joinPaths(getBaseDir(), selenoidUIConfigDirElem)
 }
