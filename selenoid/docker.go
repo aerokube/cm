@@ -134,7 +134,7 @@ func createCompatibleDockerClient(onVersionSpecified, onVersionDetermined, onUsi
 		onVersionSpecified(dockerApiVersionEnv)
 	} else {
 		maxMajorVersion, maxMinorVersion := parseVersion(api.DefaultVersion)
-		minMajorVersion, minMinorVersion := parseVersion(api.MinVersion)
+		minMajorVersion, minMinorVersion := parseVersion("1.12")
 		for majorVersion := maxMajorVersion; majorVersion >= minMajorVersion; majorVersion-- {
 			for minorVersion := maxMinorVersion; minorVersion >= minMinorVersion; minorVersion-- {
 				apiVersion := fmt.Sprintf("%d.%d", majorVersion, minorVersion)

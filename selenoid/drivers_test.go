@@ -3,9 +3,9 @@ package selenoid
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/aandryashin/matchers"
 	"github.com/aerokube/selenoid/config"
 	"github.com/google/go-github/github"
+	assert "github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -126,13 +126,13 @@ func driversMux() http.Handler {
 func TestAllUrlsAreValid(t *testing.T) {
 
 	dir, err := os.Getwd()
-	AssertThat(t, err, Is{nil})
+	assert.NoError(t, err)
 
 	data := readFile(t, path.Join(dir, "..", "browsers.json"))
 
 	var browsers Browsers
 	err = json.Unmarshal(data, &browsers)
-	AssertThat(t, err, Is{nil})
+	assert.NoError(t, err)
 
 	//Loops are ugly but we need to check all urls in one test...
 	for _, browser := range browsers {
@@ -178,13 +178,13 @@ func TestConfigureDrivers(t *testing.T) {
 			BrowserEnv:     testEnv,
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
-		AssertThat(t, configurator.IsConfigured(), Is{false})
+		assert.False(t, configurator.IsConfigured())
 		cfgPointer, err := (*configurator).Configure()
-		AssertThat(t, err, Is{nil})
-		AssertThat(t, cfgPointer, Is{Not{nil}})
+		assert.NoError(t, err)
+		assert.NotNil(t, cfgPointer)
 
 		cfg := *cfgPointer
-		AssertThat(t, len(cfg), EqualTo{3})
+		assert.Len(t, cfg, 3)
 
 		unpackedFirstFile := path.Join(dir, "zip-testfile")
 		unpackedSecondFile := path.Join(dir, "gzip-testfile")
@@ -238,8 +238,8 @@ func TestConfigureDrivers(t *testing.T) {
 
 func TestUnzip(t *testing.T) {
 	data := readFile(t, "testfile.zip")
-	AssertThat(t, isZipFile(data), Is{true})
-	AssertThat(t, isTarGzFile(data), Is{false})
+	assert.True(t, isZipFile(data))
+	assert.False(t, isTarGzFile(data))
 	testUnpack(t, data, "zip-testfile", func(data []byte, filePath string, outputDir string) (string, error) {
 		return unzip(data, filePath, outputDir)
 	}, "zip\n")
@@ -247,8 +247,8 @@ func TestUnzip(t *testing.T) {
 
 func TestUntar(t *testing.T) {
 	data := readFile(t, "testfile.tar.gz")
-	AssertThat(t, isTarGzFile(data), Is{true})
-	AssertThat(t, isZipFile(data), Is{false})
+	assert.True(t, isTarGzFile(data))
+	assert.False(t, isZipFile(data))
 	testUnpack(t, data, "gzip-testfile", func(data []byte, filePath string, outputDir string) (string, error) {
 		return untar(data, filePath, outputDir)
 	}, "gzip\n")
@@ -288,7 +288,7 @@ func TestDownloadFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to download file: %v\n", err)
 	}
-	AssertThat(t, string(data), EqualTo{"test-data"})
+	assert.Equal(t, string(data), "test-data")
 }
 
 func mockServerUrl(mockServer *httptest.Server, relativeUrl string) string {
@@ -345,16 +345,16 @@ func testDownloadRelease(t *testing.T, desiredVersion string, expectedFileConten
 			Version:       desiredVersion,
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
-		AssertThat(t, configurator.IsDownloaded(), Is{false})
+		assert.False(t, configurator.IsDownloaded())
 
 		outputPath, err := configurator.Download()
-		AssertThat(t, err, Is{nil})
-		AssertThat(t, outputPath, Is{Not{nil}})
+		assert.NoError(t, err)
+		assert.NotNil(t, outputPath)
 		checkContentsEqual(t, outputPath, expectedFileContents)
 
 		uiOutputPath, err := configurator.DownloadUI()
-		AssertThat(t, err, Is{nil})
-		AssertThat(t, uiOutputPath, Is{Not{nil}})
+		assert.NoError(t, err)
+		assert.NotNil(t, uiOutputPath)
 		checkContentsEqual(t, uiOutputPath, expectedFileContents)
 	})
 
@@ -365,8 +365,8 @@ func checkContentsEqual(t *testing.T, outputPath string, expectedFileContents st
 		t.Fatalf("release was not downloaded to %s: file does not exist\n", outputPath)
 	}
 	data, err := os.ReadFile(outputPath)
-	AssertThat(t, err, Is{nil})
-	AssertThat(t, string(data), EqualTo{expectedFileContents})
+	assert.NoError(t, err)
+	assert.Equal(t, string(data), expectedFileContents)
 
 }
 
@@ -387,7 +387,7 @@ func downloadShouldFail(t *testing.T, fn func(string) *DriversConfigurator) {
 	withTmpDir(t, "something", func(t *testing.T, dir string) {
 		configurator := fn(dir)
 		_, err := configurator.Download()
-		AssertThat(t, err, Is{Not{nil}})
+		assert.Error(t, err)
 	})
 }
 
@@ -433,18 +433,18 @@ func TestStartStopProcess(t *testing.T) {
 			Port:          SelenoidDefaultPort,
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
-		AssertThat(t, configurator.IsRunning(), Is{true}) //This is probably true because test binary has name selenoid.test; no fake process is launched
-		AssertThat(t, configurator.Start(), Is{nil})
+		assert.True(t, configurator.IsRunning()) //This is probably true because test binary has name selenoid.test; no fake process is launched
+		assert.NoError(t, configurator.Start())
 		configurator.Status()
-		AssertThat(t, configurator.Stop(), Is{nil})
-		AssertThat(t, configurator.PrintArgs(), Is{nil})
+		assert.NoError(t, configurator.Stop())
+		assert.NoError(t, configurator.PrintArgs())
 
 		lcConfig.Port = SelenoidUIDefaultPort
-		AssertThat(t, configurator.IsUIRunning(), Is{false})
-		AssertThat(t, configurator.StartUI(), Is{nil})
+		assert.False(t, configurator.IsUIRunning())
+		assert.NoError(t, configurator.StartUI())
 		configurator.UIStatus()
-		AssertThat(t, configurator.StopUI(), Is{nil})
-		AssertThat(t, configurator.PrintUIArgs(), Is{nil})
+		assert.NoError(t, configurator.StopUI())
+		assert.NoError(t, configurator.PrintUIArgs())
 	})
 
 }
@@ -458,11 +458,11 @@ func fakeExecCommand(command string, args ...string) *exec.Cmd {
 }
 
 func TestPrepareCommand(t *testing.T) {
-	AssertThat(
+	assert.Equal(
 		t,
 		prepareCommand("%s --some-arg", "/path/with spaces"),
-		EqualTo{[]string{
+		[]string{
 			"/path/with spaces", "--some-arg",
-		}},
+		},
 	)
 }
