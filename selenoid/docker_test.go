@@ -3,9 +3,9 @@ package selenoid
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/aandryashin/matchers"
 	"github.com/aerokube/selenoid/config"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
+	assert "github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -65,42 +65,42 @@ func mux() http.Handler {
 	mux.HandleFunc("/v2/aerokube/selenoid/tags/list", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
-			fmt.Fprintln(w, `{"name":"selenoid", "tags": ["1.4.0", "1.4.1"]}`)
+			_, _ = fmt.Fprintln(w, `{"name":"selenoid", "tags": ["1.4.0", "1.4.1"]}`)
 		},
 	))
 
 	mux.HandleFunc("/v2/aerokube/selenoid-ui/tags/list", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
-			fmt.Fprintln(w, `{"name":"selenoid-ui", "tags": ["1.5.2"]}`)
+			_, _ = fmt.Fprintln(w, `{"name":"selenoid-ui", "tags": ["1.5.2"]}`)
 		},
 	))
 
 	mux.HandleFunc("/v2/selenoid/firefox/tags/list", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
-			fmt.Fprintln(w, `{"name":"firefox", "tags": ["46.0", "45.0", "7.0", "latest"]}`)
+			_, _ = fmt.Fprintln(w, `{"name":"firefox", "tags": ["46.0", "45.0", "7.0", "latest"]}`)
 		},
 	))
 
 	mux.HandleFunc("/v2/selenoid/opera/tags/list", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
-			fmt.Fprintln(w, `{"name":"opera", "tags": ["44.0", "latest"]}`)
+			_, _ = fmt.Fprintln(w, `{"name":"opera", "tags": ["44.0", "latest"]}`)
 		},
 	))
 
 	mux.HandleFunc("/v2/selenoid/android/tags/list", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
-			fmt.Fprintln(w, `{"name":"android", "tags": ["10.0"]}`)
+			_, _ = fmt.Fprintln(w, `{"name":"android", "tags": ["10.0"]}`)
 		},
 	))
 
 	mux.HandleFunc("/v2/browsers/edge/tags/list", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
-			fmt.Fprintln(w, `{"name":"edge", "tags": ["88.0"]}`)
+			_, _ = fmt.Fprintln(w, `{"name":"edge", "tags": ["88.0"]}`)
 		},
 	))
 
@@ -124,14 +124,14 @@ func mux() http.Handler {
 				
 				}
 			`
-			w.Write([]byte(output))
+			_, _ = w.Write([]byte(output))
 		},
 	))
 	mux.HandleFunc("/v1.29/images/create", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			output := `{"id": "a86cd3433934", "status": "Downloading layer"}`
-			w.Write([]byte(output))
+			_, _ = w.Write([]byte(output))
 		},
 	))
 	mux.HandleFunc("/v1.29/images/json", http.HandlerFunc(
@@ -153,13 +153,13 @@ func mux() http.Handler {
 			
 			}]
 			`, imageName)
-			w.Write([]byte(output))
+			_, _ = w.Write([]byte(output))
 		},
 	))
 	mux.HandleFunc("/v1.29/networks/selenoid", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`
+			_, _ = w.Write([]byte(`
               [{
                 "Name": "selenoid",
                 "Id": "39d591dabe313ed90b599e6d6515301e879c088b449a260cc02981bd25b52a6f",
@@ -194,14 +194,14 @@ func mux() http.Handler {
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusCreated)
 			output := `{"id": "39d591dabe31", "warnings": []}`
-			w.Write([]byte(output))
+			_, _ = w.Write([]byte(output))
 		},
 	))
 	mux.HandleFunc("/v1.29/containers/create", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusCreated)
 			output := `{"id": "e90e34656806", "warnings": []}`
-			w.Write([]byte(output))
+			_, _ = w.Write([]byte(output))
 		},
 	))
 	mux.HandleFunc("/v1.29/containers/e90e34656806/start", http.HandlerFunc(
@@ -218,7 +218,7 @@ func mux() http.Handler {
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Some logs...\n"))
+			_, _ = w.Write([]byte("Some logs...\n"))
 		},
 	))
 	mux.HandleFunc("/v1.29/containers/e90e34656806", http.HandlerFunc(
@@ -260,14 +260,14 @@ func mux() http.Handler {
 				
 			}]
 			`, containerName, imageName, port, port)
-			w.Write([]byte(output))
+			_, _ = w.Write([]byte(output))
 		},
 	))
 	return mux
 }
 
 func TestImageWithTag(t *testing.T) {
-	AssertThat(t, imageWithTag("selenoid/firefox", "tag"), EqualTo{"selenoid/firefox:tag"})
+	assert.Equal(t, imageWithTag("selenoid/firefox", "tag"), "selenoid/firefox:tag")
 }
 
 func TestFetchImageTags(t *testing.T) {
@@ -276,13 +276,13 @@ func TestFetchImageTags(t *testing.T) {
 		Quiet:       false,
 	}
 	c, err := NewDockerConfigurator(&lcConfig)
-	AssertThat(t, err, Is{nil})
+	assert.NoError(t, err)
 	defer c.Close()
 	tags := c.fetchImageTags("selenoid/firefox")
-	AssertThat(t, len(tags), EqualTo{3})
-	AssertThat(t, tags[0], EqualTo{"46.0"})
-	AssertThat(t, tags[1], EqualTo{"45.0"})
-	AssertThat(t, tags[2], EqualTo{"7.0"})
+	assert.Len(t, tags, 3)
+	assert.Equal(t, tags[0], "46.0")
+	assert.Equal(t, tags[1], "45.0")
+	assert.Equal(t, tags[2], "7.0")
 }
 
 func TestPullImages(t *testing.T) {
@@ -291,12 +291,12 @@ func TestPullImages(t *testing.T) {
 		Quiet:       false,
 	}
 	c, err := NewDockerConfigurator(&lcConfig)
-	AssertThat(t, err, Is{nil})
+	assert.NoError(t, err)
 	defer c.Close()
 	tags := c.pullImages("selenoid/firefox", []string{"46.0", "45.0"})
-	AssertThat(t, len(tags), EqualTo{2})
-	AssertThat(t, tags[0], EqualTo{"46.0"})
-	AssertThat(t, tags[1], EqualTo{"45.0"})
+	assert.Len(t, tags, 2)
+	assert.Equal(t, tags[0], "46.0")
+	assert.Equal(t, tags[1], "45.0")
 }
 
 func TestConfigureDocker(t *testing.T) {
@@ -325,19 +325,19 @@ func testConfigure(t *testing.T, download bool) {
 			BrowserEnv:   testEnv,
 		}
 		c, err := NewDockerConfigurator(&lcConfig)
-		AssertThat(t, err, Is{nil})
+		assert.NoError(t, err)
 		defer c.Close()
-		AssertThat(t, c.IsConfigured(), Is{false})
+		assert.False(t, c.IsConfigured())
 		cfgPointer, err := (*c).Configure()
-		AssertThat(t, err, Is{nil})
-		AssertThat(t, cfgPointer, Is{Not{nil}})
+		assert.NoError(t, err)
+		assert.NotNil(t, cfgPointer)
 
 		cfg := *cfgPointer
-		AssertThat(t, len(cfg), EqualTo{4})
+		assert.Len(t, cfg, 4)
 
 		firefoxVersions, hasFirefoxKey := cfg["firefox"]
-		AssertThat(t, hasFirefoxKey, Is{true})
-		AssertThat(t, firefoxVersions, Is{Not{nil}})
+		assert.True(t, hasFirefoxKey, true)
+		assert.NotNil(t, firefoxVersions)
 
 		tmpfsMap := make(map[string]string)
 		tmpfsMap["/tmp"] = "size=512m"
@@ -351,15 +351,15 @@ func testConfigure(t *testing.T, download bool) {
 			ShmSize: 268435456,
 			Env:     []string{testEnv},
 		}
-		AssertThat(t, firefoxVersions, EqualTo{config.Versions{
+		assert.Equal(t, firefoxVersions, config.Versions{
 			Default:  "46.0",
 			Versions: correctFFBrowsers,
-		}})
+		})
 
 		operaVersions, hasOperaKey := cfg["opera"]
-		AssertThat(t, hasOperaKey, Is{true})
-		AssertThat(t, operaVersions, Is{Not{nil}})
-		AssertThat(t, operaVersions.Default, EqualTo{"44.0"})
+		assert.True(t, hasOperaKey)
+		assert.NotNil(t, operaVersions)
+		assert.Equal(t, operaVersions.Default, "44.0")
 
 		correctOperaBrowsers := make(map[string]*config.Browser)
 		correctOperaBrowsers["44.0"] = &config.Browser{
@@ -370,14 +370,14 @@ func testConfigure(t *testing.T, download bool) {
 			ShmSize: 268435456,
 			Env:     []string{testEnv},
 		}
-		AssertThat(t, operaVersions, EqualTo{config.Versions{
+		assert.Equal(t, operaVersions, config.Versions{
 			Default:  "44.0",
 			Versions: correctOperaBrowsers,
-		}})
+		})
 
 		androidVersions, hasAndroidKey := cfg["android"]
-		AssertThat(t, hasAndroidKey, Is{true})
-		AssertThat(t, androidVersions, Is{Not{nil}})
+		assert.True(t, hasAndroidKey, true)
+		assert.NotNil(t, androidVersions)
 
 		correctAndroidBrowsers := make(map[string]*config.Browser)
 		correctAndroidBrowsers["10.0"] = &config.Browser{
@@ -388,14 +388,14 @@ func testConfigure(t *testing.T, download bool) {
 			ShmSize: 268435456,
 			Env:     []string{testEnv},
 		}
-		AssertThat(t, androidVersions, EqualTo{config.Versions{
+		assert.Equal(t, androidVersions, config.Versions{
 			Default:  "10.0",
 			Versions: correctAndroidBrowsers,
-		}})
+		})
 
 		edgeVersions, hasEdgeKey := cfg["MicrosoftEdge"]
-		AssertThat(t, hasEdgeKey, Is{true})
-		AssertThat(t, edgeVersions, Is{Not{nil}})
+		assert.True(t, hasEdgeKey)
+		assert.NotNil(t, edgeVersions)
 
 		correctEdgeBrowsers := make(map[string]*config.Browser)
 		correctEdgeBrowsers["88.0"] = &config.Browser{
@@ -406,10 +406,10 @@ func testConfigure(t *testing.T, download bool) {
 			ShmSize: 268435456,
 			Env:     []string{testEnv},
 		}
-		AssertThat(t, edgeVersions, EqualTo{config.Versions{
+		assert.Equal(t, edgeVersions, config.Versions{
 			Default:  "88.0",
 			Versions: correctEdgeBrowsers,
-		}})
+		})
 
 	})
 }
@@ -430,7 +430,7 @@ func TestSyncWithConfig(t *testing.T) {
 
 		initialCfgFile := filepath.Join(dir, "initial-browsers.json")
 		data, _ := json.Marshal(initialCfg)
-		os.WriteFile(initialCfgFile, data, 0644)
+		_ = os.WriteFile(initialCfgFile, data, 0644)
 
 		lcConfig := LifecycleConfig{
 			ConfigDir:    dir,
@@ -440,15 +440,15 @@ func TestSyncWithConfig(t *testing.T) {
 			Quiet:        false,
 		}
 		c, err := NewDockerConfigurator(&lcConfig)
-		AssertThat(t, err, Is{nil})
+		assert.NoError(t, err)
 		defer c.Close()
-		AssertThat(t, c.IsConfigured(), Is{false})
+		assert.False(t, c.IsConfigured())
 		cfgPointer, err := (*c).Configure()
-		AssertThat(t, err, Is{nil})
-		AssertThat(t, cfgPointer, Is{Not{nil}})
+		assert.NoError(t, err)
+		assert.NotNil(t, cfgPointer)
 
 		cfg := *cfgPointer
-		AssertThat(t, cfg, EqualTo{initialCfg})
+		assert.Equal(t, cfg, initialCfg)
 	})
 
 }
@@ -460,11 +460,11 @@ func TestStartStopContainer(t *testing.T) {
 		Version:     Latest,
 		UserNS:      "host",
 	})
-	AssertThat(t, err, Is{nil})
-	AssertThat(t, c.IsRunning(), Is{true})
-	AssertThat(t, c.Start(), Is{nil})
+	assert.NoError(t, err)
+	assert.True(t, c.IsRunning())
+	assert.NoError(t, c.Start())
 	c.Status()
-	AssertThat(t, c.Stop(), Is{nil})
+	assert.NoError(t, c.Stop())
 }
 
 func TestStartStopUIContainer(t *testing.T) {
@@ -477,14 +477,14 @@ func TestStartStopUIContainer(t *testing.T) {
 		RegistryUrl: mockDockerServer.URL,
 		Port:        SelenoidUIDefaultPort,
 	})
-	AssertThat(t, err, Is{nil})
+	assert.NoError(t, err)
 	setContainerName(selenoidUIContainerName)
 	setImageName(selenoidUIImage)
 	setPort(SelenoidUIDefaultPort)
-	AssertThat(t, c.IsUIRunning(), Is{true})
-	AssertThat(t, c.StartUI(), Is{nil})
+	assert.True(t, c.IsUIRunning())
+	assert.NoError(t, c.StartUI())
 	c.UIStatus()
-	AssertThat(t, c.StopUI(), Is{nil})
+	assert.NoError(t, c.StopUI())
 }
 
 func TestDownload(t *testing.T) {
@@ -493,12 +493,12 @@ func TestDownload(t *testing.T) {
 		Quiet:       true,
 		Version:     Latest,
 	})
-	AssertThat(t, err, Is{nil})
-	AssertThat(t, c.IsDownloaded(), Is{true})
+	assert.NoError(t, err)
+	assert.True(t, c.IsDownloaded())
 	ref, err := c.Download()
-	AssertThat(t, ref, Not{nil})
-	AssertThat(t, err, Is{nil})
-	AssertThat(t, c.PrintArgs(), Is{nil})
+	assert.NoError(t, err)
+	assert.NotNil(t, ref)
+	assert.NoError(t, c.PrintArgs())
 }
 
 func TestDownloadUI(t *testing.T) {
@@ -511,12 +511,12 @@ func TestDownloadUI(t *testing.T) {
 		Version:     Latest,
 	})
 	setImageName(selenoidUIImage)
-	AssertThat(t, err, Is{nil})
-	AssertThat(t, c.IsUIDownloaded(), Is{true})
+	assert.NoError(t, err)
+	assert.True(t, c.IsUIDownloaded())
 	ref, err := c.DownloadUI()
-	AssertThat(t, ref, Not{nil})
-	AssertThat(t, err, Is{nil})
-	AssertThat(t, c.PrintUIArgs(), Is{nil})
+	assert.NoError(t, err)
+	assert.NotNil(t, ref)
+	assert.NoError(t, c.PrintUIArgs())
 }
 
 func TestGetSelenoidImage(t *testing.T) {
@@ -528,32 +528,32 @@ func TestGetSelenoidImage(t *testing.T) {
 		Quiet:       true,
 		Version:     Latest,
 	})
-	AssertThat(t, err, Is{nil})
-	AssertThat(t, c.getSelenoidImage() == nil, Is{false})
+	assert.NoError(t, err)
+	assert.NotNil(t, c.getSelenoidImage())
 	setImageName(selenoidUIImage)
-	AssertThat(t, c.getSelenoidImage() == nil, Is{true})
+	assert.Nil(t, c.getSelenoidImage())
 }
 
 func TestFindMatchingImage(t *testing.T) {
 
 	var (
-		selenoid141 = types.ImageSummary{
+		selenoid141 = image.Summary{
 			ID:       "1",
 			RepoTags: []string{"aerokube/selenoid:1.4.1"},
 			Created:  100,
 		}
-		selenoid143 = types.ImageSummary{
+		selenoid143 = image.Summary{
 			ID:       "3",
 			RepoTags: []string{"aerokube/selenoid:1.4.3"},
 			Created:  300,
 		}
-		selenoid120CustomRegistry = types.ImageSummary{
+		selenoid120CustomRegistry = image.Summary{
 			ID:       "4",
 			RepoTags: []string{"my-registry.com:443/aerokube/selenoid:1.2.0"},
 			Created:  100,
 		}
 	)
-	images := []types.ImageSummary{
+	images := []image.Summary{
 		selenoid141,
 		{
 			ID:       "2",
@@ -564,81 +564,81 @@ func TestFindMatchingImage(t *testing.T) {
 		selenoid120CustomRegistry,
 	}
 
-	AssertThat(t, findMatchingImage(images, "unknown-image-name", Latest) == nil, Is{true})
-	AssertThat(t, findMatchingImage(images, "aerokube/selenoid", "missing-version") == nil, Is{true})
+	assert.Nil(t, findMatchingImage(images, "unknown-image-name", Latest))
+	assert.Nil(t, findMatchingImage(images, "aerokube/selenoid", "missing-version"))
 
 	foundSelenoid141 := findMatchingImage(images, "aerokube/selenoid", "1.4.1")
-	AssertThat(t, foundSelenoid141, Not{nil})
-	AssertThat(t, *foundSelenoid141, EqualTo{selenoid141})
+	assert.NotNil(t, foundSelenoid141)
+	assert.Equal(t, *foundSelenoid141, selenoid141)
 
 	foundSelenoidEmpty := findMatchingImage(images, "aerokube/selenoid", "")
-	AssertThat(t, foundSelenoidEmpty, Not{nil})
-	AssertThat(t, *foundSelenoidEmpty, EqualTo{selenoid143})
+	assert.NotNil(t, foundSelenoidEmpty)
+	assert.Equal(t, *foundSelenoidEmpty, selenoid143)
 
 	foundSelenoidLatest := findMatchingImage(images, "aerokube/selenoid", Latest)
-	AssertThat(t, foundSelenoidLatest, Not{nil})
-	AssertThat(t, *foundSelenoidLatest, EqualTo{selenoid143})
+	assert.NotNil(t, foundSelenoidLatest)
+	assert.Equal(t, *foundSelenoidLatest, selenoid143)
 
 	foundSelenoidCustomRegistry := findMatchingImage(images, "my-registry.com:443/aerokube/selenoid", "1.2.0")
-	AssertThat(t, foundSelenoidCustomRegistry, Not{nil})
-	AssertThat(t, *foundSelenoidCustomRegistry, EqualTo{selenoid120CustomRegistry})
+	assert.NotNil(t, foundSelenoidCustomRegistry, nil)
+	assert.Equal(t, *foundSelenoidCustomRegistry, selenoid120CustomRegistry)
 
 	foundSelenoidWithoutRegistry := findMatchingImage(images, "aerokube/selenoid", "1.2.0")
-	AssertThat(t, foundSelenoidWithoutRegistry, Not{nil})
-	AssertThat(t, *foundSelenoidWithoutRegistry, EqualTo{selenoid120CustomRegistry})
+	assert.NotNil(t, foundSelenoidWithoutRegistry, nil)
+	assert.Equal(t, *foundSelenoidWithoutRegistry, selenoid120CustomRegistry)
 }
 
 func TestIsVideoRecordingSupported(t *testing.T) {
 	logger := Logger{}
-	AssertThat(t, isVideoRecordingSupported(logger, "wrong-version"), Is{false})
-	AssertThat(t, isVideoRecordingSupported(logger, "1.3.9"), Is{false})
-	AssertThat(t, isVideoRecordingSupported(logger, "1.4.0"), Is{true})
-	AssertThat(t, isVideoRecordingSupported(logger, "1.4.1"), Is{true})
-	AssertThat(t, isVideoRecordingSupported(logger, "1.5.0"), Is{true})
-	AssertThat(t, isVideoRecordingSupported(logger, "latest"), Is{true})
+	assert.False(t, isVideoRecordingSupported(logger, "wrong-version"))
+	assert.False(t, isVideoRecordingSupported(logger, "1.3.9"))
+	assert.True(t, isVideoRecordingSupported(logger, "1.4.0"))
+	assert.True(t, isVideoRecordingSupported(logger, "1.4.1"))
+	assert.True(t, isVideoRecordingSupported(logger, "1.5.0"))
+	assert.True(t, isVideoRecordingSupported(logger, "latest"))
 }
 
 func TestFilterOutLatest(t *testing.T) {
 	tags := filterOutLatest([]string{"one", "latest", "latest-release", "two"})
-	AssertThat(t, tags, EqualTo{[]string{"one", "two"}})
+	assert.Equal(t, tags, []string{"one", "two"})
 }
 
 func TestChooseVolumeConfigDir(t *testing.T) {
 	dirWithoutVariable := chooseVolumeConfigDir("/some/dir", []string{"one", "two"})
-	AssertThat(t, dirWithoutVariable, EqualTo{"/some/dir"})
+	assert.Equal(t, dirWithoutVariable, "/some/dir")
 	os.Setenv("OVERRIDE_HOME", "/test/dir")
 	defer os.Unsetenv("OVERRIDE_HOME")
 	dir := chooseVolumeConfigDir("/some/dir", []string{"one", "two"})
-	AssertThat(t, dir, EqualTo{"/test/dir/one/two"})
+	assert.Equal(t, dir, "/test/dir/one/two")
 }
 
 func TestPostProcessPath(t *testing.T) {
-	AssertThat(t, postProcessPath("C:\\Users\\admin"), EqualTo{"/c/Users/admin"})
-	AssertThat(t, postProcessPath("C:\\C:\\Users\\admin"), EqualTo{"/c/C:/Users/admin"})
-	AssertThat(t, postProcessPath("1"), EqualTo{"1"})
-	AssertThat(t, postProcessPath(""), EqualTo{""})
+	assert.Equal(t, postProcessPath("C:\\Users\\admin"), "/c/Users/admin")
+	assert.Equal(t, postProcessPath("C:\\C:\\Users\\admin"), "/c/C:/Users/admin")
+	assert.Equal(t, postProcessPath("1"), "1")
+	assert.Empty(t, postProcessPath(""))
 }
 
 func TestValidEnviron(t *testing.T) {
-	AssertThat(t, validateEnviron([]string{"=::=::"}), EqualTo{[]string{}})
-	AssertThat(t, validateEnviron([]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1", "=::=::"}), EqualTo{[]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1"}})
+	assert.Equal(t, validateEnviron([]string{"=::=::"}), []string{})
+	assert.Equal(t, validateEnviron([]string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1", "=::=::"}), []string{"HOMEDRIVE=C:", "DOCKER_HOST=192.168.0.1"})
 }
 
 func TestParseRequestedBrowsers(t *testing.T) {
 	output := parseRequestedBrowsers(&Logger{}, "firefox:>45.0,51.0;opera; android:7.1;firefox:<50.0")
-	AssertThat(t, len(output), EqualTo{3})
+	assert.Len(t, output, 3)
 
 	ff, ok := output["firefox"]
-	AssertThat(t, ok, Is{true})
-	AssertThat(t, ff, Not{nil})
-	AssertThat(t, len(ff), EqualTo{2})
+	assert.True(t, ok)
+	assert.NotNil(t, ff)
+	assert.Len(t, ff, 2)
 
 	opera, ok := output["opera"]
-	AssertThat(t, ok, Is{true})
-	AssertThat(t, len(opera), EqualTo{0})
+	assert.True(t, ok)
+	assert.Empty(t, opera)
 
 	android, ok := output["android"]
-	AssertThat(t, ok, Is{true})
-	AssertThat(t, android, Not{nil})
-	AssertThat(t, len(android), EqualTo{1})
+	assert.True(t, ok)
+	assert.NotNil(t, android)
+	assert.Len(t, android, 1)
 }

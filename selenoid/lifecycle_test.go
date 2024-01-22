@@ -1,7 +1,7 @@
 package selenoid
 
 import (
-	. "github.com/aandryashin/matchers"
+	assert "github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -85,21 +85,19 @@ func (ms *MockStrategy) Close() error {
 }
 
 func TestDockerUnavailable(t *testing.T) {
-	AssertThat(t, isDockerAvailable(), Is{false})
+	assert.False(t, isDockerAvailable())
 }
 
 func TestDockerAvailable(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/_ping", http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		},
-	))
+	mux.HandleFunc("/_ping", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 	mockDockerServer := httptest.NewServer(mux)
-	os.Setenv("DOCKER_HOST", "tcp://"+hostPort(mockDockerServer.URL))
+	_ = os.Setenv("DOCKER_HOST", "tcp://"+hostPort(mockDockerServer.URL))
 	defer os.Unsetenv("DOCKER_HOST")
 
-	AssertThat(t, isDockerAvailable(), Is{true})
+	assert.True(t, isDockerAvailable())
 }
 
 func hostPort(input string) string {
@@ -115,14 +113,14 @@ func TestLifecycle(t *testing.T) {
 	lc := createTestLifecycle(strategy)
 	defer lc.Close()
 	lc.Status()
-	AssertThat(t, lc.Download(), Is{nil})
-	AssertThat(t, lc.PrintArgs(), Is{nil})
-	AssertThat(t, lc.Configure(), Is{nil})
-	AssertThat(t, lc.Start(), Is{nil})
+	assert.NoError(t, lc.Download())
+	assert.NoError(t, lc.PrintArgs())
+	assert.NoError(t, lc.Configure())
+	assert.NoError(t, lc.Start())
 	strategy.isRunning = true
-	AssertThat(t, lc.Start(), Is{nil})
+	assert.NoError(t, lc.Start())
 	strategy.isRunning = false
-	AssertThat(t, lc.Stop(), Is{nil})
+	assert.NoError(t, lc.Stop())
 }
 
 func createTestLifecycle(strategy MockStrategy) Lifecycle {
@@ -144,11 +142,11 @@ func TestUILifecycle(t *testing.T) {
 	lc := createTestLifecycle(strategy)
 	defer lc.Close()
 	lc.UIStatus()
-	AssertThat(t, lc.DownloadUI(), Is{nil})
-	AssertThat(t, lc.PrintUIArgs(), Is{nil})
-	AssertThat(t, lc.StartUI(), Is{nil})
+	assert.NoError(t, lc.DownloadUI())
+	assert.NoError(t, lc.PrintUIArgs())
+	assert.NoError(t, lc.StartUI())
 	strategy.isRunning = true
-	AssertThat(t, lc.StartUI(), Is{nil})
+	assert.NoError(t, lc.StartUI())
 	strategy.isRunning = false
-	AssertThat(t, lc.StopUI(), Is{nil})
+	assert.NoError(t, lc.StopUI())
 }

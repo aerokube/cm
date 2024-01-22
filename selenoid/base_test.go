@@ -1,16 +1,16 @@
 package selenoid
 
 import (
-	. "github.com/aandryashin/matchers"
+	assert "github.com/stretchr/testify/require"
 	"path/filepath"
 	"testing"
 )
 
 func TestGetConfigDir(t *testing.T) {
 	selenoidConfigDir := GetSelenoidConfigDir()
-	AssertThat(t, selenoidConfigDir, Not{""})
-	AssertThat(t, filepath.IsAbs(selenoidConfigDir), Is{true})
+	assert.NotEmpty(t, selenoidConfigDir)
+	assert.True(t, filepath.IsAbs(selenoidConfigDir))
 	selenoidUIConfigDir := GetSelenoidUIConfigDir()
-	AssertThat(t, selenoidUIConfigDir, Not{""})
-	AssertThat(t, filepath.IsAbs(selenoidUIConfigDir), Is{true})
+	assert.NotEmpty(t, selenoidUIConfigDir)
+	assert.True(t, filepath.IsAbs(selenoidUIConfigDir))
 }
