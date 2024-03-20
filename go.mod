@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/aerokube/selenoid v0.0.0-20240109083731-079fe2dfad4f
 	github.com/docker/cli v23.0.1+incompatible
-	github.com/docker/docker v25.0.0+incompatible
+	github.com/docker/docker v25.0.2+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
 	github.com/fatih/color v1.14.1
