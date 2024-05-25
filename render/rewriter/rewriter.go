@@ -1,4 +1,4 @@
-// original code from https://github.com/vbauerster/mpb
+// Package rewriter original code was copied from https://github.com/vbauerster/mpb
 package rewriter
 
 import (
@@ -17,7 +17,7 @@ var (
 	clearCursorAndLine = cursorUp + clearLine
 )
 
-// Writer is a buffered the writer that updates the terminal.
+// Rewriter is a buffered writer that updates the terminal.
 // The contents of writer will be flushed when Flush is called.
 type Rewriter struct {
 	out io.Writer
@@ -52,5 +52,5 @@ func (w *Rewriter) Write(b []byte) (n int, err error) {
 }
 
 func (w *Rewriter) clearLines() {
-	fmt.Fprint(w.out, strings.Repeat(clearCursorAndLine, w.lineCount))
+	_, _ = fmt.Fprint(w.out, strings.Repeat(clearCursorAndLine, w.lineCount))
 }

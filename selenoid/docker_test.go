@@ -3,14 +3,15 @@ package selenoid
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aerokube/selenoid/config"
-	"github.com/docker/docker/api/types/image"
-	assert "github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/aerokube/selenoid/config"
+	"github.com/docker/docker/api/types/image"
+	assert "github.com/stretchr/testify/require"
 )
 
 var (
@@ -49,7 +50,7 @@ func setPort(p int) {
 }
 
 func resetPort() {
-	setPort(SelenoidDefaultPort)
+	setPort(DefaultPort)
 }
 
 func mux() http.Handler {
@@ -456,7 +457,7 @@ func TestSyncWithConfig(t *testing.T) {
 func TestStartStopContainer(t *testing.T) {
 	c, err := NewDockerConfigurator(&LifecycleConfig{
 		RegistryUrl: mockDockerServer.URL,
-		Port:        SelenoidDefaultPort,
+		Port:        DefaultPort,
 		Version:     Latest,
 		UserNS:      "host",
 	})
@@ -475,12 +476,12 @@ func TestStartStopUIContainer(t *testing.T) {
 	}()
 	c, err := NewDockerConfigurator(&LifecycleConfig{
 		RegistryUrl: mockDockerServer.URL,
-		Port:        SelenoidUIDefaultPort,
+		Port:        UIDefaultPort,
 	})
 	assert.NoError(t, err)
 	setContainerName(selenoidUIContainerName)
 	setImageName(selenoidUIImage)
-	setPort(SelenoidUIDefaultPort)
+	setPort(UIDefaultPort)
 	assert.True(t, c.IsUIRunning())
 	assert.NoError(t, c.StartUI())
 	c.UIStatus()

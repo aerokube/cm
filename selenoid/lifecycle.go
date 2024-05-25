@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/client"
-	"github.com/fatih/color"
 	"io"
 	"time"
+
+	"github.com/docker/docker/client"
+	"github.com/fatih/color"
 )
 
 type LifecycleConfig struct {
@@ -90,7 +91,7 @@ func NewLifecycle(config *LifecycleConfig) (*Lifecycle, error) {
 
 func (l *Lifecycle) Close() {
 	if l.closer != nil {
-		l.closer.Close()
+		_ = l.closer.Close()
 	}
 }
 

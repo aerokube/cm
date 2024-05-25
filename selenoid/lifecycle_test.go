@@ -1,12 +1,13 @@
 package selenoid
 
 import (
-	assert "github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"testing"
+
+	assert "github.com/stretchr/testify/require"
 )
 
 type MockStrategy struct {

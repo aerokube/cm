@@ -10,11 +10,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/aerokube/selenoid/config"
-	"github.com/fatih/color"
-	"github.com/google/go-github/github"
-	"github.com/mitchellh/go-ps"
-	"gopkg.in/cheggaaa/pb.v1"
 	"io"
 	"net/http"
 	"net/url"
@@ -26,6 +21,14 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/aerokube/selenoid/config"
+	"github.com/fatih/color"
+	"github.com/google/go-github/github"
+	"github.com/mitchellh/go-ps"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"gopkg.in/cheggaaa/pb.v1"
 )
 
 const (
@@ -211,9 +214,13 @@ func (d *DriversConfigurator) DownloadUI() (string, error) {
 	return outputFile, nil
 }
 
+var (
+	title = cases.Title(language.AmericanEnglish)
+)
+
 func (d *DriversConfigurator) getSelenoidUIUrl() (string, error) {
 	d.Titlef("Getting Selenoid UI release information for version: %s", color.BlueString(d.Version))
-	return d.getUrl(selenoidUIRepo, fmt.Errorf("Selenoid UI binary for %s %s is not available for specified release: %s", strings.Title(d.OS), d.Arch, d.Version))
+	return d.getUrl(selenoidUIRepo, fmt.Errorf("selenoid ui binary for %s %s is not available for specified release: %s", title.String(d.OS), d.Arch, d.Version))
 }
 
 func (d *DriversConfigurator) getUrl(repo string, missingBinaryError error) (string, error) {
@@ -333,7 +340,7 @@ func downloadFile(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	w.Flush()
+	_ = w.Flush()
 	return b.Bytes(), nil
 }
 
@@ -486,14 +493,16 @@ func untar(data []byte, fileName string, outputDir string) (string, error) {
 			}
 			return extractAndWriteFile(tr, header)
 		}
-		err = fmt.Errorf("file %s does not exist in archive", fileName)
 	}
 
 	return "", err
 }
 
 func outputFile(outputPath string, mode os.FileMode, r io.Reader) error {
-	os.MkdirAll(filepath.Dir(outputPath), 0755)
+	err := os.MkdirAll(filepath.Dir(outputPath), 0755)
+	if err != nil {
+		return err
+	}
 	f, err := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
 		return err
@@ -530,10 +539,10 @@ loop:
 		goarch := runtime.GOARCH
 		if architectures, ok := browser.Files[goos]; ok {
 			if driver, ok := architectures[goarch]; ok {
-				d.Titlef("Processing browser \"%s\"...", color.GreenString(strings.Title(browserName)))
+				d.Titlef("Processing browser \"%s\"...", color.GreenString(title.String(browserName)))
 				driverPath, err := d.downloadDriver(&driver, configDir)
 				if err != nil {
-					d.Errorf("Failed to download %s driver: %v", strings.Title(browserName), err)
+					d.Errorf("Failed to download %s driver: %v", title.String(browserName), err)
 					continue loop
 				}
 				ret = append(ret, downloadedDriver{

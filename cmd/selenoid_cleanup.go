@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/aerokube/cm/selenoid"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var selenoidCleanupCmd = &cobra.Command{

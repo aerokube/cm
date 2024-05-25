@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/aerokube/cm/selenoid"
-	"github.com/spf13/cobra"
 	"os"
 	"runtime"
 	"time"
+
+	"github.com/aerokube/cm/selenoid"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -89,7 +90,7 @@ func initFlags() {
 		selenoidStatusCmd,
 	} {
 		c.Flags().StringVarP(&configDir, "config-dir", "c", selenoid.GetSelenoidConfigDir(), "directory to save files")
-		c.Flags().Uint16VarP(&port, "port", "p", selenoid.SelenoidDefaultPort, "override listen port")
+		c.Flags().Uint16VarP(&port, "port", "p", selenoid.DefaultPort, "override listen port")
 	}
 	for _, c := range []*cobra.Command{
 		selenoidDownloadUICmd,
@@ -101,7 +102,7 @@ func initFlags() {
 		selenoidUIStatusCmd,
 	} {
 		c.Flags().StringVarP(&uiConfigDir, "config-dir", "c", selenoid.GetSelenoidUIConfigDir(), "directory to save files")
-		c.Flags().Uint16VarP(&uiPort, "port", "p", selenoid.SelenoidUIDefaultPort, "override listen port")
+		c.Flags().Uint16VarP(&uiPort, "port", "p", selenoid.UIDefaultPort, "override listen port")
 	}
 
 	for _, c := range []*cobra.Command{
@@ -219,5 +220,5 @@ var selenoidCmd = &cobra.Command{
 }
 
 func stderr(format string, a ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, a)
+	_, _ = fmt.Fprintf(os.Stderr, format, a)
 }
