@@ -3,9 +3,6 @@ package selenoid
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aerokube/selenoid/config"
-	"github.com/google/go-github/github"
-	assert "github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -16,6 +13,10 @@ import (
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/aerokube/selenoid/config"
+	"github.com/google/go-github/github"
+	assert "github.com/stretchr/testify/require"
 )
 
 const (
@@ -89,7 +90,7 @@ func driversMux() http.Handler {
 				},
 			}
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(&browsers)
+			_ = json.NewEncoder(w).Encode(&browsers)
 		},
 	))
 
@@ -113,7 +114,7 @@ func driversMux() http.Handler {
 		func(w http.ResponseWriter, r *http.Request) {
 			version := r.URL.Query().Get(version)
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(version))
+			_, _ = w.Write([]byte(version))
 		},
 	))
 
@@ -323,7 +324,7 @@ func getReleaseHandler(v string) func(http.ResponseWriter, *http.Request) {
 		}
 		data, _ := json.Marshal(&release)
 		w.WriteHeader(http.StatusOK)
-		w.Write(data)
+		_, _ = w.Write(data)
 	}
 }
 
@@ -430,7 +431,7 @@ func TestStartStopProcess(t *testing.T) {
 			OS:            runtime.GOOS,
 			Arch:          runtime.GOARCH,
 			Version:       Latest,
-			Port:          SelenoidDefaultPort,
+			Port:          DefaultPort,
 		}
 		configurator := NewDriversConfigurator(&lcConfig)
 		assert.True(t, configurator.IsRunning()) //This is probably true because test binary has name selenoid.test; no fake process is launched
@@ -439,7 +440,7 @@ func TestStartStopProcess(t *testing.T) {
 		assert.NoError(t, configurator.Stop())
 		assert.NoError(t, configurator.PrintArgs())
 
-		lcConfig.Port = SelenoidUIDefaultPort
+		lcConfig.Port = UIDefaultPort
 		assert.False(t, configurator.IsUIRunning())
 		assert.NoError(t, configurator.StartUI())
 		configurator.UIStatus()

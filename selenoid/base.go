@@ -55,23 +55,23 @@ func (c *Logger) Printf(format string, v ...interface{}) {
 
 func (c *Logger) Titlef(format string, v ...interface{}) {
 	if !c.Quiet {
-		fmt.Fprintf(colorable.NewColorableStdout(), color.GreenString("> ")+format+"\n", v...)
+		_, _ = fmt.Fprintf(colorable.NewColorableStdout(), color.GreenString("> ")+format+"\n", v...)
 	}
 }
 
 func (c *Logger) Errorf(format string, v ...interface{}) {
-	fmt.Fprintf(colorable.NewColorableStdout(), color.RedString("x ")+format+"\n", v...)
+	_, _ = fmt.Fprintf(colorable.NewColorableStdout(), color.RedString("x ")+format+"\n", v...)
 }
 
 func (c *Logger) Pointf(format string, v ...interface{}) {
 	if !c.Quiet {
-		fmt.Fprintf(colorable.NewColorableStdout(), color.HiBlackString("- ")+format+"\n", v...)
+		_, _ = fmt.Fprintf(colorable.NewColorableStdout(), color.HiBlackString("- ")+format+"\n", v...)
 	}
 }
 
 func (c *Logger) Tracef(format string, v ...interface{}) {
 	if !c.Quiet {
-		color.New(color.FgHiBlack).Fprintf(colorable.NewColorableStdout(), format+"\n", v...)
+		_, _ = color.New(color.FgHiBlack).Fprintf(colorable.NewColorableStdout(), format+"\n", v...)
 	}
 }
 
@@ -133,8 +133,8 @@ type LogsAware struct {
 }
 
 const (
-	SelenoidDefaultPort   = 4444
-	SelenoidUIDefaultPort = 8080
+	DefaultPort           = 4444
+	UIDefaultPort         = 8080
 	DefaultRegistryUrl    = "https://index.docker.io"
 	DefaultDriversInfoURL = "https://raw.githubusercontent.com/aerokube/cm/master/browsers.json"
 )

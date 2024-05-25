@@ -1,9 +1,10 @@
 package selenoid
 
 import (
-	assert "github.com/stretchr/testify/require"
 	"path/filepath"
 	"testing"
+
+	assert "github.com/stretchr/testify/require"
 )
 
 func TestGetConfigDir(t *testing.T) {

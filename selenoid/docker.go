@@ -3,18 +3,25 @@ package selenoid
 import (
 	"bufio"
 	"context"
+	"encoding/base64"
 	"encoding/json"
-	"fmt"
-	"github.com/docker/docker/api"
-	"github.com/docker/go-units"
-	"log"
-	"sort"
-
 	"errors"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
+	"regexp"
+	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/docker/docker/api"
+	"github.com/docker/go-units"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/aerokube/selenoid/config"
@@ -23,6 +30,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
@@ -30,17 +38,9 @@ import (
 	"github.com/heroku/docker-registry-client/registry"
 	"github.com/mattn/go-colorable"
 
-	"net/http"
-	"path/filepath"
-	"regexp"
-	"runtime"
-
-	"encoding/base64"
 	"github.com/aerokube/cm/render/rewriter"
 	"github.com/fatih/color"
 	. "github.com/fvbommel/sortorder"
-	"io"
-	"net/url"
 )
 
 const (
@@ -296,7 +296,7 @@ func (c *DockerConfigurator) IsDownloaded() bool {
 	return c.getSelenoidImage() != nil
 }
 
-func (c *DockerConfigurator) getSelenoidImage() *types.ImageSummary {
+func (c *DockerConfigurator) getSelenoidImage() *image.Summary {
 	return c.getImage(selenoidImage, c.Version)
 }
 
@@ -304,12 +304,12 @@ func (c *DockerConfigurator) IsUIDownloaded() bool {
 	return c.getSelenoidUIImage() != nil
 }
 
-func (c *DockerConfigurator) getSelenoidUIImage() *types.ImageSummary {
+func (c *DockerConfigurator) getSelenoidUIImage() *image.Summary {
 	return c.getImage(selenoidUIImage, c.Version)
 }
 
-func (c *DockerConfigurator) getImage(name string, version string) *types.ImageSummary {
-	images, err := c.docker.ImageList(context.Background(), types.ImageListOptions{})
+func (c *DockerConfigurator) getImage(name string, version string) *image.Summary {
+	images, err := c.docker.ImageList(context.Background(), image.ListOptions{})
 	if err != nil {
 		c.Errorf("Failed to list images: %v", err)
 		return nil
@@ -317,7 +317,7 @@ func (c *DockerConfigurator) getImage(name string, version string) *types.ImageS
 	return findMatchingImage(images, name, version)
 }
 
-func findMatchingImage(images []types.ImageSummary, name string, version string) *types.ImageSummary {
+func findMatchingImage(images []image.Summary, name string, version string) *image.Summary {
 	sort.Slice(images, func(i, j int) bool {
 		return images[i].Created > images[j].Created
 	})
@@ -424,15 +424,15 @@ func (c *DockerConfigurator) createConfig() SelenoidConfig {
 	requestedBrowsers := parseRequestedBrowsers(&c.Logger, c.Browsers)
 	browsersToIterate := c.getBrowsersToIterate(requestedBrowsers)
 	browsers := make(map[string]config.Versions)
-	for browserName, image := range browsersToIterate {
+	for browserName, img := range browsersToIterate {
 		c.Titlef(`Processing browser "%v"...`, color.GreenString(browserName))
-		tags := c.fetchImageTags(image)
+		tags := c.fetchImageTags(img)
 		if c.VNC {
 			c.Pointf("Requested to download VNC images but this feature is now deprecated as all images contain VNC.")
 		}
 		versionConstraint := requestedBrowsers[browserName]
 		pulledTags := c.filterTags(tags, versionConstraint)
-		fullyQualifiedImage := c.getFullyQualifiedImageRef(image)
+		fullyQualifiedImage := c.getFullyQualifiedImageRef(img)
 		if c.DownloadNeeded {
 			pulledTags = c.pullImages(fullyQualifiedImage, pulledTags)
 		}
@@ -488,8 +488,8 @@ func (c *DockerConfigurator) getBrowsersToIterate(requestedBrowsers map[string][
 		}
 		ret := make(map[string]string)
 		for browserName := range requestedBrowsers {
-			if image, ok := defaultBrowsers[browserName]; ok {
-				ret[browserName] = image
+			if img, ok := defaultBrowsers[browserName]; ok {
+				ret[browserName] = img
 				continue
 			}
 			c.Errorf("Unsupported browser: %s", browserName)
@@ -635,7 +635,7 @@ type JSONProgress struct {
 
 func (c *DockerConfigurator) pullImage(ctx context.Context, ref string) bool {
 	c.Pointf("Pulling image %v", color.BlueString(ref))
-	pullOptions := types.ImagePullOptions{}
+	pullOptions := image.PullOptions{}
 	if c.authConfig != nil {
 		buf, err := json.Marshal(c.authConfig)
 		if err != nil {
@@ -672,13 +672,13 @@ func (c *DockerConfigurator) pullImage(ctx context.Context, ref string) bool {
 			{
 				if row.Progress != nil {
 					if row.Progress.Current != row.Progress.Total {
-						fmt.Fprintf(writer, "\t[%s]: %s %s\n", row.ID, row.Status, row.ProgressMessage)
+						_, _ = fmt.Fprintf(writer, "\t[%s]: %s %s\n", row.ID, row.Status, row.ProgressMessage)
 					} else {
-						fmt.Fprint(writer, "\r")
+						_, _ = fmt.Fprint(writer, "\r")
 					}
 				}
 
-				writer.Flush()
+				_ = writer.Flush()
 			}
 		}
 	}
@@ -708,7 +708,7 @@ func (c *DockerConfigurator) getSelenoidUIContainer() *types.Container {
 func (c *DockerConfigurator) getContainer(name string) *types.Container {
 	f := filters.NewArgs()
 	f.Add("name", fmt.Sprintf("^/%s$", name))
-	containers, err := c.docker.ContainerList(context.Background(), types.ContainerListOptions{Filters: f})
+	containers, err := c.docker.ContainerList(context.Background(), container.ListOptions{Filters: f})
 	if err != nil {
 		return nil
 	}
@@ -719,12 +719,12 @@ func (c *DockerConfigurator) getContainer(name string) *types.Container {
 }
 
 func (c *DockerConfigurator) PrintArgs() error {
-	image := c.getSelenoidImage()
-	if image == nil {
+	img := c.getSelenoidImage()
+	if img == nil {
 		return errors.New("Selenoid image is not downloaded: this is probably a bug")
 	}
 	cfg := &containerConfig{
-		Image:     image,
+		Image:     img,
 		Cmd:       []string{"--help"},
 		PrintLogs: true,
 	}
@@ -738,9 +738,9 @@ const (
 )
 
 func (c *DockerConfigurator) Start() error {
-	image := c.getSelenoidImage()
-	if image == nil {
-		return errors.New("Selenoid image is not downloaded: this is probably a bug")
+	img := c.getSelenoidImage()
+	if img == nil {
+		return errors.New("selenoid image is not downloaded: this is probably a bug")
 	}
 
 	volumeConfigDir := getVolumeConfigDir(c.ConfigDir, selenoidConfigDirElem)
@@ -786,9 +786,9 @@ func (c *DockerConfigurator) Start() error {
 	}
 	cfg := &containerConfig{
 		Name:        selenoidContainerName,
-		Image:       image,
+		Image:       img,
 		HostPort:    c.Port,
-		ServicePort: SelenoidDefaultPort,
+		ServicePort: DefaultPort,
 		Volumes:     volumes,
 		Network:     networkName,
 		Cmd:         cmd,
@@ -856,12 +856,12 @@ func chooseVolumeConfigDir(defaultConfigDir string, elem []string) string {
 }
 
 func (c *DockerConfigurator) PrintUIArgs() error {
-	image := c.getSelenoidUIImage()
-	if image == nil {
-		return errors.New("Selenoid UI image is not downloaded: this is probably a bug")
+	img := c.getSelenoidUIImage()
+	if img == nil {
+		return errors.New("selenoid UI image is not downloaded: this is probably a bug")
 	}
 	cfg := &containerConfig{
-		Image:     image,
+		Image:     img,
 		Cmd:       []string{"--help"},
 		PrintLogs: true,
 	}
@@ -869,9 +869,9 @@ func (c *DockerConfigurator) PrintUIArgs() error {
 }
 
 func (c *DockerConfigurator) StartUI() error {
-	image := c.getSelenoidUIImage()
-	if image == nil {
-		return errors.New("Selenoid UI image is not downloaded: this is probably a bug")
+	img := c.getSelenoidUIImage()
+	if img == nil {
+		return errors.New("selenoid ui image is not downloaded: this is probably a bug")
 	}
 
 	var cmd, candidates []string
@@ -905,9 +905,9 @@ containers:
 	overrideEnv := strings.Fields(c.Env)
 	cfg := &containerConfig{
 		Name:        selenoidUIContainerName,
-		Image:       image,
+		Image:       img,
 		HostPort:    c.Port,
-		ServicePort: SelenoidUIDefaultPort,
+		ServicePort: UIDefaultPort,
 		Network:     networkName,
 		Cmd:         cmd,
 		OverrideEnv: overrideEnv,
@@ -929,7 +929,7 @@ func validateEnviron(envs []string) []string {
 
 type containerConfig struct {
 	Name        string
-	Image       *types.ImageSummary
+	Image       *image.Summary
 	HostPort    int
 	ServicePort int
 	Volumes     []string
@@ -1002,14 +1002,14 @@ func (c *DockerConfigurator) startContainer(cfg *containerConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to create container: %v", err)
 	}
-	err = c.docker.ContainerStart(ctx, ctr.ID, types.ContainerStartOptions{})
+	err = c.docker.ContainerStart(ctx, ctr.ID, container.StartOptions{})
 	if err != nil {
-		c.removeContainer(ctr.ID)
+		_ = c.removeContainer(ctr.ID)
 		return fmt.Errorf("failed to start container: %v", err)
 	}
 	if cfg.PrintLogs {
 		defer c.removeContainer(ctr.ID)
-		r, err := c.docker.ContainerLogs(ctx, ctr.ID, types.ContainerLogsOptions{
+		r, err := c.docker.ContainerLogs(ctx, ctr.ID, container.LogsOptions{
 			ShowStdout: true,
 			ShowStderr: true,
 		})
@@ -1017,7 +1017,7 @@ func (c *DockerConfigurator) startContainer(cfg *containerConfig) error {
 			return fmt.Errorf("failed to read container logs: %v", err)
 		}
 		defer r.Close()
-		io.Copy(os.Stderr, r)
+		_, _ = io.Copy(os.Stderr, r)
 	}
 	return nil
 }
@@ -1026,7 +1026,7 @@ func (c *DockerConfigurator) createNetworkIfNeeded(networkName string) error {
 	ctx := context.Background()
 	_, err := c.docker.NetworkInspect(ctx, networkName, types.NetworkInspectOptions{})
 	if err != nil {
-		_, err = c.docker.NetworkCreate(ctx, networkName, types.NetworkCreate{CheckDuplicate: true})
+		_, err = c.docker.NetworkCreate(ctx, networkName, types.NetworkCreate{})
 		if err != nil {
 			return fmt.Errorf("failed to create custom network %s: %v", networkName, err)
 		}
@@ -1040,11 +1040,11 @@ func (c *DockerConfigurator) removeContainer(id string) error {
 		timeout := int(c.GracefulTimeout.Milliseconds() / 1000)
 		err := c.docker.ContainerStop(ctx, id, container.StopOptions{Timeout: &timeout})
 		if err == nil {
-			return c.docker.ContainerRemove(ctx, id, types.ContainerRemoveOptions{RemoveVolumes: true})
+			return c.docker.ContainerRemove(ctx, id, container.RemoveOptions{RemoveVolumes: true})
 		}
 		return err
 	}
-	return c.docker.ContainerRemove(ctx, id, types.ContainerRemoveOptions{RemoveVolumes: true, Force: true})
+	return c.docker.ContainerRemove(ctx, id, container.RemoveOptions{RemoveVolumes: true, Force: true})
 }
 
 func (c *DockerConfigurator) Stop() error {
